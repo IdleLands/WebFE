@@ -1,0 +1,52 @@
+{
+  "name": "WebFE",
+  "version": "0.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "install": "bower install"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/IdleLands/WebFE.git"
+  },
+  "author": "Kyle Kemp <kyle@seiyria.com>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/IdleLands/WebFE/issues"
+  },
+  "devDependencies": {
+    "grunt-contrib-copy": "~0.7.0",
+    "load-grunt-tasks": "~1.0.0",
+    "grunt-contrib-coffee": "~0.12.0",
+    "grunt-contrib-watch": "~0.6.1",
+    "grunt-contrib-connect": "~0.8.0",
+    "grunt": "~0.4.5",
+    "coffeelint": "~1.6.1",
+    "grunt-coffeelint": "0.0.13",
+    "grunt-contrib-less": "~0.12.0",
+    "grunt-contrib-clean": "~0.6.0",
+    "grunt-open": "~0.2.3",
+    "grunt-contrib-jade": "~0.13.0",
+    "grunt-contrib-uglify": "~0.6.0"
+  },
+  "build": {
+    "js": [
+      "bower_components/lodash/dist/lodash.js",
+      "bower_components/jquery/dist/jquery.js",
+      "bower_components/hammerjs/hammer.js",
+      "bower_components/angular/angular.js",
+      "bower_components/angular-ui-router/release/angular-ui-router.js",
+      "bower_components/angular-material/angular-material.js",
+      "bower_components/angular-animate/angular-animate.js",
+      "bower_components/angular-aria/angular-aria.js",
+      "bower_components/angular-local-storage/dist/angular-local-storage.js",
+      "bower_components/angular-resource/angular-resource.js"
+    ],
+    "css": [
+      "bower_components/angular/angular-csp.css",
+      "bower_components/angular-material/angular-material.css"
+    ]
+  }
+}

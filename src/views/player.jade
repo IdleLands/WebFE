@@ -1,0 +1,23 @@
+script(id='player', type='text/ng-template')
+   md-toolbar.md-theme-purple
+      h1.md-toolbar-tools
+         span PlayerName
+
+   div(layout="vertical", layout-fill, id="player-tabs")
+      div(layout="vertical")
+         section.md-whiteframe-z1
+            md-tabs(selected="selectedIndex")
+               md-tab(on-select="selectTab(0)",label="Player")
+                  div.tab(layout="horizontal",layout-fill,layout-align="left center")
+
+               md-tab(on-select="selectTab(1)",label="Equipment")
+                  div.tab(layout="horizontal",layout-fill,layout-align="left center")
+
+               md-tab(on-select="selectTab(2)",label="Achievements")
+                  div.tab(layout="horizontal",layout-fill,layout-align="left center")
+
+               md-tab(on-select="selectTab(3)",label="Statistics")
+                  div.tab(layout="horizontal",layout-fill,layout-align="left center")
+
+               md-tab(on-select="selectTab(4)",label="Options")
+                  div.tab(layout="horizontal",layout-fill,layout-align="left center")
