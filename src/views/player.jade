@@ -1,23 +1,78 @@
 script(id='player', type='text/ng-template')
    md-toolbar.md-theme-purple
       h1.md-toolbar-tools
-         span PlayerName
+         span {{player.name}}, the level {{player.level.__current}} {{player.professionName}}
 
-   div(layout="vertical", layout-fill, id="player-tabs")
-      div(layout="vertical")
-         section.md-whiteframe-z1
-            md-tabs(selected="selectedIndex")
-               md-tab(on-select="selectTab(0)",label="Player")
-                  div.tab(layout="horizontal",layout-fill,layout-align="left center")
+   div(id="player-tabs",style="flex:1")
+      section.md-whiteframe-z1
+         md-tabs(selected="selectedIndex")
+            md-tab(on-select="selectTab(0)",label="Player")
+               div.tab(ng-include="'player-player'")
 
-               md-tab(on-select="selectTab(1)",label="Equipment")
-                  div.tab(layout="horizontal",layout-fill,layout-align="left center")
+            md-tab(on-select="selectTab(1)",label="Equipment")
+               div.tab.tab-containment(ng-include="'player-equipment'")
 
-               md-tab(on-select="selectTab(2)",label="Achievements")
-                  div.tab(layout="horizontal",layout-fill,layout-align="left center")
+            md-tab(on-select="selectTab(2)",label="Achievements")
+               div.tab.tab-containment()
 
-               md-tab(on-select="selectTab(3)",label="Statistics")
-                  div.tab(layout="horizontal",layout-fill,layout-align="left center")
+            md-tab(on-select="selectTab(3)",label="Statistics")
+               div.tab.tab-containment()
 
-               md-tab(on-select="selectTab(4)",label="Options")
-                  div.tab(layout="horizontal",layout-fill,layout-align="left center")
+            md-tab(on-select="selectTab(4)",label="Options")
+               div.tab.tab-containment()
+
+script(id="player-player", type="text/ng-template")
+   md-progress-linear(flex,mode="determinate",ng-value="xpPercent",md-theme="green")
+
+   div.tab-containment.no-extra-padding(layout="horizontal")
+      div(flex="33",layout="vertical")
+         md-card
+            h3.text-center Vitals
+            div(layout="horizontal")
+               div(flex="25")
+                  span.fa.fa-fw.fa-heart.fa-2x.text-red.vertical-center
+                     md-tooltip Max HP
+                  span &nbsp;
+                  span {{player.hp.maximum}}
+               div(flex="25")
+                  span.fa.fa-fw.fa-magic.fa-2x.text-blue.vertical-center
+                     md-tooltip Max MP
+                  span &nbsp;
+                  span {{player.mp.maximum}}
+               div(flex="25")
+                  span.fa.fa-fw.fa-asterisk.fa-2x.text-yellow.vertical-center
+                     md-tooltip Special Stat
+                  span &nbsp;
+                  span {{player.special.name || 'None'}}
+               div(flex="25")
+                  span.fa.fa-fw.icon-money.fa-2x.text-gold.vertical-center
+                     md-tooltip Gold
+                  span &nbsp;
+                  span {{player.gold.__current}}
+
+         md-card(flex)
+            h3.text-center Stats
+            div.wrap-container(layout="horizontal",layout-fill,flex)
+               div(ng-repeat="stat in equipmentStatArray",flex="25")
+                  span.fa.fa-fw.fa-2x.vertical-center(class="{{stat.fa}}")
+                     md-tooltip {{stat.name}}
+                  span &nbsp;
+                  span(class="{{valueToColor(player._statCache[stat.name])}}") {{player._statCache[stat.name]}}
+
+         md-card
+            div(layout="horizontal")
+               div
+                  span.fa.fa-fw.fa-clock-o
+                  span &nbsp;Started&nbsp;
+                  span(am-time-ago="player.registrationDate")
+                     md-tooltip {{player.registrationDate}}
+
+      div(flex="33",layout="vertical")
+         md-card
+            h3.text-center Adventure Log
+      div(flex="33",layout="vertical")
+         md-card
+            h2 Test
+
+script(id="player-equipment", type="text/ng-template")
+   div test

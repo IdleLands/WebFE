@@ -1,6 +1,15 @@
 angular.module 'IdleLands'
-  .factory 'Token', ->
-    token = null
+  .factory 'Token', [
+    'localStorageService',
+    (localStorageService) ->
+      token = null
 
-    getToken: -> token
-    setToken: (newToken) -> token = newToken
+      loadToken: ->
+        return if token
+        token = localStorageService.get 'token'
+
+      getToken: -> token
+      setToken: (newToken) ->
+        token = newToken
+        localStorageService.set 'token', token
+  ]

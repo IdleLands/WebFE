@@ -17,7 +17,7 @@ script(id='login-login', type='text/ng-template')
       form
          md-text-float(label="Character Name",ng-model="login.name")
          md-text-float(label="Password",ng-model="login.password",type="password")
-         md-checkbox(ng-model="login.remember") Remember Me
+         md-checkbox.no-margin-left(ng-model="login.remember") Remember Me
          md-button.md-button-raised.md-button-colored.md-theme-green(ng-disabled="isSubmitting",ng-click="doLogin()")
             span(ng-if="!isSubmitting") Log In
             span(ng-if="isSubmitting") Logging in...
@@ -35,7 +35,7 @@ script(id='login-register', type='text/ng-template')
       form
          md-text-float(label="Character Name",ng-model="register.name")
          md-text-float(label="Password",ng-model="register.password",type="password")
-         md-checkbox(ng-model="register.remember") Remember Me
+         md-checkbox.no-margin-left(ng-model="register.remember") Remember Me
          md-button.md-button-raised.md-button-colored.md-theme-green(ng-disabled="isSubmitting",ng-click="doRegister()")
             span(ng-if="!isSubmitting") Register
             span(ng-if="isSubmitting") Registering...
@@ -51,7 +51,7 @@ script(id='login-advlogin', type='text/ng-template')
       form
          md-text-float(label="Identifier",ng-model="advLogin.identifier")
          md-text-float(label="Password",ng-model="advLogin.password",type="password")
-         md-checkbox(ng-model="advLogin.remember") Remember Me
+         md-checkbox.no-margin-left(ng-model="advLogin.remember") Remember Me
          md-button.md-button-raised.md-button-colored.md-theme-green(ng-disabled="isSubmitting",ng-click="doAdvancedLogin()")
             span(ng-if="!isSubmitting") Log In
             span(ng-if="isSubmitting") Logging in...

@@ -36,17 +36,21 @@
       "bower_components/lodash/dist/lodash.js",
       "bower_components/jquery/dist/jquery.js",
       "bower_components/hammerjs/hammer.js",
+      "bower_components/moment/moment.js",
       "bower_components/angular/angular.js",
       "bower_components/angular-ui-router/release/angular-ui-router.js",
       "bower_components/angular-material/angular-material.js",
       "bower_components/angular-animate/angular-animate.js",
       "bower_components/angular-aria/angular-aria.js",
       "bower_components/angular-local-storage/dist/angular-local-storage.js",
-      "bower_components/angular-resource/angular-resource.js"
+      "bower_components/angular-resource/angular-resource.js",
+      "bower_components/angular-moment/angular-moment.js"
     ],
     "css": [
       "bower_components/angular/angular-csp.css",
-      "bower_components/angular-material/angular-material.css"
+      "bower_components/angular-material/angular-material.css",
+      "bower_components/font-awesome/css/font-awesome.css",
+      "src/assets/css/*.css"
     ]
   }
 }

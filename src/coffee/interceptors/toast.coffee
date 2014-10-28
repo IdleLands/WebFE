@@ -7,10 +7,11 @@ angular.module 'IdleLands'
     'You can only have one turn every 10 seconds!'
   ]
 
-  canShowMessage = (msg) ->
-    msg and not (msg in badMessages)
+  canShowMessage = (response) ->
+    msg = response.data.message
+    (not response.config.data.suppress) and msg and not (msg in badMessages)
 
   response: (response) ->
-    ($injector.get '$mdToast').show template: "<md-toast>#{response.data.message}</md-toast>" if canShowMessage response.data.message
+    ($injector.get '$mdToast').show template: "<md-toast>#{response.data.message}</md-toast>" if canShowMessage response
     response
 ]

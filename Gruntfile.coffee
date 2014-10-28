@@ -58,6 +58,13 @@ module.exports = (grunt) ->
           open:
             target: 'http://127.0.0.1:<%= connect.dev.options.port %>'
 
+    copy:
+      lib:
+        files: [
+          {expand: yes, cwd: 'src/assets/fonts/', src: '*', dest: 'dist/fonts'}
+          {expand: yes, cwd: 'bower_components/font-awesome/fonts/', src: '*', dest: 'dist/fonts'}
+        ]
+
 
   #### Misc (automated testing using watch)
     watch:
@@ -67,6 +74,6 @@ module.exports = (grunt) ->
         options:
           livereload: yes
 
-  grunt.registerTask 'build-lib', ['uglify:lib', 'less:lib']
+  grunt.registerTask 'build-lib', ['uglify:lib', 'less:lib', 'copy:lib']
   grunt.registerTask 'build',     ['coffeelint:dev', 'coffee:dev', 'less:dev', 'jade:dev']
   grunt.registerTask 'dev',       ['build-lib', 'build', 'connect:dev', 'watch']
