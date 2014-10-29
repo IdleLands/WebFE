@@ -1,4 +1,4 @@
-angular.module 'IdleLands', ['ngMaterial', 'ngResource', 'angularMoment', 'ui.router', 'LocalStorageModule']
+angular.module 'IdleLands', ['ngMaterial', 'angularMoment', 'ui.router', 'LocalStorageModule']
 
 angular.module 'IdleLands'
   .config ['$locationProvider', ($loc) ->
