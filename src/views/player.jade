@@ -1,9 +1,10 @@
 script(id='player', type='text/ng-template')
    md-toolbar.md-theme-purple
       h1.md-toolbar-tools
+         span.fa.fa-certificate(class="text-{{player.isOnline ? 'green' : 'gray'}}")
          span {{player.name}}, the level {{player.level.__current}} {{player.professionName}}
 
-   div(id="player-tabs",style="flex:1")
+   div(id="player-tabs")
       section.md-whiteframe-z1
          md-tabs(selected="selectedIndex")
             md-tab(on-select="selectTab(0)",label="Player")
@@ -12,8 +13,8 @@ script(id='player', type='text/ng-template')
             md-tab(on-select="selectTab(1)",label="Equipment")
                div.tab.tab-containment(ng-include="'player-equipment'")
 
-            md-tab(on-select="selectTab(2)",label="Achievements")
-               div.tab.tab-containment()
+            md-tab(on-select="selectTab(2)",label="Achievements ({{player.achievements.length}})")
+               div.tab.tab-containment(ng-include="'player-achievements'")
 
             md-tab(on-select="selectTab(3)",label="Statistics")
                div.tab.tab-containment()
@@ -25,54 +26,83 @@ script(id="player-player", type="text/ng-template")
    md-progress-linear(flex,mode="determinate",ng-value="xpPercent",md-theme="green")
 
    div.tab-containment.no-extra-padding(layout="horizontal")
-      div(flex="33",layout="vertical")
+      div(flex="25",layout="vertical")
          md-card
             h3.text-center Vitals
             div(layout="horizontal")
                div(flex="25")
-                  span.fa.fa-fw.fa-heart.fa-2x.text-red.vertical-center
+                  span.fa.fa-fw.fa-heart.fa-lg.text-red.vertical-center
                      md-tooltip Max HP
                   span &nbsp;
-                  span {{player.hp.maximum}}
+                  small {{player.hp.maximum}}
                div(flex="25")
-                  span.fa.fa-fw.fa-magic.fa-2x.text-blue.vertical-center
+                  span.fa.fa-fw.fa-magic.fa-lg.text-blue.vertical-center
                      md-tooltip Max MP
                   span &nbsp;
-                  span {{player.mp.maximum}}
+                  small {{player.mp.maximum}}
                div(flex="25")
-                  span.fa.fa-fw.fa-asterisk.fa-2x.text-yellow.vertical-center
+                  span.fa.fa-fw.fa-asterisk.fa-lg.text-yellow.vertical-center
                      md-tooltip Special Stat
                   span &nbsp;
-                  span {{player.special.name || 'None'}}
+                  small {{player.special.name || 'None'}}
                div(flex="25")
-                  span.fa.fa-fw.icon-money.fa-2x.text-gold.vertical-center
+                  span.fa.fa-fw.icon-money.fa-lg.text-gold.vertical-center
                      md-tooltip Gold
                   span &nbsp;
-                  span {{player.gold.__current}}
+                  small {{player.gold.__current}}
 
          md-card(flex)
             h3.text-center Stats
             div.wrap-container(layout="horizontal",layout-fill,flex)
                div(ng-repeat="stat in equipmentStatArray",flex="25")
-                  span.fa.fa-fw.fa-2x.vertical-center(class="{{stat.fa}}")
+                  span.fa.fa-fw.fa-lg.vertical-center(class="{{stat.fa}}")
                      md-tooltip {{stat.name}}
                   span &nbsp;
-                  span(class="{{valueToColor(player._statCache[stat.name])}}") {{player._statCache[stat.name]}}
+                  small(class="{{valueToColor(player._statCache[stat.name])}}") {{player._statCache[stat.name]}}
 
          md-card
-            div(layout="horizontal")
+            div(layout="vertical")
+               div
+                  span.fa.fa-fw.fa-users
+                  span &nbsp;{{player.partyName || 'No party'}}
+               div
+                  span.fa.fa-fw.fa-sitemap
+                  span &nbsp;{{player.guild || 'No guild'}}
                div
                   span.fa.fa-fw.fa-clock-o
                   span &nbsp;Started&nbsp;
                   span(am-time-ago="player.registrationDate")
                      md-tooltip {{player.registrationDate}}
 
-      div(flex="33",layout="vertical")
+      div(flex="50",layout="vertical")
          md-card
             h3.text-center Adventure Log
-      div(flex="33",layout="vertical")
+
+      div(flex="25",layout="vertical")
          md-card
-            h2 Test
+            h3.text-center Unlocked Personalities
+         md-card
+            md-content
+               section
+                  md-list(layout="vertical")
+                     md-item(ng-repeat="personality in player.achievements | filter:{type:'personality'}")
+                        md-item-content
+                           md-tile-left(style="width:90px")
+                              md-switch(ng-model="test")
+                           md-tile-content
+                              p {{personality._personality}}
 
 script(id="player-equipment", type="text/ng-template")
    div test
+
+script(id="player-achievements",type="text/ng-template")
+   md-list.wrap-container(flex,layout="horizontal")
+      md-item(ng-repeat="achievement in player.achievements",flex="25")
+         md-item-content
+            div.md-tile-left.text-center
+               span.fa-stack
+                  span.fa.fa-stack-2x(ng-repeat="item in $parent.achievementTypeToIcon[achievement.type]",class="{{item}}")
+            div.md-tile-content
+               h3 {{achievement.name}}
+               h4 {{achievement.desc}}
+               p {{achievement.reward}}

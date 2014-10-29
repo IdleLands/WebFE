@@ -5,11 +5,11 @@ html(lang="en", ng-app="IdleLands")
       link(href="css/lib.css",rel="stylesheet")
       link(href="css/index.css",rel="stylesheet")
 
-   body(ng-controller="Head",layout="vertical")
+   body(ng-controller="Head")
       base(href="/")
       md-toolbar.md-theme-dark
          h1.md-toolbar-tools
             span Idle Lands
-      md-content.md-content-padding(scroll-y,flex,ui-view)
+      md-content.md-content-padding(scroll-y,flex,ui-view,layout="vertical")
       script(src="js/lib.js")
       script(src="js/index.js")

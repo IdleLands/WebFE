@@ -32,6 +32,15 @@ angular.module 'IdleLands'
       {name: 'luck', fa: 'fa-moon-o'}
     ]
 
+    $scope.achievementTypeToIcon =
+      'class': ['fa-child']
+      'event': ['fa-info']
+      'combat': ['fa-legal','fa-magic fa-rotate-90']
+      'special': ['fa-gift']
+      'personality': ['fa-group']
+      'exploration': ['fa-compass']
+      'progress': ['fa-signal']
+
     $scope.valueToColor = (value) ->
       return 'text-red' if value < 0
       return 'text-green' if value > 0
