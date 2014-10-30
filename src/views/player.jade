@@ -25,7 +25,7 @@ script(id='player', type='text/ng-template')
 script(id="player-player", type="text/ng-template")
    md-progress-linear(flex,mode="determinate",ng-value="xpPercent",md-theme="green")
 
-   div.tab-containment.no-extra-padding(layout="horizontal")
+   div.tab-containment.no-extra-padding.wrap-container(layout="horizontal")
       div(flex="25",layout="vertical")
          md-card
             h3.text-center Vitals
@@ -51,9 +51,9 @@ script(id="player-player", type="text/ng-template")
                   span &nbsp;
                   small {{player.gold.__current}}
 
-         md-card(flex)
+         md-card
             h3.text-center Stats
-            div.wrap-container(layout="horizontal",layout-fill,flex)
+            div.wrap-container(layout="horizontal",layout-fill)
                div(ng-repeat="stat in equipmentStatArray",flex="25")
                   span.fa.fa-fw.fa-lg.vertical-center(class="{{stat.fa}}")
                      md-tooltip {{stat.name}}
@@ -93,10 +93,39 @@ script(id="player-player", type="text/ng-template")
                               p {{personality._personality}}
 
 script(id="player-equipment", type="text/ng-template")
-   div test
+   md-list
+      md-item(ng-repeat="item in playerItems track by $index")
+         md-item-content
+            div.md-tile-left.class-badge.text-center.align-left-list-item
+               div(class="{{classToColor(item.itemClass)}}") {{item.type}}
+                  md-tooltip {{item.itemClass}}
+               div(ng-if="item.extraItemClass",class="{{classToColor(item.extraItemClass)}}") {{item.extraText}}
+            div.md-tile-content.item-line
+               div
+                  span {{item.enchantLevel ? '+'+item.enchantLevel+' ' : ''}}
+                  span {{item.name}}
+                  small(ng-if="item.foundAt")
+                     span , found
+                     span &nbsp;
+                     span(am-time-ago="item.foundAt")
+                     span , with a PR of
+                     span &nbsp;{{playerItemScore(item)}}%&nbsp;
+                     span and an IR of
+                     span &nbsp;{{itemItemScore(item)}}%
+               div.top-margin-5.wrap-container(layout="horizontal")
+                  span(ng-repeat="stat in equipmentStatArray",flex="8")
+                     span.fa.fa-fw.fa-lg(class="{{stat.fa}}")
+                        md-tooltip {{stat.name}}
+                     span &nbsp;
+                     small(class="{{valueToColor(item[stat.name])}}") {{item[stat.name]}}
+                     small &nbsp;/&nbsp;
+                     small(class="{{valueToColor(item[stat.name+'Percent'])}}") {{item[stat.name+'Percent']}}%
+
+               div.top-margin-5
+                  small {{getExtraStats(item)}}
 
 script(id="player-achievements",type="text/ng-template")
-   md-list.wrap-container(flex,layout="horizontal")
+   md-list.wrap-container(layout="horizontal")
       md-item(ng-repeat="achievement in player.achievements",flex="25")
          md-item-content
             div.md-tile-left.text-center
