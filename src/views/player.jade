@@ -102,8 +102,8 @@ script(id="player-equipment", type="text/ng-template")
                div(ng-if="item.extraItemClass",class="{{classToColor(item.extraItemClass)}}") {{item.extraText}}
             div.md-tile-content.item-line
                div
-                  span {{item.enchantLevel ? '+'+item.enchantLevel+' ' : ''}}
-                  span {{item.name}}
+                  span.super-bold {{item.enchantLevel ? '+'+item.enchantLevel+' ' : ''}}
+                  span.super-bold {{item.name}}
                   small(ng-if="item.foundAt")
                      span , found
                      span &nbsp;
