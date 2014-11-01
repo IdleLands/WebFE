@@ -1,0 +1,82 @@
+
+script(id="player-player", type="text/ng-template")
+   div.tab-containment.is-flex.auto-flex.wrap-container(layout="horizontal")
+      div(flex="25",layout="vertical")
+         md-card.inner-card(layout="vertical")
+            md-toolbar.md-theme-light-blue
+               div.md-toolbar-tools
+                  h3 Vitals
+            md-content.card-padding
+               div(layout="horizontal")
+                  div.vital-stat(flex="25")
+                     span.fa.fa-fw.fa-heart.fa-lg.text-red.vertical-center
+                        md-tooltip Max HP
+                     span &nbsp;
+                     small {{player.hp.maximum}}
+                  div.vital-stat(flex="25")
+                     span.fa.fa-fw.fa-magic.fa-lg.text-blue.vertical-center
+                        md-tooltip Max MP
+                     span &nbsp;
+                     small {{player.mp.maximum}}
+                  div.vital-stat(flex="25")
+                     span.fa.fa-fw.fa-asterisk.fa-lg.text-yellow.vertical-center
+                        md-tooltip Special Stat
+                     span &nbsp;
+                     small {{player.special.name || 'None'}}
+                  div.vital-stat(flex="25")
+                     span.fa.fa-fw.icon-money.fa-lg.text-gold.vertical-center
+                        md-tooltip Gold
+                     span &nbsp;
+                     small {{player.gold.__current}}
+
+               div.wrap-container(layout="horizontal")
+                  div.vital-stat(ng-repeat="stat in equipmentStatArray",flex="25")
+                     span.fa.fa-fw.fa-lg.vertical-center(class="{{stat.fa}}")
+                        md-tooltip {{stat.name}}
+                     span &nbsp;
+                     small(class="{{valueToColor(player._statCache[stat.name])}}") {{player._statCache[stat.name]}}
+
+         md-card.inner-card(layout="vertical")
+            md-toolbar.md-theme-light-blue
+               div.md-toolbar-tools
+                  h3 Miscellaneous
+            md-content.card-padding
+               div(layout="vertical")
+                  div
+                     span.fa.fa-fw.fa-globe
+                     span &nbsp;{{player.map}} ~ {{player.x}}, {{player.y}}
+                  div
+                     span.fa.fa-fw.fa-map-marker
+                     span &nbsp;{{player.mapRegion}}
+                  div
+                     span.fa.fa-fw.fa-users
+                     span &nbsp;{{player.partyName || 'No party'}}
+                  div
+                     span.fa.fa-fw.fa-sitemap
+                     span &nbsp;{{player.guild || 'No guild'}}
+                  div
+                     span.fa.fa-fw.fa-clock-o
+                     span &nbsp;Started&nbsp;
+                     span(am-time-ago="player.registrationDate")
+                        md-tooltip {{player.registrationDate}}
+
+      div(flex="55",layout="vertical")
+         md-card.is-flex.auto-flex.inner-card(layout="vertical")
+            md-toolbar.md-theme-light-blue
+               div.md-toolbar-tools
+                  h3 Adventure Log
+            md-content.is-flex.auto-flex(style="flex-basis:60px",layout="vertical")
+
+      div.is-flex(flex="20")
+         md-card.is-flex.auto-flex.inner-card.max-width(layout="vertical")
+            md-toolbar.md-theme-light-blue
+               div.md-toolbar-tools
+                  h3 Unlocked Personalities
+            md-content.bottom-padding-8
+               md-list.is-flex.auto-flex.hidden-x(layout="vertical")
+                  md-item(style="flex-basis: 1.8em",ng-repeat="personality in player.achievements | filter:{type:'personality'}")
+                     md-item-content
+                        md-tile-left(style="width:90px")
+                           md-switch(ng-model="personalityToggle[personality._personality]")
+                        md-tile-content
+                           p {{personality._personality}}

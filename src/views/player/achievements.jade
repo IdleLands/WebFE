@@ -1,0 +1,11 @@
+script(id="player-achievements",type="text/ng-template")
+    md-list.flex-scroll.wrap-container(layout="horizontal")
+        md-item.md-whiteframe-z1(ng-repeat="achievement in player.achievements",flex="25")
+            md-item-content
+                div.md-tile-left.text-center
+                    span.fa-stack
+                        span.fa.fa-stack-2x(ng-repeat="item in $parent.achievementTypeToIcon[achievement.type]",class="{{item}}")
+                div.md-tile-content
+                    h3 {{achievement.name}}
+                    h4 {{achievement.desc}}
+                    p {{achievement.reward}}

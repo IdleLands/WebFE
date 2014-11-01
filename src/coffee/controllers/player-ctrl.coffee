@@ -10,15 +10,34 @@ angular.module 'IdleLands'
           $state.go 'login'
         )
 
-    $scope.selectedIndex = 0
-    $scope.selectTab = (tabIndex) -> $scope.selectedIndex = tabIndex
-
+    $scope.personalityToggle = {}
+    $scope._player = Player
     $scope.xpPercent = 0
+    $scope.selectedIndex = 0
+
+    $scope.selectTab = (tabIndex) ->
+      $scope.selectedIndex = tabIndex
+
     $scope.calcXpPercent = ->
       $scope.xpPercent = ($scope.player.xp.__current / $scope.player.xp.maximum)*100
 
     $scope.sortPlayerItems = ->
       $scope.playerItems = (_.sortBy ($scope.getEquipmentAndTotals $scope.player.equipment), (item) -> item.type).concat $scope.getOverflows()
+
+    initializing = yes
+
+    $scope.loadPersonalities = ->
+      _.each $scope.player.personalityStrings, (personality) ->
+        $scope.personalityToggle[personality] = yes
+
+    $scope.setPersonality = (personality, to) ->
+      func = if to then 'add' else 'remove'
+      key = if to then 'newPers' else 'oldPers'
+
+      props = {}
+      props[key] = personality
+
+      API.personality[func] props
 
     $scope.classToColor = (itemClass) ->
       switch itemClass
@@ -38,12 +57,12 @@ angular.module 'IdleLands'
       {name: 'con', fa: 'fa-heart'}
       {name: 'int', fa: 'fa-mortar-board'}
       {name: 'wis', fa: 'fa-book'}
+      {name: 'luck', fa: 'fa-moon-o'}
       {name: 'fire', fa: 'fa-fire'}
       {name: 'water', fa: 'icon-water'}
       {name: 'thunder', fa: 'fa-bolt'}
       {name: 'earth', fa: 'fa-leaf'}
       {name: 'ice', fa: 'icon-snow'}
-      {name: 'luck', fa: 'fa-moon-o'}
     ]
 
     $scope.achievementTypeToIcon =
@@ -111,12 +130,29 @@ angular.module 'IdleLands'
       return 0 if not item._calcScore or not $scope.player._baseStats.itemFindRange
       parseInt (item._calcScore / $scope.player._baseStats.itemFindRange) * 100
 
-    $scope._player = Player
+    $scope.$watchCollection 'personalityToggle', (newVal, oldVal) ->
+      return if initializing or newVal is oldVal or _.isEmpty oldVal
+
+      propDiff = _.omit newVal, (v,k) -> oldVal[k] is v
+
+      _.each (_.keys propDiff), (pers) ->
+        $scope.setPersonality pers, propDiff[pers]
+
+    $scope.$watch 'player.pushbulletApiKey', (newVal, oldVal) ->
+      return if newVal is oldVal or initializing
+      console.log newVal, oldVal
+      #API.pushbullet.set newVal
 
     $scope.$watch '_player.getPlayer()', (newVal, oldVal) ->
       return if newVal is oldVal
-      $scope.player = newVal
 
+      initializing = yes
+
+      $scope.player = newVal
       $scope.calcXpPercent()
       $scope.sortPlayerItems()
+      $scope.loadPersonalities()
+
+      initializing = no
+
 ]

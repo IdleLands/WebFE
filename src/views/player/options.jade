@@ -1,0 +1,40 @@
+script(id="player-options", type="text/ng-template")
+   div.tab-containment.is-flex.auto-flex.wrap-container(layout="horizontal")
+      div(flex="25",layout="vertical")
+         md-card.inner-card(layout="vertical")
+            md-toolbar.md-theme-light-blue
+               div.md-toolbar-tools
+                  h3 PushBullet
+            md-content.card-padding
+               a(href,editable-text="player.pushbulletApiKey") {{player.pushbulletApiKey || 'No PushBullet API key set'}}
+
+      div(flex="60",layout="vertical")
+
+      div(flex="15",layout="vertical")
+         md-card.inner-card(layout="vertical")
+            md-toolbar.md-theme-light-blue
+               div.md-toolbar-tools
+                  h3 External Links
+            md-content.card-padding
+               div
+                  div.vital-stat
+                     span.fa.fa-fw.fa-bar-chart.fa-lg.vertical-center
+                     span &nbsp;
+                     small
+                        a(href="http://idle.land/s/analytics/{{player.name}}") Your Analytics
+                  div.vital-stat
+                     span.fa.fa-fw.fa-reddit.fa-lg.vertical-center
+                     span &nbsp;
+                     small
+                        a(href="http://reddit.com/r/idle_lands") /r/idle_lands
+                  div.vital-stat
+                     span.fa.fa-fw.fa-github.fa-lg.vertical-center
+                     span &nbsp;
+                     small
+                        a(href="https://github.com/IdleLands/IdleLands") IdleLands @ GitHub
+                  div.vital-stat
+                     span.fa.fa-fw.fa-thumbs-up.fa-lg.vertical-center
+                     span &nbsp;
+                     small
+                        a(href="http://idle.land/s/thanks") Special Thanks
+
