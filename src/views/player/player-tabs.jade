@@ -1,6 +1,7 @@
 script(id='player', type='text/ng-template')
    md-toolbar.md-theme-light
       h1.md-toolbar-tools
+         md-progress-circular.player-turn.md-theme-yellow(mode="determinate",value="{{turnTimeValue}}",style="float:right")
          span {{player.name}}, the level {{player.level.__current}} {{player.professionName}}
 
    md-progress-linear.player-xp(mode="determinate",ng-value="xpPercent",md-theme="green")

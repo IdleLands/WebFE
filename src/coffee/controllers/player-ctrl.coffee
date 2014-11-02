@@ -207,6 +207,11 @@ angular.module 'IdleLands'
     $timeout $scope.handleScrollback, 3000
 
     # watches
+    $scope.$watch (-> TurnTaker.getSeconds()), (newVal, oldVal) ->
+      return if newVal is oldVal
+      $scope.turnTimeValue = newVal * 10
+      console.log $scope.turnTimeValue
+
     $scope.$watch 'strings', (newVal, oldVal) ->
       return if newVal is oldVal
       $scope.updateStrings()
