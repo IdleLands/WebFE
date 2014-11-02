@@ -171,6 +171,12 @@ body {
 #player-tabs .adventure-log-entry {
   min-height: 70px;
 }
+.player-turn .inset {
+  background-color: #4285f4 !important;
+}
+.player-turn .mask .fill {
+  background-color: #7c4dff!important;
+}
 .player-xp .container {
   background-color: #a3e9a4;
   margin-top: -5px;

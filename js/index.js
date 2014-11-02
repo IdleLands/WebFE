@@ -401,6 +401,15 @@
         return scrollback = (angular.element('.scrollback-toast'))[classFunc]('hidden');
       };
       $timeout($scope.handleScrollback, 3000);
+      $scope.$watch((function() {
+        return TurnTaker.getSeconds();
+      }), function(newVal, oldVal) {
+        if (newVal === oldVal) {
+          return;
+        }
+        $scope.turnTimeValue = newVal * 10;
+        return console.log($scope.turnTimeValue);
+      });
       $scope.$watch('strings', function(newVal, oldVal) {
         if (newVal === oldVal) {
           return;
@@ -864,12 +873,15 @@
 (function() {
   angular.module('IdleLands').factory('TurnTaker', [
     '$interval', 'API', function($interval, API) {
-      var turnInterval;
+      var seconds, timeInterval, turnInterval;
+      seconds = 0;
       turnInterval = null;
+      timeInterval = null;
       return {
         beginTakingTurns: function(player) {
           if (!player) {
             $interval.cancel(turnInterval);
+            $interval.cancel(timeInterval);
             return;
           }
           if (turnInterval) {
@@ -878,11 +890,19 @@
           API.action.turn({
             identifier: player.identifier
           });
+          seconds = 0;
+          timeInterval = $interval(function() {
+            return seconds++;
+          }, 1000);
           return turnInterval = $interval(function() {
+            seconds = 0;
             return API.action.turn({
               identifier: player.identifier
             });
           }, 10100);
+        },
+        getSeconds: function() {
+          return seconds;
         }
       };
     }

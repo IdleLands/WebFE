@@ -206,7 +206,9 @@
 
 <script id="player" type="text/ng-template">
   <md-toolbar class="md-theme-light">
-    <h1 class="md-toolbar-tools"><span>{{player.name}}, the level {{player.level.__current}} {{player.professionName}}</span></h1>
+    <h1 class="md-toolbar-tools">
+      <md-progress-circular mode="determinate" value="{{turnTimeValue}}" style="float:right" class="player-turn md-theme-yellow"></md-progress-circular><span>{{player.name}}, the level {{player.level.__current}} {{player.professionName}}</span>
+    </h1>
   </md-toolbar>
   <md-progress-linear mode="determinate" ng-value="xpPercent" md-theme="green" class="player-xp"></md-progress-linear>
   <div id="player-tabs" class="auto-flex md-whiteframe-z1 is-flex">
