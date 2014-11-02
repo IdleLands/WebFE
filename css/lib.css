@@ -6,7 +6,7 @@
 [x-ng-cloak],
 .ng-cloak,
 .x-ng-cloak,
-.ng-hide:not(.ng-animate) {
+.ng-hide:not(.ng-hide-animate) {
   display: none !important;
 }
 ng\:form {

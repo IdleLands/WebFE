@@ -729,7 +729,7 @@
 
 (function() {
   angular.module('IdleLands').factory('BaseURL', function() {
-    return 'http://localhost:3001';
+    return 'http://api.idle.land';
   });
 
 }).call(this);

@@ -11009,7 +11009,7 @@
                 }
                 return match;
             });
-            message = message + "\nhttp://errors.angularjs.org/1.3.0-rc.4/" + (module ? module + "/" : "") + code;
+            message = message + "\nhttp://errors.angularjs.org/1.3.0/" + (module ? module + "/" : "") + code;
             for (i = 2; i < arguments.length; i++) {
                 message = message + (i == 2 ? "?" : "&") + "p" + (i - 2) + "=" + encodeURIComponent(stringify(arguments[i]));
             }
@@ -11039,17 +11039,14 @@
         lowercase = manualLowercase;
         uppercase = manualUppercase;
     }
-    var msie, jqLite, jQuery, slice = [].slice, push = [].push, toString = Object.prototype.toString, ngMinErr = minErr("ng"), angular = window.angular || (window.angular = {}), angularModule, uid = 0;
-    msie = int((/msie (\d+)/.exec(lowercase(navigator.userAgent)) || [])[1]);
-    if (isNaN(msie)) {
-        msie = int((/trident\/.*; rv:(\d+)/.exec(lowercase(navigator.userAgent)) || [])[1]);
-    }
+    var msie, jqLite, jQuery, slice = [].slice, splice = [].splice, push = [].push, toString = Object.prototype.toString, ngMinErr = minErr("ng"), angular = window.angular || (window.angular = {}), angularModule, uid = 0;
+    msie = document.documentMode;
     function isArrayLike(obj) {
         if (obj == null || isWindow(obj)) {
             return false;
         }
         var length = obj.length;
-        if (obj.nodeType === 1 && length) {
+        if (obj.nodeType === NODE_TYPE_ELEMENT && length) {
             return true;
         }
         return isString(obj) || isArray(obj) || length === 0 || typeof length === "number" && length > 0 && length - 1 in obj;
@@ -11404,10 +11401,9 @@
         try {
             element.empty();
         } catch (e) {}
-        var TEXT_NODE = 3;
         var elemHtml = jqLite("<div>").append(element).html();
         try {
-            return element[0].nodeType === TEXT_NODE ? lowercase(elemHtml) : elemHtml.match(/^(<[^>]+>)/)[1].replace(/^<([\w\-]+)/, function(match, nodeName) {
+            return element[0].nodeType === NODE_TYPE_TEXT ? lowercase(elemHtml) : elemHtml.match(/^(<[^>]+>)/)[1].replace(/^<([\w\-]+)/, function(match, nodeName) {
                 return "<" + lowercase(nodeName);
             });
         } catch (e) {
@@ -11641,6 +11637,11 @@
     function createMap() {
         return Object.create(null);
     }
+    var NODE_TYPE_ELEMENT = 1;
+    var NODE_TYPE_TEXT = 3;
+    var NODE_TYPE_COMMENT = 8;
+    var NODE_TYPE_DOCUMENT = 9;
+    var NODE_TYPE_DOCUMENT_FRAGMENT = 11;
     function setupModuleLoader(window) {
         var $injectorMinErr = minErr("$injector");
         var ngMinErr = minErr("ng");
@@ -11706,11 +11707,11 @@
         });
     }
     var version = {
-        full: "1.3.0-rc.4",
+        full: "1.3.0",
         major: 1,
         minor: 3,
         dot: 0,
-        codeName: "unicorn-hydrafication"
+        codeName: "superluminal-nudge"
     };
     function publishExternalAPI(angular) {
         extend(angular, {
@@ -11744,8 +11745,7 @@
             getTestability: getTestability,
             $$minErr: minErr,
             $$csp: csp,
-            reloadWithDebugInfo: reloadWithDebugInfo,
-            $$hasClass: jqLiteHasClass
+            reloadWithDebugInfo: reloadWithDebugInfo
         });
         angularModule = setupModuleLoader(window);
         try {
@@ -11881,7 +11881,7 @@
     }
     function jqLiteAcceptsData(node) {
         var nodeType = node.nodeType;
-        return nodeType === 1 || !nodeType || nodeType === 9;
+        return nodeType === NODE_TYPE_ELEMENT || !nodeType || nodeType === NODE_TYPE_DOCUMENT;
     }
     function jqLiteBuildFragment(html, context) {
         var tmp, tag, wrap, fragment = context.createDocumentFragment(), nodes = [], i;
@@ -11960,18 +11960,21 @@
         if (!type) {
             for (type in events) {
                 if (type !== "$destroy") {
-                    removeEventListenerFn(element, type, events[type]);
+                    removeEventListenerFn(element, type, handle);
                 }
                 delete events[type];
             }
         } else {
             forEach(type.split(" "), function(type) {
-                if (isUndefined(fn)) {
-                    removeEventListenerFn(element, type, events[type]);
-                    delete events[type];
-                } else {
-                    arrayRemove(events[type] || [], fn);
+                if (isDefined(fn)) {
+                    var listenerFns = events[type];
+                    arrayRemove(listenerFns || [], fn);
+                    if (listenerFns && listenerFns.length > 0) {
+                        return;
+                    }
                 }
+                removeEventListenerFn(element, type, handle);
+                delete events[type];
             });
         }
     }
@@ -12072,7 +12075,7 @@
         return jqLiteInheritedData(element, "$" + (name || "ngController") + "Controller");
     }
     function jqLiteInheritedData(element, name, value) {
-        if (element.nodeType == 9) {
+        if (element.nodeType == NODE_TYPE_DOCUMENT) {
             element = element.documentElement;
         }
         var names = isArray(name) ? name : [ name ];
@@ -12080,7 +12083,7 @@
             for (var i = 0, ii = names.length; i < ii; i++) {
                 if ((value = jqLite.data(element, names[i])) !== undefined) return value;
             }
-            element = element.parentNode || element.nodeType === 11 && element.host;
+            element = element.parentNode || element.nodeType === NODE_TYPE_DOCUMENT_FRAGMENT && element.host;
         }
     }
     function jqLiteEmpty(element) {
@@ -12093,6 +12096,14 @@
         if (!keepData) jqLiteDealoc(element);
         var parent = element.parentNode;
         if (parent) parent.removeChild(element);
+    }
+    function jqLiteDocumentLoaded(action, win) {
+        win = win || window;
+        if (win.document.readyState === "complete") {
+            win.setTimeout(action);
+        } else {
+            jqLite(win).on("load", action);
+        }
     }
     var JQLitePrototype = JQLite.prototype = {
         ready: function(fn) {
@@ -12213,7 +12224,7 @@
             function getText(element, value) {
                 if (isUndefined(value)) {
                     var nodeType = element.nodeType;
-                    return nodeType === 1 || nodeType === 3 ? element.textContent : "";
+                    return nodeType === NODE_TYPE_ELEMENT || nodeType === NODE_TYPE_TEXT ? element.textContent : "";
                 }
                 element.textContent = value;
             }
@@ -12370,7 +12381,7 @@
         children: function(element) {
             var children = [];
             forEach(element.childNodes, function(element) {
-                if (element.nodeType === 1) children.push(element);
+                if (element.nodeType === NODE_TYPE_ELEMENT) children.push(element);
             });
             return children;
         },
@@ -12379,7 +12390,7 @@
         },
         append: function(element, node) {
             var nodeType = element.nodeType;
-            if (nodeType !== 1 && nodeType !== 11) return;
+            if (nodeType !== NODE_TYPE_ELEMENT && nodeType !== NODE_TYPE_DOCUMENT_FRAGMENT) return;
             node = new JQLite(node);
             for (var i = 0, ii = node.length; i < ii; i++) {
                 var child = node[i];
@@ -12387,7 +12398,7 @@
             }
         },
         prepend: function(element, node) {
-            if (element.nodeType === 1) {
+            if (element.nodeType === NODE_TYPE_ELEMENT) {
                 var index = element.firstChild;
                 forEach(new JQLite(node), function(child) {
                     element.insertBefore(child, index);
@@ -12430,7 +12441,7 @@
         },
         parent: function(element) {
             var parent = element.parentNode;
-            return parent && parent.nodeType !== 11 ? parent : null;
+            return parent && parent.nodeType !== NODE_TYPE_DOCUMENT_FRAGMENT ? parent : null;
         },
         next: function(element) {
             return element.nextElementSibling;
@@ -12618,9 +12629,18 @@
             }
             return providerCache[name + providerSuffix] = provider_;
         }
-        function factory(name, factoryFn) {
+        function enforceReturnValue(name, factory) {
+            return function enforcedReturnValue() {
+                var result = instanceInjector.invoke(factory, this, undefined, name);
+                if (isUndefined(result)) {
+                    throw $injectorMinErr("undef", "Provider '{0}' must return a value from $get factory method.", name);
+                }
+                return result;
+            };
+        }
+        function factory(name, factoryFn, enforce) {
             return provider(name, {
-                $get: factoryFn
+                $get: enforce !== false ? enforceReturnValue(name, factoryFn) : factoryFn
             });
         }
         function service(name, constructor) {
@@ -12629,7 +12649,7 @@
             } ]);
         }
         function value(name, val) {
-            return factory(name, valueFn(val));
+            return factory(name, valueFn(val), false);
         }
         function constant(name, value) {
             assertNotHasOwnProperty(name, "constant");
@@ -12748,22 +12768,58 @@
         };
         this.$get = [ "$window", "$location", "$rootScope", function($window, $location, $rootScope) {
             var document = $window.document;
+            var scrollScheduled = false;
             function getFirstAnchor(list) {
                 var result = null;
-                forEach(list, function(element) {
-                    if (!result && nodeName_(element) === "a") result = element;
+                Array.prototype.some.call(list, function(element) {
+                    if (nodeName_(element) === "a") {
+                        result = element;
+                        return true;
+                    }
                 });
                 return result;
             }
+            function getYOffset() {
+                var offset = scroll.yOffset;
+                if (isFunction(offset)) {
+                    offset = offset();
+                } else if (isElement(offset)) {
+                    var elem = offset[0];
+                    var style = $window.getComputedStyle(elem);
+                    if (style.position !== "fixed") {
+                        offset = 0;
+                    } else {
+                        offset = elem.getBoundingClientRect().bottom;
+                    }
+                } else if (!isNumber(offset)) {
+                    offset = 0;
+                }
+                return offset;
+            }
+            function scrollTo(elem) {
+                if (elem) {
+                    elem.scrollIntoView();
+                    var offset = getYOffset();
+                    if (offset) {
+                        var elemTop = elem.getBoundingClientRect().top;
+                        $window.scrollBy(0, elemTop - offset);
+                    }
+                } else {
+                    $window.scrollTo(0, 0);
+                }
+            }
             function scroll() {
                 var hash = $location.hash(), elm;
-                if (!hash) $window.scrollTo(0, 0); else if (elm = document.getElementById(hash)) elm.scrollIntoView(); else if (elm = getFirstAnchor(document.getElementsByName(hash))) elm.scrollIntoView(); else if (hash === "top") $window.scrollTo(0, 0);
+                if (!hash) scrollTo(null); else if (elm = document.getElementById(hash)) scrollTo(elm); else if (elm = getFirstAnchor(document.getElementsByName(hash))) scrollTo(elm); else if (hash === "top") scrollTo(null);
             }
             if (autoScrollingEnabled) {
                 $rootScope.$watch(function autoScrollWatch() {
                     return $location.hash();
-                }, function autoScrollWatchAction() {
-                    $rootScope.$evalAsync(scroll);
+                }, function autoScrollWatchAction(newVal, oldVal) {
+                    if (newVal === oldVal && newVal === "") return;
+                    jqLiteDocumentLoaded(function() {
+                        $rootScope.$evalAsync(scroll);
+                    });
                 });
             }
             return scroll;
@@ -12784,8 +12840,42 @@
             }
             return this.$$classNameFilter;
         };
-        this.$get = [ "$$q", "$$asyncCallback", function($$q, $$asyncCallback) {
+        this.$get = [ "$$q", "$$asyncCallback", "$rootScope", function($$q, $$asyncCallback, $rootScope) {
             var currentDefer;
+            function runAnimationPostDigest(fn) {
+                var cancelFn, defer = $$q.defer();
+                defer.promise.$$cancelFn = function ngAnimateMaybeCancel() {
+                    cancelFn && cancelFn();
+                };
+                $rootScope.$$postDigest(function ngAnimatePostDigest() {
+                    cancelFn = fn(function ngAnimateNotifyComplete() {
+                        defer.resolve();
+                    });
+                });
+                return defer.promise;
+            }
+            function resolveElementClasses(element, classes) {
+                var toAdd = [], toRemove = [];
+                var hasClasses = createMap();
+                forEach((element.attr("class") || "").split(/\s+/), function(className) {
+                    hasClasses[className] = true;
+                });
+                forEach(classes, function(status, className) {
+                    var hasClass = hasClasses[className];
+                    if (status === false && hasClass) {
+                        toRemove.push(className);
+                    } else if (status === true && !hasClass) {
+                        toAdd.push(className);
+                    }
+                });
+                return toAdd.length + toRemove.length > 0 && [ toAdd.length ? toAdd : null, toRemove.length ? toRemove : null ];
+            }
+            function cachedClassManipulation(cache, classes, op) {
+                for (var i = 0, ii = classes.length; i < ii; ++i) {
+                    var className = classes[i];
+                    cache[className] = op;
+                }
+            }
             function asyncPromise() {
                 if (!currentDefer) {
                     currentDefer = $$q.defer();
@@ -12796,35 +12886,96 @@
                 }
                 return currentDefer.promise;
             }
+            function applyStyles(element, options) {
+                if (angular.isObject(options)) {
+                    var styles = extend(options.from || {}, options.to || {});
+                    element.css(styles);
+                }
+            }
             return {
-                enter: function(element, parent, after) {
+                animate: function(element, from, to) {
+                    applyStyles(element, {
+                        from: from,
+                        to: to
+                    });
+                    return asyncPromise();
+                },
+                enter: function(element, parent, after, options) {
+                    applyStyles(element, options);
                     after ? after.after(element) : parent.prepend(element);
                     return asyncPromise();
                 },
-                leave: function(element) {
+                leave: function(element, options) {
                     element.remove();
                     return asyncPromise();
                 },
-                move: function(element, parent, after) {
-                    return this.enter(element, parent, after);
+                move: function(element, parent, after, options) {
+                    return this.enter(element, parent, after, options);
                 },
-                addClass: function(element, className) {
+                addClass: function(element, className, options) {
+                    return this.setClass(element, className, [], options);
+                },
+                $$addClassImmediately: function(element, className, options) {
+                    element = jqLite(element);
                     className = !isString(className) ? isArray(className) ? className.join(" ") : "" : className;
                     forEach(element, function(element) {
                         jqLiteAddClass(element, className);
                     });
+                    applyStyles(element, options);
                     return asyncPromise();
                 },
-                removeClass: function(element, className) {
+                removeClass: function(element, className, options) {
+                    return this.setClass(element, [], className, options);
+                },
+                $$removeClassImmediately: function(element, className, options) {
+                    element = jqLite(element);
                     className = !isString(className) ? isArray(className) ? className.join(" ") : "" : className;
                     forEach(element, function(element) {
                         jqLiteRemoveClass(element, className);
                     });
+                    applyStyles(element, options);
                     return asyncPromise();
                 },
-                setClass: function(element, add, remove) {
-                    this.addClass(element, add);
-                    this.removeClass(element, remove);
+                setClass: function(element, add, remove, options) {
+                    var self = this;
+                    var STORAGE_KEY = "$$animateClasses";
+                    var createdCache = false;
+                    element = jqLite(element);
+                    var cache = element.data(STORAGE_KEY);
+                    if (!cache) {
+                        cache = {
+                            classes: {},
+                            options: options
+                        };
+                        createdCache = true;
+                    } else if (options && cache.options) {
+                        cache.options = angular.extend(cache.options || {}, options);
+                    }
+                    var classes = cache.classes;
+                    add = isArray(add) ? add : add.split(" ");
+                    remove = isArray(remove) ? remove : remove.split(" ");
+                    cachedClassManipulation(classes, add, true);
+                    cachedClassManipulation(classes, remove, false);
+                    if (createdCache) {
+                        cache.promise = runAnimationPostDigest(function(done) {
+                            var cache = element.data(STORAGE_KEY);
+                            element.removeData(STORAGE_KEY);
+                            if (cache) {
+                                var classes = resolveElementClasses(element, cache.classes);
+                                if (classes) {
+                                    self.$$setClassImmediately(element, classes[0], classes[1], cache.options);
+                                }
+                            }
+                            done();
+                        });
+                        element.data(STORAGE_KEY, cache);
+                    }
+                    return cache.promise;
+                },
+                $$setClassImmediately: function(element, add, remove, options) {
+                    add && this.$$addClassImmediately(element, add);
+                    remove && this.$$removeClassImmediately(element, remove);
+                    applyStyles(element, options);
                     return asyncPromise();
                 },
                 enabled: noop,
@@ -12890,19 +13041,31 @@
                 pollTimeout = setTimeout(check, interval);
             })();
         }
-        var lastBrowserUrl = location.href, baseElement = document.find("base"), newLocation = null;
-        self.url = function(url, replace) {
+        var cachedState, lastHistoryState, lastBrowserUrl = location.href, baseElement = document.find("base"), reloadLocation = null;
+        cacheState();
+        lastHistoryState = cachedState;
+        self.url = function(url, replace, state) {
+            if (isUndefined(state)) {
+                state = null;
+            }
             if (location !== window.location) location = window.location;
             if (history !== window.history) history = window.history;
             if (url) {
-                if (lastBrowserUrl == url) return;
+                var sameState = lastHistoryState === state;
+                if (lastBrowserUrl === url && (!$sniffer.history || sameState)) {
+                    return;
+                }
+                var sameBase = lastBrowserUrl && stripHash(lastBrowserUrl) === stripHash(url);
                 lastBrowserUrl = url;
-                if ($sniffer.history) {
-                    if (replace) history.replaceState(null, "", url); else {
-                        history.pushState(null, "", url);
-                    }
+                lastHistoryState = state;
+                if ($sniffer.history && (!sameBase || !sameState)) {
+                    history[replace ? "replaceState" : "pushState"](state, "", url);
+                    cacheState();
+                    lastHistoryState = cachedState;
                 } else {
-                    newLocation = url;
+                    if (!sameBase) {
+                        reloadLocation = url;
+                    }
                     if (replace) {
                         location.replace(url);
                     } else {
@@ -12911,22 +13074,40 @@
                 }
                 return self;
             } else {
-                return newLocation || location.href.replace(/%27/g, "'");
+                return reloadLocation || location.href.replace(/%27/g, "'");
             }
         };
+        self.state = function() {
+            return cachedState;
+        };
         var urlChangeListeners = [], urlChangeInit = false;
+        function cacheStateAndFireUrlChange() {
+            cacheState();
+            fireUrlChange();
+        }
+        var lastCachedState = null;
+        function cacheState() {
+            cachedState = window.history.state;
+            cachedState = isUndefined(cachedState) ? null : cachedState;
+            if (equals(cachedState, lastCachedState)) {
+                cachedState = lastCachedState;
+            }
+            lastCachedState = cachedState;
+        }
         function fireUrlChange() {
-            newLocation = null;
-            if (lastBrowserUrl == self.url()) return;
+            if (lastBrowserUrl === self.url() && lastHistoryState === cachedState) {
+                return;
+            }
             lastBrowserUrl = self.url();
+            lastHistoryState = cachedState;
             forEach(urlChangeListeners, function(listener) {
-                listener(self.url());
+                listener(self.url(), cachedState);
             });
         }
         self.onUrlChange = function(callback) {
             if (!urlChangeInit) {
-                if ($sniffer.history) jqLite(window).on("popstate", fireUrlChange);
-                if ($sniffer.hashchange) jqLite(window).on("hashchange", fireUrlChange); else self.addPollFn(fireUrlChange);
+                if ($sniffer.history) jqLite(window).on("popstate", cacheStateAndFireUrlChange);
+                jqLite(window).on("hashchange", cacheStateAndFireUrlChange);
                 urlChangeInit = true;
             }
             urlChangeListeners.push(callback);
@@ -12940,6 +13121,13 @@
         var lastCookies = {};
         var lastCookieString = "";
         var cookiePath = self.baseHref();
+        function safeDecodeURIComponent(str) {
+            try {
+                return decodeURIComponent(str);
+            } catch (e) {
+                return str;
+            }
+        }
         self.cookies = function(name, value) {
             var cookieLength, cookieArray, cookie, i, index;
             if (name) {
@@ -12962,9 +13150,9 @@
                         cookie = cookieArray[i];
                         index = cookie.indexOf("=");
                         if (index > 0) {
-                            name = decodeURIComponent(cookie.substring(0, index));
+                            name = safeDecodeURIComponent(cookie.substring(0, index));
                             if (lastCookies[name] === undefined) {
-                                lastCookies[name] = decodeURIComponent(cookie.substring(index + 1));
+                                lastCookies[name] = safeDecodeURIComponent(cookie.substring(index + 1));
                             }
                         }
                     }
@@ -13277,7 +13465,7 @@
                     });
                 },
                 $observe: function(key, fn) {
-                    var attrs = this, $$observers = attrs.$$observers || (attrs.$$observers = Object.create(null)), listeners = $$observers[key] || ($$observers[key] = []);
+                    var attrs = this, $$observers = attrs.$$observers || (attrs.$$observers = createMap()), listeners = $$observers[key] || ($$observers[key] = []);
                     listeners.push(fn);
                     $rootScope.$evalAsync(function() {
                         if (!listeners.$$inter) {
@@ -13322,25 +13510,26 @@
                     $compileNodes = jqLite($compileNodes);
                 }
                 forEach($compileNodes, function(node, index) {
-                    if (node.nodeType == 3 && node.nodeValue.match(/\S+/)) {
+                    if (node.nodeType == NODE_TYPE_TEXT && node.nodeValue.match(/\S+/)) {
                         $compileNodes[index] = jqLite(node).wrap("<span></span>").parent()[0];
                     }
                 });
                 var compositeLinkFn = compileNodes($compileNodes, transcludeFn, $compileNodes, maxPriority, ignoreDirective, previousCompileContext);
                 compile.$$addScopeClass($compileNodes);
                 var namespace = null;
-                var namespaceAdaptedCompileNodes = $compileNodes;
-                var lastCompileNode;
                 return function publicLinkFn(scope, cloneConnectFn, transcludeControllers, parentBoundTranscludeFn, futureParentElement) {
                     assertArg(scope, "scope");
                     if (!namespace) {
                         namespace = detectNamespaceForChildElements(futureParentElement);
                     }
-                    if (namespace !== "html" && $compileNodes[0] !== lastCompileNode) {
-                        namespaceAdaptedCompileNodes = jqLite(wrapTemplate(namespace, jqLite("<div>").append($compileNodes).html()));
+                    var $linkNode;
+                    if (namespace !== "html") {
+                        $linkNode = jqLite(wrapTemplate(namespace, jqLite("<div>").append($compileNodes).html()));
+                    } else if (cloneConnectFn) {
+                        $linkNode = JQLitePrototype.clone.call($compileNodes);
+                    } else {
+                        $linkNode = $compileNodes;
                     }
-                    lastCompileNode = $compileNodes[0];
-                    var $linkNode = cloneConnectFn ? JQLitePrototype.clone.call(namespaceAdaptedCompileNodes) : namespaceAdaptedCompileNodes;
                     if (transcludeControllers) {
                         for (var controllerName in transcludeControllers) {
                             $linkNode.data("$" + controllerName + "Controller", transcludeControllers[controllerName].instance);
@@ -13431,38 +13620,36 @@
             function collectDirectives(node, directives, attrs, maxPriority, ignoreDirective) {
                 var nodeType = node.nodeType, attrsMap = attrs.$attr, match, className;
                 switch (nodeType) {
-                  case 1:
+                  case NODE_TYPE_ELEMENT:
                     addDirective(directives, directiveNormalize(nodeName_(node)), "E", maxPriority, ignoreDirective);
                     for (var attr, name, nName, ngAttrName, value, isNgAttr, nAttrs = node.attributes, j = 0, jj = nAttrs && nAttrs.length; j < jj; j++) {
                         var attrStartName = false;
                         var attrEndName = false;
                         attr = nAttrs[j];
-                        if (!msie || msie >= 8 || attr.specified) {
-                            name = attr.name;
-                            value = trim(attr.value);
-                            ngAttrName = directiveNormalize(name);
-                            if (isNgAttr = NG_ATTR_BINDING.test(ngAttrName)) {
-                                name = snake_case(ngAttrName.substr(6), "-");
-                            }
-                            var directiveNName = ngAttrName.replace(/(Start|End)$/, "");
-                            if (directiveIsMultiElement(directiveNName)) {
-                                if (ngAttrName === directiveNName + "Start") {
-                                    attrStartName = name;
-                                    attrEndName = name.substr(0, name.length - 5) + "end";
-                                    name = name.substr(0, name.length - 6);
-                                }
-                            }
-                            nName = directiveNormalize(name.toLowerCase());
-                            attrsMap[nName] = name;
-                            if (isNgAttr || !attrs.hasOwnProperty(nName)) {
-                                attrs[nName] = value;
-                                if (getBooleanAttrName(node, nName)) {
-                                    attrs[nName] = true;
-                                }
-                            }
-                            addAttrInterpolateDirective(node, directives, value, nName, isNgAttr);
-                            addDirective(directives, nName, "A", maxPriority, ignoreDirective, attrStartName, attrEndName);
+                        name = attr.name;
+                        value = trim(attr.value);
+                        ngAttrName = directiveNormalize(name);
+                        if (isNgAttr = NG_ATTR_BINDING.test(ngAttrName)) {
+                            name = snake_case(ngAttrName.substr(6), "-");
                         }
+                        var directiveNName = ngAttrName.replace(/(Start|End)$/, "");
+                        if (directiveIsMultiElement(directiveNName)) {
+                            if (ngAttrName === directiveNName + "Start") {
+                                attrStartName = name;
+                                attrEndName = name.substr(0, name.length - 5) + "end";
+                                name = name.substr(0, name.length - 6);
+                            }
+                        }
+                        nName = directiveNormalize(name.toLowerCase());
+                        attrsMap[nName] = name;
+                        if (isNgAttr || !attrs.hasOwnProperty(nName)) {
+                            attrs[nName] = value;
+                            if (getBooleanAttrName(node, nName)) {
+                                attrs[nName] = true;
+                            }
+                        }
+                        addAttrInterpolateDirective(node, directives, value, nName, isNgAttr);
+                        addDirective(directives, nName, "A", maxPriority, ignoreDirective, attrStartName, attrEndName);
                     }
                     className = node.className;
                     if (isString(className) && className !== "") {
@@ -13476,11 +13663,11 @@
                     }
                     break;
 
-                  case 3:
+                  case NODE_TYPE_TEXT:
                     addTextInterpolateDirective(directives, node.nodeValue);
                     break;
 
-                  case 8:
+                  case NODE_TYPE_COMMENT:
                     try {
                         match = COMMENT_DIRECTIVE_REGEXP.exec(node.nodeValue);
                         if (match) {
@@ -13504,7 +13691,7 @@
                         if (!node) {
                             throw $compileMinErr("uterdir", "Unterminated attribute, found '{0}' but no matching '{1}' found.", attrStart, attrEnd);
                         }
-                        if (node.nodeType == 1) {
+                        if (node.nodeType == NODE_TYPE_ELEMENT) {
                             if (node.hasAttribute(attrStart)) depth++;
                             if (node.hasAttribute(attrEnd)) depth--;
                         }
@@ -13587,10 +13774,10 @@
                             if (jqLiteIsTextNode(directiveValue)) {
                                 $template = [];
                             } else {
-                                $template = jqLite(wrapTemplate(directive.templateNamespace, trim(directiveValue)));
+                                $template = removeComments(wrapTemplate(directive.templateNamespace, trim(directiveValue)));
                             }
                             compileNode = $template[0];
-                            if ($template.length != 1 || compileNode.nodeType !== 1) {
+                            if ($template.length != 1 || compileNode.nodeType !== NODE_TYPE_ELEMENT) {
                                 throw $compileMinErr("tplrt", "Template for directive '{0}' must have exactly one root element. {1}", directiveName, "");
                             }
                             replaceWith(jqCollection, $compileNode, compileNode);
@@ -13923,10 +14110,10 @@
                         if (jqLiteIsTextNode(content)) {
                             $template = [];
                         } else {
-                            $template = jqLite(wrapTemplate(templateNamespace, trim(content)));
+                            $template = removeComments(wrapTemplate(templateNamespace, trim(content)));
                         }
                         compileNode = $template[0];
-                        if ($template.length != 1 || compileNode.nodeType !== 1) {
+                        if ($template.length != 1 || compileNode.nodeType !== NODE_TYPE_ELEMENT) {
                             throw $compileMinErr("tplrt", "Template for directive '{0}' must have exactly one root element. {1}", origAsyncDirective.name, templateUrl);
                         }
                         tempTemplateAttrs = {
@@ -14055,6 +14242,9 @@
                                 if (EVENT_HANDLER_ATTR_REGEXP.test(name)) {
                                     throw $compileMinErr("nodomevents", "Interpolations for HTML DOM event attributes are disallowed.  Please use the " + "ng- versions (such as ng-click instead of onclick) instead.");
                                 }
+                                if (!attr[name]) {
+                                    return;
+                                }
                                 interpolateFn = $interpolate(attr[name], true, getTrustedContext(node, name), ALL_OR_NOTHING_ATTRS[name] || allOrNothing);
                                 if (!interpolateFn) return;
                                 attr[name] = interpolateFn(scope);
@@ -14144,6 +14334,20 @@
             values += (values.length > 0 ? " " : "") + token;
         }
         return values;
+    }
+    function removeComments(jqNodes) {
+        jqNodes = jqLite(jqNodes);
+        var i = jqNodes.length;
+        if (i <= 1) {
+            return jqNodes;
+        }
+        while (i--) {
+            var node = jqNodes[i];
+            if (node.nodeType === NODE_TYPE_COMMENT) {
+                splice.call(jqNodes, i, 1);
+            }
+        }
+        return jqNodes;
     }
     function $ControllerProvider() {
         var controllers = {}, globals = false, CNTRL_REG = /^(\S+)(\s+as\s+(\w+))?$/;
@@ -14245,14 +14449,17 @@
         return 200 <= status && status < 300;
     }
     function $HttpProvider() {
-        var JSON_START = /^\s*(\[|\{[^\{])/, JSON_END = /[\}\]]\s*$/, PROTECTION_PREFIX = /^\)\]\}',?\n/, CONTENT_TYPE_APPLICATION_JSON = {
-            "Content-Type": "application/json;charset=utf-8"
+        var JSON_START = /^\s*(\[|\{[^\{])/, JSON_END = /[\}\]]\s*$/, PROTECTION_PREFIX = /^\)\]\}',?\n/, APPLICATION_JSON = "application/json", CONTENT_TYPE_APPLICATION_JSON = {
+            "Content-Type": APPLICATION_JSON + ";charset=utf-8"
         };
         var defaults = this.defaults = {
-            transformResponse: [ function(data) {
+            transformResponse: [ function defaultHttpResponseTransform(data, headers) {
                 if (isString(data)) {
                     data = data.replace(PROTECTION_PREFIX, "");
-                    if (JSON_START.test(data) && JSON_END.test(data)) data = fromJson(data);
+                    var contentType = headers("Content-Type");
+                    if (contentType && contentType.indexOf(APPLICATION_JSON) === 0 || JSON_START.test(data) && JSON_END.test(data)) {
+                        data = fromJson(data);
+                    }
                 }
                 return data;
             } ],
@@ -14339,9 +14546,12 @@
                 };
                 return promise;
                 function transformResponse(response) {
-                    var resp = extend({}, response, {
-                        data: transformData(response.data, response.headers, config.transformResponse)
-                    });
+                    var resp = extend({}, response);
+                    if (!response.data) {
+                        resp.data = response.data;
+                    } else {
+                        resp.data = transformData(response.data, response.headers, config.transformResponse);
+                    }
                     return isSuccess(response.status) ? resp : $q.reject(resp);
                 }
                 function mergeHeaders(config) {
@@ -14488,13 +14698,8 @@
             }
         } ];
     }
-    function createXhr(method) {
-        if (msie <= 8 && (!method.match(/^(get|post|head|put|delete|options)$/i) || !window.XMLHttpRequest)) {
-            return new window.ActiveXObject("Microsoft.XMLHTTP");
-        } else if (window.XMLHttpRequest) {
-            return new window.XMLHttpRequest();
-        }
-        throw minErr("$httpBackend")("noxhr", "This browser does not support XMLHttpRequest.");
+    function createXhr() {
+        return new window.XMLHttpRequest();
     }
     function $HttpBackendProvider() {
         this.$get = [ "$browser", "$window", "$document", function($browser, $window, $document) {
@@ -14502,9 +14707,7 @@
         } ];
     }
     function createHttpBackend($browser, createXhr, $browserDefer, callbacks, rawDocument) {
-        var ABORTED = -1;
         return function(method, url, post, callback, headers, timeout, withCredentials, responseType) {
-            var status;
             $browser.$$incOutstandingRequestCount();
             url = url || $browser.url();
             if (lowercase(method) == "jsonp") {
@@ -14518,26 +14721,27 @@
                     callbacks[callbackId] = noop;
                 });
             } else {
-                var xhr = createXhr(method);
+                var xhr = createXhr();
                 xhr.open(method, url, true);
                 forEach(headers, function(value, key) {
                     if (isDefined(value)) {
                         xhr.setRequestHeader(key, value);
                     }
                 });
-                xhr.onreadystatechange = function() {
-                    if (xhr && xhr.readyState == 4) {
-                        var responseHeaders = null, response = null, statusText = "";
-                        if (status !== ABORTED) {
-                            responseHeaders = xhr.getAllResponseHeaders();
-                            response = "response" in xhr ? xhr.response : xhr.responseText;
-                        }
-                        if (!(status === ABORTED && msie < 10)) {
-                            statusText = xhr.statusText;
-                        }
-                        completeRequest(callback, status || xhr.status, response, responseHeaders, statusText);
+                xhr.onload = function requestLoaded() {
+                    var statusText = xhr.statusText || "";
+                    var response = "response" in xhr ? xhr.response : xhr.responseText;
+                    var status = xhr.status === 1223 ? 204 : xhr.status;
+                    if (status === 0) {
+                        status = response ? 200 : urlResolve(url).protocol == "file" ? 404 : 0;
                     }
+                    completeRequest(callback, status, response, xhr.getAllResponseHeaders(), statusText);
                 };
+                var requestError = function() {
+                    completeRequest(callback, -1, null, null, "");
+                };
+                xhr.onerror = requestError;
+                xhr.onabort = requestError;
                 if (withCredentials) {
                     xhr.withCredentials = true;
                 }
@@ -14558,18 +14762,12 @@
                 timeout.then(timeoutRequest);
             }
             function timeoutRequest() {
-                status = ABORTED;
                 jsonpDone && jsonpDone();
                 xhr && xhr.abort();
             }
             function completeRequest(callback, status, response, headersString, statusText) {
                 timeoutId && $browserDefer.cancel(timeoutId);
                 jsonpDone = xhr = null;
-                if (status === 0) {
-                    status = response ? 200 : urlResolve(url).protocol == "file" ? 404 : 0;
-                }
-                status = status === 1223 ? 204 : status;
-                statusText = statusText || "";
                 callback(status, response, headersString, statusText);
                 $browser.$$completeOutstandingRequest(noop);
             }
@@ -14671,20 +14869,14 @@
                         }
                         switch (typeof value) {
                           case "string":
-                            {
-                                break;
-                            }
+                            break;
 
                           case "number":
-                            {
-                                value = "" + value;
-                                break;
-                            }
+                            value = "" + value;
+                            break;
 
                           default:
-                            {
-                                value = toJson(value);
-                            }
+                            value = toJson(value);
                         }
                         return value;
                     };
@@ -14982,7 +15174,7 @@
             this.$$absUrl = appBase + hashPrefix + this.$$url;
         };
     }
-    LocationHashbangInHtml5Url.prototype = LocationHashbangUrl.prototype = LocationHtml5Url.prototype = {
+    var locationPrototype = {
         $$html5: false,
         $$replace: false,
         absUrl: locationGetter("$$absUrl"),
@@ -14998,7 +15190,7 @@
         host: locationGetter("$$host"),
         port: locationGetter("$$port"),
         path: locationGetterSetter("$$path", function(path) {
-            path = path ? path.toString() : "";
+            path = path !== null ? path.toString() : "";
             return path.charAt(0) == "/" ? path : "/" + path;
         }),
         search: function(search, paramValue) {
@@ -15011,6 +15203,7 @@
                     search = search.toString();
                     this.$$search = parseKeyValue(search);
                 } else if (isObject(search)) {
+                    search = copy(search, {});
                     forEach(search, function(value, key) {
                         if (value == null) delete search[key];
                     });
@@ -15031,13 +15224,24 @@
             return this;
         },
         hash: locationGetterSetter("$$hash", function(hash) {
-            return hash ? hash.toString() : "";
+            return hash !== null ? hash.toString() : "";
         }),
         replace: function() {
             this.$$replace = true;
             return this;
         }
     };
+    forEach([ LocationHashbangInHtml5Url, LocationHashbangUrl, LocationHtml5Url ], function(Location) {
+        Location.prototype = Object.create(locationPrototype);
+        Location.prototype.state = function(state) {
+            if (!arguments.length) return this.$$state;
+            if (Location !== LocationHtml5Url || !this.$$html5) {
+                throw $locationMinErr("nostate", "History API state support is available only " + "in HTML5 mode and only in browsers supporting HTML5 History API");
+            }
+            this.$$state = isUndefined(state) ? null : state;
+            return this;
+        };
+    });
     function locationGetter(property) {
         return function() {
             return this[property];
@@ -15054,7 +15258,8 @@
     function $LocationProvider() {
         var hashPrefix = "", html5Mode = {
             enabled: false,
-            requireBase: true
+            requireBase: true,
+            rewriteLinks: true
         };
         this.hashPrefix = function(prefix) {
             if (isDefined(prefix)) {
@@ -15069,8 +15274,15 @@
                 html5Mode.enabled = mode;
                 return this;
             } else if (isObject(mode)) {
-                html5Mode.enabled = isBoolean(mode.enabled) ? mode.enabled : html5Mode.enabled;
-                html5Mode.requireBase = isBoolean(mode.requireBase) ? mode.requireBase : html5Mode.requireBase;
+                if (isBoolean(mode.enabled)) {
+                    html5Mode.enabled = mode.enabled;
+                }
+                if (isBoolean(mode.requireBase)) {
+                    html5Mode.requireBase = mode.requireBase;
+                }
+                if (isBoolean(mode.rewriteLinks)) {
+                    html5Mode.rewriteLinks = mode.rewriteLinks;
+                }
                 return this;
             } else {
                 return html5Mode;
@@ -15090,9 +15302,22 @@
             }
             $location = new LocationMode(appBase, "#" + hashPrefix);
             $location.$$parseLinkUrl(initialUrl, initialUrl);
+            $location.$$state = $browser.state();
             var IGNORE_URI_REGEXP = /^\s*(javascript|mailto):/i;
+            function setBrowserUrlWithFallback(url, replace, state) {
+                var oldUrl = $location.url();
+                var oldState = $location.$$state;
+                try {
+                    $browser.url(url, replace, state);
+                    $location.$$state = $browser.state();
+                } catch (e) {
+                    $location.url(oldUrl);
+                    $location.$$state = oldState;
+                    throw e;
+                }
+            }
             $rootElement.on("click", function(event) {
-                if (event.ctrlKey || event.metaKey || event.which == 2) return;
+                if (!html5Mode.rewriteLinks || event.ctrlKey || event.metaKey || event.which == 2) return;
                 var elm = jqLite(event.target);
                 while (nodeName_(elm[0]) !== "a") {
                     if (elm[0] === $rootElement[0] || !(elm = elm.parent())[0]) return;
@@ -15116,42 +15341,48 @@
             if ($location.absUrl() != initialUrl) {
                 $browser.url($location.absUrl(), true);
             }
-            $browser.onUrlChange(function(newUrl) {
-                if ($location.absUrl() != newUrl) {
-                    $rootScope.$evalAsync(function() {
-                        var oldUrl = $location.absUrl();
-                        $location.$$parse(newUrl);
-                        if ($rootScope.$broadcast("$locationChangeStart", newUrl, oldUrl).defaultPrevented) {
-                            $location.$$parse(oldUrl);
-                            $browser.url(oldUrl);
-                        } else {
-                            afterLocationChange(oldUrl);
-                        }
-                    });
-                    if (!$rootScope.$$phase) $rootScope.$digest();
-                }
+            var initializing = true;
+            $browser.onUrlChange(function(newUrl, newState) {
+                $rootScope.$evalAsync(function() {
+                    var oldUrl = $location.absUrl();
+                    var oldState = $location.$$state;
+                    $location.$$parse(newUrl);
+                    $location.$$state = newState;
+                    if ($rootScope.$broadcast("$locationChangeStart", newUrl, oldUrl, newState, oldState).defaultPrevented) {
+                        $location.$$parse(oldUrl);
+                        $location.$$state = oldState;
+                        setBrowserUrlWithFallback(oldUrl, false, oldState);
+                    } else {
+                        initializing = false;
+                        afterLocationChange(oldUrl, oldState);
+                    }
+                });
+                if (!$rootScope.$$phase) $rootScope.$digest();
             });
-            var changeCounter = 0;
             $rootScope.$watch(function $locationWatch() {
                 var oldUrl = $browser.url();
+                var oldState = $browser.state();
                 var currentReplace = $location.$$replace;
-                if (!changeCounter || oldUrl != $location.absUrl()) {
-                    changeCounter++;
+                var urlOrStateChanged = oldUrl !== $location.absUrl() || $location.$$html5 && $sniffer.history && oldState !== $location.$$state;
+                if (initializing || urlOrStateChanged) {
+                    initializing = false;
                     $rootScope.$evalAsync(function() {
-                        if ($rootScope.$broadcast("$locationChangeStart", $location.absUrl(), oldUrl).defaultPrevented) {
+                        if ($rootScope.$broadcast("$locationChangeStart", $location.absUrl(), oldUrl, $location.$$state, oldState).defaultPrevented) {
                             $location.$$parse(oldUrl);
+                            $location.$$state = oldState;
                         } else {
-                            $browser.url($location.absUrl(), currentReplace);
-                            afterLocationChange(oldUrl);
+                            if (urlOrStateChanged) {
+                                setBrowserUrlWithFallback($location.absUrl(), currentReplace, oldState === $location.$$state ? null : $location.$$state);
+                            }
+                            afterLocationChange(oldUrl, oldState);
                         }
                     });
                 }
                 $location.$$replace = false;
-                return changeCounter;
             });
             return $location;
-            function afterLocationChange(oldUrl) {
-                $rootScope.$broadcast("$locationChangeSuccess", $location.absUrl(), oldUrl);
+            function afterLocationChange(oldUrl, oldState) {
+                $rootScope.$broadcast("$locationChangeSuccess", $location.absUrl(), oldUrl, $location.$$state, oldState);
             }
         } ];
     }
@@ -15289,9 +15520,6 @@
         "%": function(self, locals, a, b) {
             return a(self, locals) % b(self, locals);
         },
-        "^": function(self, locals, a, b) {
-            return a(self, locals) ^ b(self, locals);
-        },
         "===": function(self, locals, a, b) {
             return a(self, locals) === b(self, locals);
         },
@@ -15321,9 +15549,6 @@
         },
         "||": function(self, locals, a, b) {
             return a(self, locals) || b(self, locals);
-        },
-        "&": function(self, locals, a, b) {
-            return a(self, locals) & b(self, locals);
         },
         "!": function(self, locals, a) {
             return !a(self, locals);
@@ -16132,16 +16357,17 @@
                 }, objectEquality);
             }
             function oneTimeLiteralWatchDelegate(scope, listener, objectEquality, parsedExpression) {
-                var unwatch;
+                var unwatch, lastValue;
                 return unwatch = scope.$watch(function oneTimeWatch(scope) {
                     return parsedExpression(scope);
                 }, function oneTimeListener(value, old, scope) {
+                    lastValue = value;
                     if (isFunction(listener)) {
                         listener.call(this, value, old, scope);
                     }
                     if (isAllDefined(value)) {
                         scope.$$postDigest(function() {
-                            if (isAllDefined(value)) unwatch();
+                            if (isAllDefined(lastValue)) unwatch();
                         });
                     }
                 }, objectEquality);
@@ -16949,11 +17175,9 @@
             return function sanitizeUri(uri, isImage) {
                 var regex = isImage ? imgSrcSanitizationWhitelist : aHrefSanitizationWhitelist;
                 var normalizedVal;
-                if (!msie || msie >= 8) {
-                    normalizedVal = urlResolve(uri).href;
-                    if (normalizedVal !== "" && !normalizedVal.match(regex)) {
-                        return "unsafe:" + normalizedVal;
-                    }
+                normalizedVal = urlResolve(uri).href;
+                if (normalizedVal !== "" && !normalizedVal.match(regex)) {
+                    return "unsafe:" + normalizedVal;
                 }
                 return uri;
             };
@@ -17119,9 +17343,9 @@
             }
             return enabled;
         };
-        this.$get = [ "$parse", "$sniffer", "$sceDelegate", function($parse, $sniffer, $sceDelegate) {
-            if (enabled && $sniffer.msie && $sniffer.msieDocumentMode < 8) {
-                throw $sceMinErr("iequirks", "Strict Contextual Escaping does not support Internet Explorer version < 9 in quirks " + "mode.  You can fix this by adding the text <!doctype html> to the top of your HTML " + "document.  See http://docs.angularjs.org/api/ng.$sce for more information.");
+        this.$get = [ "$document", "$parse", "$sceDelegate", function($document, $parse, $sceDelegate) {
+            if (enabled && $document[0].documentMode < 8) {
+                throw $sceMinErr("iequirks", "Strict Contextual Escaping does not support Internet Explorer version < 11 in quirks " + "mode.  You can fix this by adding the text <!doctype html> to the top of your HTML " + "document.  See http://docs.angularjs.org/api/ng.$sce for more information.");
             }
             var sce = shallowCopy(SCE_CONTEXTS);
             sce.isEnabled = function() {
@@ -17164,7 +17388,7 @@
     }
     function $SnifferProvider() {
         this.$get = [ "$window", "$document", function($window, $document) {
-            var eventSupport = {}, android = int((/android (\d+)/.exec(lowercase(($window.navigator || {}).userAgent)) || [])[1]), boxee = /Boxee/i.test(($window.navigator || {}).userAgent), document = $document[0] || {}, documentMode = document.documentMode, vendorPrefix, vendorRegex = /^(Moz|webkit|O|ms)(?=[A-Z])/, bodyStyle = document.body && document.body.style, transitions = false, animations = false, match;
+            var eventSupport = {}, android = int((/android (\d+)/.exec(lowercase(($window.navigator || {}).userAgent)) || [])[1]), boxee = /Boxee/i.test(($window.navigator || {}).userAgent), document = $document[0] || {}, vendorPrefix, vendorRegex = /^(Moz|webkit|O|ms)(?=[A-Z])/, bodyStyle = document.body && document.body.style, transitions = false, animations = false, match;
             if (bodyStyle) {
                 for (var prop in bodyStyle) {
                     if (match = vendorRegex.exec(prop)) {
@@ -17185,7 +17409,6 @@
             }
             return {
                 history: !!($window.history && $window.history.pushState && !(android < 4) && !boxee),
-                hashchange: "onhashchange" in $window && (!documentMode || documentMode > 7),
                 hasEvent: function(event) {
                     if (event == "input" && msie == 9) return false;
                     if (isUndefined(eventSupport[event])) {
@@ -17198,9 +17421,7 @@
                 vendorPrefix: vendorPrefix,
                 transitions: transitions,
                 animations: animations,
-                android: android,
-                msie: msie,
-                msieDocumentMode: documentMode
+                android: android
             };
         } ];
     }
@@ -17405,7 +17626,7 @@
                 }
             }
             var search = function(obj, text) {
-                if (typeof text == "string" && text.charAt(0) === "!") {
+                if (typeof text === "string" && text.charAt(0) === "!") {
                     return !search(obj, text.substr(1));
                 }
                 switch (typeof obj) {
@@ -17480,9 +17701,14 @@
     currencyFilter.$inject = [ "$locale" ];
     function currencyFilter($locale) {
         var formats = $locale.NUMBER_FORMATS;
-        return function(amount, currencySymbol) {
-            if (isUndefined(currencySymbol)) currencySymbol = formats.CURRENCY_SYM;
-            return amount == null ? amount : formatNumber(amount, formats.PATTERNS[1], formats.GROUP_SEP, formats.DECIMAL_SEP, 2).replace(/\u00A4/g, currencySymbol);
+        return function(amount, currencySymbol, fractionSize) {
+            if (isUndefined(currencySymbol)) {
+                currencySymbol = formats.CURRENCY_SYM;
+            }
+            if (isUndefined(fractionSize)) {
+                fractionSize = 2;
+            }
+            return amount == null ? amount : formatNumber(amount, formats.PATTERNS[1], formats.GROUP_SEP, formats.DECIMAL_SEP, fractionSize).replace(/\u00A4/g, currencySymbol);
         };
     }
     numberFilter.$inject = [ "$locale" ];
@@ -17725,14 +17951,21 @@
     function orderByFilter($parse) {
         return function(array, sortPredicate, reverseOrder) {
             if (!isArrayLike(array)) return array;
-            if (!sortPredicate) return array;
             sortPredicate = isArray(sortPredicate) ? sortPredicate : [ sortPredicate ];
+            if (sortPredicate.length === 0) {
+                sortPredicate = [ "+" ];
+            }
             sortPredicate = sortPredicate.map(function(predicate) {
                 var descending = false, get = predicate || identity;
                 if (isString(predicate)) {
                     if (predicate.charAt(0) == "+" || predicate.charAt(0) == "-") {
                         descending = predicate.charAt(0) == "-";
                         predicate = predicate.substring(1);
+                    }
+                    if (predicate === "") {
+                        return reverseComparator(function(a, b) {
+                            return compare(a, b);
+                        }, descending);
                     }
                     get = $parse(predicate);
                     if (get.constant) {
@@ -17795,12 +18028,6 @@
     var htmlAnchorDirective = valueFn({
         restrict: "E",
         compile: function(element, attr) {
-            if (msie <= 8) {
-                if (!attr.href && !attr.name) {
-                    attr.$set("href", "");
-                }
-                element.append(document.createComment("IE fix"));
-            }
             if (!attr.href && !attr.xlinkHref && !attr.name) {
                 return function(scope, element) {
                     var href = toString.call(element.prop("href")) === "[object SVGAnimatedString]" ? "xlink:href" : "href";
@@ -17879,11 +18106,9 @@
         $$renameControl: nullFormRenameControl,
         $removeControl: noop,
         $setValidity: noop,
-        $$setPending: noop,
         $setDirty: noop,
         $setPristine: noop,
-        $setSubmitted: noop,
-        $$clearControlValidity: noop
+        $setSubmitted: noop
     }, SUBMITTED_CLASS = "ng-submitted";
     function nullFormRenameControl(control, name) {
         control.$name = name;
@@ -18003,7 +18228,7 @@
                     formElement.addClass(PRISTINE_CLASS).addClass(VALID_CLASS);
                     return {
                         pre: function ngFormPreLink(scope, formElement, attr, controller) {
-                            if (!attr.action) {
+                            if (!("action" in attr)) {
                                 var handleFormSubmission = function(event) {
                                     scope.$apply(function() {
                                         controller.$commitViewValue();
@@ -18029,15 +18254,13 @@
                                     parentFormCtrl.$$renameControl(controller, alias);
                                 });
                             }
-                            if (parentFormCtrl !== nullFormCtrl) {
-                                formElement.on("$destroy", function() {
-                                    parentFormCtrl.$removeControl(controller);
-                                    if (alias) {
-                                        setter(scope, alias, undefined, alias);
-                                    }
-                                    extend(controller, nullFormCtrl);
-                                });
-                            }
+                            formElement.on("$destroy", function() {
+                                parentFormCtrl.$removeControl(controller);
+                                if (alias) {
+                                    setter(scope, alias, undefined, alias);
+                                }
+                                extend(controller, nullFormCtrl);
+                            });
                         }
                     };
                 }
@@ -18968,8 +19191,9 @@
                 $compile.$$addBindingClass(templateElement);
                 return function ngBindLink(scope, element, attr) {
                     $compile.$$addBindingInfo(element, attr.ngBind);
+                    element = element[0];
                     scope.$watch(attr.ngBind, function ngBindWatchAction(value) {
-                        element.text(value == undefined ? "" : value);
+                        element.textContent = value === undefined ? "" : value;
                     });
                 };
             }
@@ -18982,8 +19206,9 @@
                 return function ngBindTemplateLink(scope, element, attr) {
                     var interpolateFn = $interpolate(element.attr(attr.$attr.ngBindTemplate));
                     $compile.$$addBindingInfo(element, interpolateFn.expressions);
+                    element = element[0];
                     attr.$observe("ngBindTemplate", function(value) {
-                        element.text(value);
+                        element.textContent = value === undefined ? "" : value;
                     });
                 };
             }
@@ -19474,13 +19699,17 @@
             }
         };
     } ];
+    var NG_HIDE_CLASS = "ng-hide";
+    var NG_HIDE_IN_PROGRESS_CLASS = "ng-hide-animate";
     var ngShowDirective = [ "$animate", function($animate) {
         return {
             restrict: "A",
             multiElement: true,
             link: function(scope, element, attr) {
                 scope.$watch(attr.ngShow, function ngShowWatchAction(value) {
-                    $animate[value ? "removeClass" : "addClass"](element, "ng-hide");
+                    $animate[value ? "removeClass" : "addClass"](element, NG_HIDE_CLASS, {
+                        tempClasses: NG_HIDE_IN_PROGRESS_CLASS
+                    });
                 });
             }
         };
@@ -19491,7 +19720,9 @@
             multiElement: true,
             link: function(scope, element, attr) {
                 scope.$watch(attr.ngHide, function ngHideWatchAction(value) {
-                    $animate[value ? "addClass" : "removeClass"](element, "ng-hide");
+                    $animate[value ? "addClass" : "removeClass"](element, NG_HIDE_CLASS, {
+                        tempClasses: NG_HIDE_IN_PROGRESS_CLASS
+                    });
                 });
             }
         };
@@ -19629,7 +19860,7 @@
                         $element.val(value);
                         if (unknownOption.parent()) unknownOption.remove();
                     }
-                    if (element[0].hasAttribute("selected")) {
+                    if (element && element[0].hasAttribute("selected")) {
                         element[0].selected = true;
                     }
                 };
@@ -19724,99 +19955,105 @@
                     if (!(match = optionsExp.match(NG_OPTIONS_REGEXP))) {
                         throw ngOptionsMinErr("iexp", "Expected expression in form of " + "'_select_ (as _label_)? for (_key_,)?_value_ in _collection_'" + " but got '{0}'. Element: {1}", optionsExp, startingTag(selectElement));
                     }
-                    var displayFn = $parse(match[2] || match[1]), valueName = match[4] || match[6], keyName = match[5], groupByFn = $parse(match[3] || ""), valueFn = $parse(match[2] ? match[1] : valueName), valuesFn = $parse(match[7]), track = match[8], trackFn = track ? $parse(match[8]) : null, optionGroupsCache = [ [ {
+                    var displayFn = $parse(match[2] || match[1]), valueName = match[4] || match[6], selectAs = / as /.test(match[0]) && match[1], selectAsFn = selectAs ? $parse(selectAs) : null, keyName = match[5], groupByFn = $parse(match[3] || ""), valueFn = $parse(match[2] ? match[1] : valueName), valuesFn = $parse(match[7]), track = match[8], trackFn = track ? $parse(match[8]) : null, optionGroupsCache = [ [ {
                         element: selectElement,
                         label: ""
-                    } ] ];
+                    } ] ], locals = {};
                     if (nullOption) {
                         $compile(nullOption)(scope);
                         nullOption.removeClass("ng-scope");
                         nullOption.remove();
                     }
                     selectElement.empty();
-                    selectElement.on("change", function() {
-                        scope.$apply(function() {
-                            var optionGroup, collection = valuesFn(scope) || [], locals = {}, key, value, optionElement, index, groupIndex, length, groupLength, trackIndex;
-                            if (multiple) {
-                                value = [];
-                                for (groupIndex = 0, groupLength = optionGroupsCache.length; groupIndex < groupLength; groupIndex++) {
-                                    optionGroup = optionGroupsCache[groupIndex];
-                                    for (index = 1, length = optionGroup.length; index < length; index++) {
-                                        if ((optionElement = optionGroup[index].element)[0].selected) {
-                                            key = optionElement.val();
-                                            if (keyName) locals[keyName] = key;
-                                            if (trackFn) {
-                                                for (trackIndex = 0; trackIndex < collection.length; trackIndex++) {
-                                                    locals[valueName] = collection[trackIndex];
-                                                    if (trackFn(scope, locals) == key) break;
-                                                }
-                                            } else {
-                                                locals[valueName] = collection[key];
-                                            }
-                                            value.push(valueFn(scope, locals));
-                                        }
-                                    }
-                                }
-                            } else {
-                                key = selectElement.val();
-                                if (key == "?") {
-                                    value = undefined;
-                                } else if (key === "") {
-                                    value = null;
-                                } else {
-                                    if (trackFn) {
-                                        for (trackIndex = 0; trackIndex < collection.length; trackIndex++) {
-                                            locals[valueName] = collection[trackIndex];
-                                            if (trackFn(scope, locals) == key) {
-                                                value = valueFn(scope, locals);
-                                                break;
-                                            }
-                                        }
-                                    } else {
-                                        locals[valueName] = collection[key];
-                                        if (keyName) locals[keyName] = key;
-                                        value = valueFn(scope, locals);
-                                    }
-                                }
-                            }
-                            ctrl.$setViewValue(value);
-                            render();
-                        });
-                    });
+                    selectElement.on("change", selectionChanged);
                     ctrl.$render = render;
                     scope.$watchCollection(valuesFn, scheduleRendering);
-                    scope.$watchCollection(function() {
-                        var locals = {}, values = valuesFn(scope);
-                        if (values) {
-                            var toDisplay = new Array(values.length);
-                            for (var i = 0, ii = values.length; i < ii; i++) {
-                                locals[valueName] = values[i];
-                                toDisplay[i] = displayFn(scope, locals);
-                            }
-                            return toDisplay;
-                        }
-                    }, scheduleRendering);
+                    scope.$watchCollection(getLabels, scheduleRendering);
                     if (multiple) {
                         scope.$watchCollection(function() {
                             return ctrl.$modelValue;
                         }, scheduleRendering);
                     }
-                    function getSelectedSet() {
-                        var selectedSet = false;
-                        if (multiple) {
-                            var modelValue = ctrl.$modelValue;
-                            if (trackFn && isArray(modelValue)) {
-                                selectedSet = new HashMap([]);
-                                var locals = {};
-                                for (var trackIndex = 0; trackIndex < modelValue.length; trackIndex++) {
-                                    locals[valueName] = modelValue[trackIndex];
-                                    selectedSet.put(trackFn(scope, locals), modelValue[trackIndex]);
-                                }
+                    function callExpression(exprFn, key, value) {
+                        locals[valueName] = value;
+                        if (keyName) locals[keyName] = key;
+                        return exprFn(scope, locals);
+                    }
+                    function selectionChanged() {
+                        scope.$apply(function() {
+                            var optionGroup, collection = valuesFn(scope) || [], key, value, optionElement, index, groupIndex, length, groupLength, trackIndex;
+                            var viewValue;
+                            if (multiple) {
+                                viewValue = [];
+                                forEach(selectElement.val(), function(selectedKey) {
+                                    viewValue.push(getViewValue(selectedKey, collection[selectedKey]));
+                                });
                             } else {
-                                selectedSet = new HashMap(modelValue);
+                                var selectedKey = selectElement.val();
+                                viewValue = getViewValue(selectedKey, collection[selectedKey]);
+                            }
+                            ctrl.$setViewValue(viewValue);
+                            render();
+                        });
+                    }
+                    function getViewValue(key, value) {
+                        if (key === "?") {
+                            return undefined;
+                        } else if (key === "") {
+                            return null;
+                        } else {
+                            var viewValueFn = selectAsFn ? selectAsFn : valueFn;
+                            return callExpression(viewValueFn, key, value);
+                        }
+                    }
+                    function getLabels() {
+                        var values = valuesFn(scope);
+                        var toDisplay;
+                        if (values && isArray(values)) {
+                            toDisplay = new Array(values.length);
+                            for (var i = 0, ii = values.length; i < ii; i++) {
+                                toDisplay[i] = callExpression(displayFn, i, values[i]);
+                            }
+                            return toDisplay;
+                        } else if (values) {
+                            toDisplay = {};
+                            for (var prop in values) {
+                                if (values.hasOwnProperty(prop)) {
+                                    toDisplay[prop] = callExpression(displayFn, prop, values[prop]);
+                                }
                             }
                         }
-                        return selectedSet;
+                        return toDisplay;
+                    }
+                    function createIsSelectedFn(viewValue) {
+                        var selectedSet;
+                        if (multiple) {
+                            if (trackFn && isArray(viewValue)) {
+                                selectedSet = new HashMap([]);
+                                for (var trackIndex = 0; trackIndex < viewValue.length; trackIndex++) {
+                                    selectedSet.put(callExpression(trackFn, null, viewValue[trackIndex]), true);
+                                }
+                            } else {
+                                selectedSet = new HashMap(viewValue);
+                            }
+                        } else if (trackFn) {
+                            viewValue = callExpression(trackFn, null, viewValue);
+                        }
+                        return function isSelected(key, value) {
+                            var compareValueFn;
+                            if (trackFn) {
+                                compareValueFn = trackFn;
+                            } else if (selectAsFn) {
+                                compareValueFn = selectAsFn;
+                            } else {
+                                compareValueFn = valueFn;
+                            }
+                            if (multiple) {
+                                return isDefined(selectedSet.remove(callExpression(compareValueFn, key, value)));
+                            } else {
+                                return viewValue == callExpression(compareValueFn, key, value);
+                            }
+                        };
                     }
                     function scheduleRendering() {
                         if (!renderScheduled) {
@@ -19824,52 +20061,45 @@
                             renderScheduled = true;
                         }
                     }
+                    function updateLabelMap(labelMap, label, added) {
+                        labelMap[label] = labelMap[label] || 0;
+                        labelMap[label] += added ? 1 : -1;
+                    }
                     function render() {
                         renderScheduled = false;
                         var optionGroups = {
                             "": []
-                        }, optionGroupNames = [ "" ], optionGroupName, optionGroup, option, existingParent, existingOptions, existingOption, modelValue = ctrl.$modelValue, values = valuesFn(scope) || [], keys = keyName ? sortedKeys(values) : values, key, groupLength, length, groupIndex, index, locals = {}, selected, selectedSet = getSelectedSet(), lastElement, element, label;
+                        }, optionGroupNames = [ "" ], optionGroupName, optionGroup, option, existingParent, existingOptions, existingOption, viewValue = ctrl.$viewValue, values = valuesFn(scope) || [], keys = keyName ? sortedKeys(values) : values, key, value, groupLength, length, groupIndex, index, labelMap = {}, selected, isSelected = createIsSelectedFn(viewValue), anySelected = false, lastElement, element, label;
                         for (index = 0; length = keys.length, index < length; index++) {
                             key = index;
                             if (keyName) {
                                 key = keys[index];
                                 if (key.charAt(0) === "$") continue;
-                                locals[keyName] = key;
                             }
-                            locals[valueName] = values[key];
-                            optionGroupName = groupByFn(scope, locals) || "";
+                            value = values[key];
+                            optionGroupName = callExpression(groupByFn, key, value) || "";
                             if (!(optionGroup = optionGroups[optionGroupName])) {
                                 optionGroup = optionGroups[optionGroupName] = [];
                                 optionGroupNames.push(optionGroupName);
                             }
-                            if (multiple) {
-                                selected = isDefined(selectedSet.remove(trackFn ? trackFn(scope, locals) : valueFn(scope, locals)));
-                            } else {
-                                if (trackFn) {
-                                    var modelCast = {};
-                                    modelCast[valueName] = modelValue;
-                                    selected = trackFn(scope, modelCast) === trackFn(scope, locals);
-                                } else {
-                                    selected = modelValue === valueFn(scope, locals);
-                                }
-                                selectedSet = selectedSet || selected;
-                            }
-                            label = displayFn(scope, locals);
+                            selected = isSelected(key, value);
+                            anySelected = anySelected || selected;
+                            label = callExpression(displayFn, key, value);
                             label = isDefined(label) ? label : "";
                             optionGroup.push({
-                                id: trackFn ? trackFn(scope, locals) : keyName ? keys[index] : index,
+                                id: keyName ? keys[index] : index,
                                 label: label,
                                 selected: selected
                             });
                         }
                         if (!multiple) {
-                            if (nullOption || modelValue === null) {
+                            if (nullOption || viewValue === null) {
                                 optionGroups[""].unshift({
                                     id: "",
                                     label: "",
-                                    selected: !selectedSet
+                                    selected: !anySelected
                                 });
-                            } else if (!selectedSet) {
+                            } else if (!anySelected) {
                                 optionGroups[""].unshift({
                                     id: "?",
                                     label: "",
@@ -19901,6 +20131,8 @@
                                 if (existingOption = existingOptions[index + 1]) {
                                     lastElement = existingOption.element;
                                     if (existingOption.label !== option.label) {
+                                        updateLabelMap(labelMap, existingOption.label, false);
+                                        updateLabelMap(labelMap, option.label, true);
                                         lastElement.text(existingOption.label = option.label);
                                     }
                                     if (existingOption.id !== option.id) {
@@ -19924,7 +20156,7 @@
                                         id: option.id,
                                         selected: option.selected
                                     });
-                                    selectCtrl.addOption(option.label, element);
+                                    updateLabelMap(labelMap, option.label, true);
                                     if (lastElement) {
                                         lastElement.after(element);
                                     } else {
@@ -19936,9 +20168,16 @@
                             index++;
                             while (existingOptions.length > index) {
                                 option = existingOptions.pop();
-                                selectCtrl.removeOption(option.label);
+                                updateLabelMap(labelMap, option.label, false);
                                 option.element.remove();
                             }
+                            forEach(labelMap, function(count, label) {
+                                if (count > 0) {
+                                    selectCtrl.addOption(label);
+                                } else if (count < 0) {
+                                    selectCtrl.removeOption(label);
+                                }
+                            });
                         }
                         while (optionGroupsCache.length > groupIndex) {
                             optionGroupsCache.pop()[0].element.remove();
@@ -20001,7 +20240,7 @@
     });
 })(window, document);
 
-!window.angular.$$csp() && window.angular.element(document).find("head").prepend('<style type="text/css">@charset "UTF-8";[ng\\:cloak],[ng-cloak],[data-ng-cloak],[x-ng-cloak],.ng-cloak,.x-ng-cloak,.ng-hide:not(.ng-animate){display:none !important;}ng\\:form{display:block;}</style>');
+!window.angular.$$csp() && window.angular.element(document).find("head").prepend('<style type="text/css">@charset "UTF-8";[ng\\:cloak],[ng-cloak],[data-ng-cloak],[x-ng-cloak],.ng-cloak,.x-ng-cloak,.ng-hide:not(.ng-hide-animate){display:none !important;}ng\\:form{display:block;}</style>');
 
 if (typeof module !== "undefined" && typeof exports !== "undefined" && module.exports === exports) {
     module.exports = "ui.router";
@@ -24177,6 +24416,8 @@ if (typeof module !== "undefined" && typeof exports !== "undefined" && module.ex
         var forEach = angular.forEach;
         var selectors = $animateProvider.$$selectors;
         var isArray = angular.isArray;
+        var isString = angular.isString;
+        var isObject = angular.isObject;
         var ELEMENT_NODE = 1;
         var NG_ANIMATE_STATE = "$$ngAnimateState";
         var NG_ANIMATE_CHILDREN = "$$ngAnimateChildren";
@@ -24242,36 +24483,35 @@ if (typeof module !== "undefined" && typeof exports !== "undefined" && module.ex
                 });
                 return defer.promise;
             }
+            function parseAnimateOptions(options) {
+                if (isObject(options)) {
+                    if (options.tempClasses && isString(options.tempClasses)) {
+                        options.tempClasses = options.tempClasses.split(/\s+/);
+                    }
+                    return options;
+                }
+            }
             function resolveElementClasses(element, cache, runningAnimations) {
                 runningAnimations = runningAnimations || {};
-                var map = {};
-                forEach(cache.add, function(className) {
-                    if (className && className.length) {
-                        map[className] = map[className] || 0;
-                        map[className]++;
-                    }
-                });
-                forEach(cache.remove, function(className) {
-                    if (className && className.length) {
-                        map[className] = map[className] || 0;
-                        map[className]--;
-                    }
-                });
-                var lookup = [];
+                var lookup = {};
                 forEach(runningAnimations, function(data, selector) {
                     forEach(selector.split(" "), function(s) {
                         lookup[s] = data;
                     });
                 });
+                var hasClasses = Object.create(null);
+                forEach((element.attr("class") || "").split(/\s+/), function(className) {
+                    hasClasses[className] = true;
+                });
                 var toAdd = [], toRemove = [];
-                forEach(map, function(status, className) {
-                    var hasClass = angular.$$hasClass(element[0], className);
+                forEach(cache.classes, function(status, className) {
+                    var hasClass = hasClasses[className];
                     var matchingAnimation = lookup[className] || {};
-                    if (status < 0) {
+                    if (status === false) {
                         if (hasClass || matchingAnimation.event == "addClass") {
                             toRemove.push(className);
                         }
-                    } else if (status > 0) {
+                    } else if (status === true) {
                         if (!hasClass || matchingAnimation.event == "removeClass") {
                             toAdd.push(className);
                         }
@@ -24295,10 +24535,14 @@ if (typeof module !== "undefined" && typeof exports !== "undefined" && module.ex
                     return matches;
                 }
             }
-            function animationRunner(element, animationEvent, className) {
+            function animationRunner(element, animationEvent, className, options) {
                 var node = element[0];
                 if (!node) {
                     return;
+                }
+                if (options) {
+                    options.to = options.to || {};
+                    options.from = options.from || {};
                 }
                 var classNameAdd;
                 var classNameRemove;
@@ -24316,7 +24560,7 @@ if (typeof module !== "undefined" && typeof exports !== "undefined" && module.ex
                     }
                 }
                 var isSetClassOperation = animationEvent == "setClass";
-                var isClassBased = isSetClassOperation || animationEvent == "addClass" || animationEvent == "removeClass";
+                var isClassBased = isSetClassOperation || animationEvent == "addClass" || animationEvent == "removeClass" || animationEvent == "animate";
                 var currentClassName = element.attr("class");
                 var classes = currentClassName + " " + className;
                 if (!isAnimatableClassName(classes)) {
@@ -24370,19 +24614,23 @@ if (typeof module !== "undefined" && typeof exports !== "undefined" && module.ex
                         };
                         switch (animation.event) {
                           case "setClass":
-                            cancellations.push(animation.fn(element, classNameAdd, classNameRemove, progress));
+                            cancellations.push(animation.fn(element, classNameAdd, classNameRemove, progress, options));
+                            break;
+
+                          case "animate":
+                            cancellations.push(animation.fn(element, className, options.from, options.to, progress));
                             break;
 
                           case "addClass":
-                            cancellations.push(animation.fn(element, classNameAdd || className, progress));
+                            cancellations.push(animation.fn(element, classNameAdd || className, progress, options));
                             break;
 
                           case "removeClass":
-                            cancellations.push(animation.fn(element, classNameRemove || className, progress));
+                            cancellations.push(animation.fn(element, classNameRemove || className, progress, options));
                             break;
 
                           default:
-                            cancellations.push(animation.fn(element, progress));
+                            cancellations.push(animation.fn(element, progress, options));
                             break;
                         }
                     });
@@ -24396,6 +24644,11 @@ if (typeof module !== "undefined" && typeof exports !== "undefined" && module.ex
                     className: className,
                     isClassBased: isClassBased,
                     isSetClassOperation: isSetClassOperation,
+                    applyStyles: function() {
+                        if (options) {
+                            element.css(angular.extend(options.from || {}, options.to || {}));
+                        }
+                    },
                     before: function(allCompleteFn) {
                         beforeComplete = allCompleteFn;
                         run(before, beforeCancel, function() {
@@ -24427,28 +24680,39 @@ if (typeof module !== "undefined" && typeof exports !== "undefined" && module.ex
                 };
             }
             return {
-                enter: function(element, parentElement, afterElement) {
+                animate: function(element, from, to, className, options) {
+                    className = className || "ng-inline-animate";
+                    options = parseAnimateOptions(options) || {};
+                    options.from = to ? from : null;
+                    options.to = to ? to : from;
+                    return runAnimationPostDigest(function(done) {
+                        return performAnimation("animate", className, stripCommentsFromElement(element), null, null, noop, options, done);
+                    });
+                },
+                enter: function(element, parentElement, afterElement, options) {
+                    options = parseAnimateOptions(options);
                     element = angular.element(element);
                     parentElement = prepareElement(parentElement);
                     afterElement = prepareElement(afterElement);
                     classBasedAnimationsBlocked(element, true);
                     $delegate.enter(element, parentElement, afterElement);
                     return runAnimationPostDigest(function(done) {
-                        return performAnimation("enter", "ng-enter", stripCommentsFromElement(element), parentElement, afterElement, noop, done);
+                        return performAnimation("enter", "ng-enter", stripCommentsFromElement(element), parentElement, afterElement, noop, options, done);
                     });
                 },
-                leave: function(element) {
+                leave: function(element, options) {
+                    options = parseAnimateOptions(options);
                     element = angular.element(element);
                     cancelChildAnimations(element);
                     classBasedAnimationsBlocked(element, true);
-                    this.enabled(false, element);
                     return runAnimationPostDigest(function(done) {
                         return performAnimation("leave", "ng-leave", stripCommentsFromElement(element), null, null, function() {
                             $delegate.leave(element);
-                        }, done);
+                        }, options, done);
                     });
                 },
-                move: function(element, parentElement, afterElement) {
+                move: function(element, parentElement, afterElement, options) {
+                    options = parseAnimateOptions(options);
                     element = angular.element(element);
                     parentElement = prepareElement(parentElement);
                     afterElement = prepareElement(afterElement);
@@ -24456,43 +24720,69 @@ if (typeof module !== "undefined" && typeof exports !== "undefined" && module.ex
                     classBasedAnimationsBlocked(element, true);
                     $delegate.move(element, parentElement, afterElement);
                     return runAnimationPostDigest(function(done) {
-                        return performAnimation("move", "ng-move", stripCommentsFromElement(element), parentElement, afterElement, noop, done);
+                        return performAnimation("move", "ng-move", stripCommentsFromElement(element), parentElement, afterElement, noop, options, done);
                     });
                 },
-                addClass: function(element, className) {
-                    return this.setClass(element, className, []);
+                addClass: function(element, className, options) {
+                    return this.setClass(element, className, [], options);
                 },
-                removeClass: function(element, className) {
-                    return this.setClass(element, [], className);
+                removeClass: function(element, className, options) {
+                    return this.setClass(element, [], className, options);
                 },
-                setClass: function(element, add, remove) {
+                setClass: function(element, add, remove, options) {
+                    options = parseAnimateOptions(options);
                     var STORAGE_KEY = "$$animateClasses";
                     element = angular.element(element);
                     element = stripCommentsFromElement(element);
                     if (classBasedAnimationsBlocked(element)) {
-                        return $delegate.setClass(element, add, remove);
+                        return $delegate.$$setClassImmediately(element, add, remove, options);
                     }
+                    var classes, cache = element.data(STORAGE_KEY);
+                    var hasCache = !!cache;
+                    if (!cache) {
+                        cache = {};
+                        cache.classes = {};
+                    }
+                    classes = cache.classes;
                     add = isArray(add) ? add : add.split(" ");
+                    forEach(add, function(c) {
+                        if (c && c.length) {
+                            classes[c] = true;
+                        }
+                    });
                     remove = isArray(remove) ? remove : remove.split(" ");
-                    var cache = element.data(STORAGE_KEY);
-                    if (cache) {
-                        cache.add = cache.add.concat(add);
-                        cache.remove = cache.remove.concat(remove);
+                    forEach(remove, function(c) {
+                        if (c && c.length) {
+                            classes[c] = false;
+                        }
+                    });
+                    if (hasCache) {
+                        if (options && cache.options) {
+                            cache.options = angular.extend(cache.options || {}, options);
+                        }
                         return cache.promise;
                     } else {
                         element.data(STORAGE_KEY, cache = {
-                            add: add,
-                            remove: remove
+                            classes: classes,
+                            options: options
                         });
                     }
                     return cache.promise = runAnimationPostDigest(function(done) {
+                        var parentElement = element.parent();
+                        var elementNode = extractElementNode(element);
+                        var parentNode = elementNode.parentNode;
+                        if (!parentNode || parentNode["$$NG_REMOVED"] || elementNode["$$NG_REMOVED"]) {
+                            done();
+                            return;
+                        }
                         var cache = element.data(STORAGE_KEY);
                         element.removeData(STORAGE_KEY);
                         var state = element.data(NG_ANIMATE_STATE) || {};
                         var classes = resolveElementClasses(element, cache, state.active);
-                        return !classes ? done() : performAnimation("setClass", classes, element, null, null, function() {
-                            $delegate.setClass(element, classes[0], classes[1]);
-                        }, done);
+                        return !classes ? done() : performAnimation("setClass", classes, element, parentElement, null, function() {
+                            if (classes[0]) $delegate.$$addClassImmediately(element, classes[0]);
+                            if (classes[1]) $delegate.$$removeClassImmediately(element, classes[1]);
+                        }, cache.options, done);
                     });
                 },
                 cancel: function(promise) {
@@ -24521,9 +24811,9 @@ if (typeof module !== "undefined" && typeof exports !== "undefined" && module.ex
                     return !!value;
                 }
             };
-            function performAnimation(animationEvent, className, element, parentElement, afterElement, domOperation, doneCallback) {
+            function performAnimation(animationEvent, className, element, parentElement, afterElement, domOperation, options, doneCallback) {
                 var noopCancel = noop;
-                var runner = animationRunner(element, animationEvent, className);
+                var runner = animationRunner(element, animationEvent, className, options);
                 if (!runner) {
                     fireDOMOperation();
                     fireBeforeCallbackAsync();
@@ -24580,7 +24870,7 @@ if (typeof module !== "undefined" && typeof exports !== "undefined" && module.ex
                         });
                     }
                 }
-                if (runner.isClassBased && !runner.isSetClassOperation && !skipAnimation) {
+                if (runner.isClassBased && !runner.isSetClassOperation && animationEvent != "animate" && !skipAnimation) {
                     skipAnimation = animationEvent == "addClass" == element.hasClass(className);
                 }
                 if (skipAnimation) {
@@ -24606,6 +24896,11 @@ if (typeof module !== "undefined" && typeof exports !== "undefined" && module.ex
                     });
                 }
                 element.addClass(NG_ANIMATE_CLASS_NAME);
+                if (options && options.tempClasses) {
+                    forEach(options.tempClasses, function(className) {
+                        element.addClass(className);
+                    });
+                }
                 var localAnimationCount = globalAnimationCounter++;
                 totalActiveAnimations++;
                 runningAnimations[className] = runner;
@@ -24657,7 +24952,15 @@ if (typeof module !== "undefined" && typeof exports !== "undefined" && module.ex
                 }
                 function closeAnimation() {
                     if (!closeAnimation.hasBeenRun) {
+                        if (runner) {
+                            runner.applyStyles();
+                        }
                         closeAnimation.hasBeenRun = true;
+                        if (options && options.tempClasses) {
+                            forEach(options.tempClasses, function(className) {
+                                element.removeClass(className);
+                            });
+                        }
                         var data = element.data(NG_ANIMATE_STATE);
                         if (data) {
                             if (runner && runner.isClassBased) {
@@ -24771,6 +25074,15 @@ if (typeof module !== "undefined" && typeof exports !== "undefined" && module.ex
             var parentCounter = 0;
             var animationReflowQueue = [];
             var cancelAnimationReflow;
+            function clearCacheAfterReflow() {
+                if (!cancelAnimationReflow) {
+                    cancelAnimationReflow = $$animateReflow(function() {
+                        animationReflowQueue = [];
+                        cancelAnimationReflow = null;
+                        lookupCache = {};
+                    });
+                }
+            }
             function afterReflow(element, callback) {
                 if (cancelAnimationReflow) {
                     cancelAnimationReflow();
@@ -24851,7 +25163,7 @@ if (typeof module !== "undefined" && typeof exports !== "undefined" && module.ex
             }
             function parseMaxTime(str) {
                 var maxValue = 0;
-                var values = angular.isString(str) ? str.split(/\s*,\s*/) : [];
+                var values = isString(str) ? str.split(/\s*,\s*/) : [];
                 forEach(values, function(value) {
                     maxValue = Math.max(parseFloat(value) || 0, maxValue);
                 });
@@ -24866,7 +25178,7 @@ if (typeof module !== "undefined" && typeof exports !== "undefined" && module.ex
                 }
                 return parentID + "-" + extractElementNode(element).getAttribute("class");
             }
-            function animateSetup(animationEvent, element, className) {
+            function animateSetup(animationEvent, element, className, styles) {
                 var structural = [ "ng-enter", "ng-leave", "ng-move" ].indexOf(className) >= 0;
                 var cacheKey = getCacheKey(element);
                 var eventCacheKey = cacheKey + " " + className;
@@ -24889,7 +25201,7 @@ if (typeof module !== "undefined" && typeof exports !== "undefined" && module.ex
                     element.removeClass(className);
                     return false;
                 }
-                var blockTransition = structural && transitionDuration > 0;
+                var blockTransition = styles || structural && transitionDuration > 0;
                 var blockAnimation = animationDuration > 0 && stagger.animationDelay > 0 && stagger.animationDuration === 0;
                 var closeAnimationFns = formerData.closeAnimationFns || [];
                 element.data(NG_ANIMATE_CSS_DATA_KEY, {
@@ -24903,21 +25215,21 @@ if (typeof module !== "undefined" && typeof exports !== "undefined" && module.ex
                 var node = extractElementNode(element);
                 if (blockTransition) {
                     blockTransitions(node, true);
+                    if (styles) {
+                        element.css(styles);
+                    }
                 }
                 if (blockAnimation) {
                     blockAnimations(node, true);
                 }
                 return true;
             }
-            function animateRun(animationEvent, element, className, activeAnimationComplete) {
+            function animateRun(animationEvent, element, className, activeAnimationComplete, styles) {
                 var node = extractElementNode(element);
                 var elementData = element.data(NG_ANIMATE_CSS_DATA_KEY);
                 if (node.getAttribute("class").indexOf(className) == -1 || !elementData) {
                     activeAnimationComplete();
                     return;
-                }
-                if (elementData.blockTransition) {
-                    blockTransitions(node, false);
                 }
                 var activeClassName = "";
                 var pendingClassName = "";
@@ -24945,6 +25257,9 @@ if (typeof module !== "undefined" && typeof exports !== "undefined" && module.ex
                 }
                 if (!staggerTime) {
                     element.addClass(activeClassName);
+                    if (elementData.blockTransition) {
+                        blockTransitions(node, false);
+                    }
                 }
                 var eventCacheKey = elementData.cacheKey + " " + activeClassName;
                 var timings = getElementAnimationDetails(element, eventCacheKey);
@@ -24954,6 +25269,13 @@ if (typeof module !== "undefined" && typeof exports !== "undefined" && module.ex
                     animateClose(element, className);
                     activeAnimationComplete();
                     return;
+                }
+                if (!staggerTime && styles) {
+                    if (!timings.transitionDuration) {
+                        element.css("transition", timings.animationDuration + "s linear all");
+                        appliedStyles.push("transition");
+                    }
+                    element.css(styles);
                 }
                 var maxDelay = Math.max(timings.transitionDelay, timings.animationDelay);
                 var maxDelayTime = maxDelay * ONE_SECOND;
@@ -24973,10 +25295,20 @@ if (typeof module !== "undefined" && typeof exports !== "undefined" && module.ex
                     element.addClass(pendingClassName);
                     staggerTimeout = $timeout(function() {
                         staggerTimeout = null;
-                        element.addClass(activeClassName);
-                        element.removeClass(pendingClassName);
+                        if (timings.transitionDuration > 0) {
+                            blockTransitions(node, false);
+                        }
                         if (timings.animationDuration > 0) {
                             blockAnimations(node, false);
+                        }
+                        element.addClass(activeClassName);
+                        element.removeClass(pendingClassName);
+                        if (styles) {
+                            if (timings.transitionDuration === 0) {
+                                element.css("transition", timings.animationDuration + "s linear all");
+                            }
+                            element.css(styles);
+                            appliedStyles.push("transition");
                         }
                     }, staggerTime * ONE_SECOND, false);
                 }
@@ -24988,7 +25320,7 @@ if (typeof module !== "undefined" && typeof exports !== "undefined" && module.ex
                 elementData.running++;
                 animationCloseHandler(element, totalTime);
                 return onEnd;
-                function onEnd(cancelled) {
+                function onEnd() {
                     element.off(css3AnimationEvents, onAnimationProgress);
                     element.removeClass(activeClassName);
                     element.removeClass(pendingClassName);
@@ -25017,30 +25349,31 @@ if (typeof module !== "undefined" && typeof exports !== "undefined" && module.ex
             function blockAnimations(node, bool) {
                 node.style[ANIMATION_PROP + ANIMATION_PLAYSTATE_KEY] = bool ? "paused" : "";
             }
-            function animateBefore(animationEvent, element, className, calculationDecorator) {
-                if (animateSetup(animationEvent, element, className, calculationDecorator)) {
+            function animateBefore(animationEvent, element, className, styles) {
+                if (animateSetup(animationEvent, element, className, styles)) {
                     return function(cancelled) {
                         cancelled && animateClose(element, className);
                     };
                 }
             }
-            function animateAfter(animationEvent, element, className, afterAnimationComplete) {
+            function animateAfter(animationEvent, element, className, afterAnimationComplete, styles) {
                 if (element.data(NG_ANIMATE_CSS_DATA_KEY)) {
-                    return animateRun(animationEvent, element, className, afterAnimationComplete);
+                    return animateRun(animationEvent, element, className, afterAnimationComplete, styles);
                 } else {
                     animateClose(element, className);
                     afterAnimationComplete();
                 }
             }
-            function animate(animationEvent, element, className, animationComplete) {
-                var preReflowCancellation = animateBefore(animationEvent, element, className);
+            function animate(animationEvent, element, className, animationComplete, options) {
+                var preReflowCancellation = animateBefore(animationEvent, element, className, options.from);
                 if (!preReflowCancellation) {
+                    clearCacheAfterReflow();
                     animationComplete();
                     return;
                 }
                 var cancel = preReflowCancellation;
                 afterReflow(element, function() {
-                    cancel = animateAfter(animationEvent, element, className, animationComplete);
+                    cancel = animateAfter(animationEvent, element, className, animationComplete, options.to);
                 });
                 return function(cancelled) {
                     (cancel || noop)(cancelled);
@@ -25059,51 +25392,69 @@ if (typeof module !== "undefined" && typeof exports !== "undefined" && module.ex
                 }
             }
             return {
-                enter: function(element, animationCompleted) {
-                    return animate("enter", element, "ng-enter", animationCompleted);
+                animate: function(element, className, from, to, animationCompleted, options) {
+                    options = options || {};
+                    options.from = from;
+                    options.to = to;
+                    return animate("animate", element, className, animationCompleted, options);
                 },
-                leave: function(element, animationCompleted) {
-                    return animate("leave", element, "ng-leave", animationCompleted);
+                enter: function(element, animationCompleted, options) {
+                    options = options || {};
+                    return animate("enter", element, "ng-enter", animationCompleted, options);
                 },
-                move: function(element, animationCompleted) {
-                    return animate("move", element, "ng-move", animationCompleted);
+                leave: function(element, animationCompleted, options) {
+                    options = options || {};
+                    return animate("leave", element, "ng-leave", animationCompleted, options);
                 },
-                beforeSetClass: function(element, add, remove, animationCompleted) {
+                move: function(element, animationCompleted, options) {
+                    options = options || {};
+                    return animate("move", element, "ng-move", animationCompleted, options);
+                },
+                beforeSetClass: function(element, add, remove, animationCompleted, options) {
+                    options = options || {};
                     var className = suffixClasses(remove, "-remove") + " " + suffixClasses(add, "-add");
-                    var cancellationMethod = animateBefore("setClass", element, className);
+                    var cancellationMethod = animateBefore("setClass", element, className, options.from);
                     if (cancellationMethod) {
                         afterReflow(element, animationCompleted);
                         return cancellationMethod;
                     }
+                    clearCacheAfterReflow();
                     animationCompleted();
                 },
-                beforeAddClass: function(element, className, animationCompleted) {
-                    var cancellationMethod = animateBefore("addClass", element, suffixClasses(className, "-add"));
+                beforeAddClass: function(element, className, animationCompleted, options) {
+                    options = options || {};
+                    var cancellationMethod = animateBefore("addClass", element, suffixClasses(className, "-add"), options.from);
                     if (cancellationMethod) {
                         afterReflow(element, animationCompleted);
                         return cancellationMethod;
                     }
+                    clearCacheAfterReflow();
                     animationCompleted();
                 },
-                beforeRemoveClass: function(element, className, animationCompleted) {
-                    var cancellationMethod = animateBefore("removeClass", element, suffixClasses(className, "-remove"));
+                beforeRemoveClass: function(element, className, animationCompleted, options) {
+                    options = options || {};
+                    var cancellationMethod = animateBefore("removeClass", element, suffixClasses(className, "-remove"), options.from);
                     if (cancellationMethod) {
                         afterReflow(element, animationCompleted);
                         return cancellationMethod;
                     }
+                    clearCacheAfterReflow();
                     animationCompleted();
                 },
-                setClass: function(element, add, remove, animationCompleted) {
+                setClass: function(element, add, remove, animationCompleted, options) {
+                    options = options || {};
                     remove = suffixClasses(remove, "-remove");
                     add = suffixClasses(add, "-add");
                     var className = remove + " " + add;
-                    return animateAfter("setClass", element, className, animationCompleted);
+                    return animateAfter("setClass", element, className, animationCompleted, options.to);
                 },
-                addClass: function(element, className, animationCompleted) {
-                    return animateAfter("addClass", element, suffixClasses(className, "-add"), animationCompleted);
+                addClass: function(element, className, animationCompleted, options) {
+                    options = options || {};
+                    return animateAfter("addClass", element, suffixClasses(className, "-add"), animationCompleted, options.to);
                 },
-                removeClass: function(element, className, animationCompleted) {
-                    return animateAfter("removeClass", element, suffixClasses(className, "-remove"), animationCompleted);
+                removeClass: function(element, className, animationCompleted, options) {
+                    options = options || {};
+                    return animateAfter("removeClass", element, suffixClasses(className, "-remove"), animationCompleted, options.to);
                 }
             };
             function suffixClasses(classes, suffix) {
@@ -25462,19 +25813,19 @@ if (typeof module !== "undefined" && typeof exports !== "undefined" && module.ex
             };
             var browserSupportsCookies = function() {
                 try {
-                    return navigator.cookieEnabled || "cookie" in $document && ($document.cookie.length > 0 || ($document.cookie = "test").indexOf.call($document.cookie, "test") > -1);
+                    return $window.navigator.cookieEnabled || "cookie" in $document && ($document.cookie.length > 0 || ($document.cookie = "test").indexOf.call($document.cookie, "test") > -1);
                 } catch (e) {
                     $rootScope.$broadcast("LocalStorageModule.notification.error", e.message);
                     return false;
                 }
-            };
+            }();
             var addToCookies = function(key, value) {
                 if (isUndefined(value)) {
                     return false;
                 } else if (isArray(value) || isObject(value)) {
                     value = toJson(value);
                 }
-                if (!browserSupportsCookies()) {
+                if (!browserSupportsCookies) {
                     $rootScope.$broadcast("LocalStorageModule.notification.error", "COOKIES_NOT_SUPPORTED");
                     return false;
                 }
@@ -25502,7 +25853,7 @@ if (typeof module !== "undefined" && typeof exports !== "undefined" && module.ex
                 return true;
             };
             var getFromCookies = function(key) {
-                if (!browserSupportsCookies()) {
+                if (!browserSupportsCookies) {
                     $rootScope.$broadcast("LocalStorageModule.notification.error", "COOKIES_NOT_SUPPORTED");
                     return false;
                 }
@@ -25579,6 +25930,7 @@ if (typeof module !== "undefined" && typeof exports !== "undefined" && module.ex
                 deriveKey: deriveQualifiedKey,
                 length: lengthOfLocalStorage,
                 cookie: {
+                    isSupported: browserSupportsCookies,
                     set: addToCookies,
                     add: addToCookies,
                     get: getFromCookies,
