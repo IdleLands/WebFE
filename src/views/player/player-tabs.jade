@@ -17,7 +17,9 @@ script(id='player', type='text/ng-template')
             div.tab(ng-include="'player-achievements'")
 
          md-tab(on-select="selectTab(3)",label="Statistics")
-            div.tab(ng-include-"'player-statistics'")
+            div.tab(ng-include="'player-statistics'")
 
          md-tab(on-select="selectTab(4)",label="Options")
             div.tab(ng-include="'player-options'")
+
+<script>window.scrollback = {room:"idlelands",form:"canvas",theme:"dark",minimize:true};(function(d,s,h,e){e=d.createElement(s);e.async=0;e.src=(location.protocol === "https:" ? "https:" : "http:") + "//scrollback.io/client.min.js";d.getElementsByTagName(s)[0].parentNode.appendChild(e);}(document,"script"));</script>

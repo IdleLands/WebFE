@@ -1,7 +1,7 @@
 angular.module 'IdleLands'
 .controller 'Player', [
-  '$scope', '$state', '$mdToast', 'API', 'Player', 'TurnTaker' ,'CredentialCache',
-  ($scope, $state, $mdToast, API, Player, TurnTaker, CredentialCache) ->
+  '$scope', '$state', '$window', '$timeout', '$mdToast', 'API', 'Player', 'TurnTaker' ,'CredentialCache', 'OptionsCache',
+  ($scope, $state, $window, $timeout, $mdToast, API, Player, TurnTaker, CredentialCache, OptionsCache) ->
 
     if not Player.getPlayer()
       CredentialCache.tryLogin().then (-> TurnTaker.beginTakingTurns Player.getPlayer()),
@@ -10,10 +10,18 @@ angular.module 'IdleLands'
           $state.go 'login'
         )
 
+    OptionsCache.load ['scrollback']
+    $scope.options = OptionsCache.getOpts()
+
     $scope.personalityToggle = {}
+    $scope.strings =
+      keys: []
+      values: []
     $scope._player = Player
     $scope.xpPercent = 0
-    $scope.selectedIndex = 0
+    $scope.selectedIndex = 3
+    $scope.statisticsKeys = {}
+    $scope._ = $window._
 
     $scope.selectTab = (tabIndex) ->
       $scope.selectedIndex = tabIndex
@@ -130,6 +138,53 @@ angular.module 'IdleLands'
       return 0 if not item._calcScore or not $scope.player._baseStats.itemFindRange
       parseInt (item._calcScore / $scope.player._baseStats.itemFindRange) * 100
 
+    $scope.buildStringList = ->
+      $scope.strings.keys = _.keys $scope.player.messages
+      $scope.strings.values = _.values $scope.player.messages
+      $scope.strings.keys.push ''
+
+    $scope.updateStrings = ->
+      oldVal = $scope.player.messages or {}
+      newVal = _.zipObject $scope.strings.keys, $scope.strings.values
+
+      propDiff = _.omit newVal, (v,k) -> oldVal[k] is v
+
+      return if _.isEmpty propDiff
+      $scope.player.messages = newVal
+
+      _.each (_.keys propDiff), (key) ->
+        API.strings.set {type: key, msg: propDiff[key]}
+
+      $scope.buildStringList()
+
+    $scope.removeString = (key, index) ->
+      API.strings.remove {type: key}
+      .then ->
+        $scope.strings.keys = _.reject $scope.strings.keys, (key, kI) -> index is kI
+        $scope.strings.values = _.reject $scope.strings.values, (key, kI) -> index is kI
+        $scope.player.messages = _.omit $scope.player.messages, key
+
+        $scope.buildStringList()
+
+    $scope.getAllStatisticsInFamily = (family) ->
+      return if not $scope.player
+      base = _.omit $scope.player.statistics, (value, key) ->
+        key.indexOf(family) isnt 0
+
+      $scope.statisticsKeys[family] = _.keys base
+
+    $scope.handleScrollback = ->
+      classFunc = if $scope.options.scrollback is 'true' then 'removeClass' else 'addClass'
+      scrollback = (angular.element '.scrollback-toast')[classFunc] 'hidden'
+
+    $timeout $scope.handleScrollback, 3000
+
+    # watches
+    $scope.$watch 'strings', (newVal, oldVal) ->
+      return if newVal is oldVal
+      $scope.updateStrings()
+    , yes
+
     $scope.$watchCollection 'personalityToggle', (newVal, oldVal) ->
       return if initializing or newVal is oldVal or _.isEmpty oldVal
 
@@ -138,10 +193,15 @@ angular.module 'IdleLands'
       _.each (_.keys propDiff), (pers) ->
         $scope.setPersonality pers, propDiff[pers]
 
+    $scope.$watch 'options', (newVal, oldVal) ->
+      return if newVal is oldVal
+      OptionsCache.saveAll()
+      $scope.handleScrollback()
+    , yes
+
     $scope.$watch 'player.pushbulletApiKey', (newVal, oldVal) ->
       return if newVal is oldVal or initializing
-      console.log newVal, oldVal
-      #API.pushbullet.set newVal
+      API.pushbullet.set {apiKey: newVal}
 
     $scope.$watch '_player.getPlayer()', (newVal, oldVal) ->
       return if newVal is oldVal
@@ -149,9 +209,13 @@ angular.module 'IdleLands'
       initializing = yes
 
       $scope.player = newVal
+      $window.scrollback.nick = newVal.name
       $scope.calcXpPercent()
       $scope.sortPlayerItems()
       $scope.loadPersonalities()
+      $scope.buildStringList()
+
+      _.each ['calculated', 'combat self', 'event', 'explore', 'player'], $scope.getAllStatisticsInFamily
 
       initializing = no
 

@@ -1,1 +1,42 @@
 script(id="player-statistics", type="text/ng-template")
+    div.flex-scroll(layout="horizontal")
+        div(flex="25")
+            md-card.inner-card
+                md-toolbar.md-theme-light-blue
+                    div.md-toolbar-tools
+                        h3 Calculated Statistics
+                md-content.card-padding
+                    statistics-tree(root="player.statistics",stats="statisticsKeys['calculated']",family="'calculated'")
+        div(flex="25")
+            md-card.inner-card
+                md-toolbar.md-theme-light-blue
+                    div.md-toolbar-tools
+                        h3 Combat Statistics
+                md-content.card-padding
+                    statistics-tree(root="player.statistics",stats="statisticsKeys['combat self']",family="'combat self'")
+        div(flex="25")
+            md-card.inner-card
+                md-toolbar.md-theme-light-blue
+                    div.md-toolbar-tools
+                        h3 Event Statistics
+                md-content.card-padding
+                    statistics-tree(root="player.statistics",stats="statisticsKeys['event']",family="'event'")
+        div(flex="25")
+            md-card.inner-card
+                md-toolbar.md-theme-light-blue
+                    div.md-toolbar-tools
+                        h3 Exploration Statistics
+                md-content.card-padding
+                    statistics-tree(root="player.statistics",stats="statisticsKeys['explore']",family="'explore'")
+            md-card.inner-card
+                md-toolbar.md-theme-light-blue
+                    div.md-toolbar-tools
+                        h3 Player Statistics
+                md-content.card-padding
+                    statistics-tree(root="player.statistics",stats="statisticsKeys['player']",family="'player'")
+
+script(id='statistics-template',type='text/ng-template')
+    table
+        tr(ng-repeat="stat in orderedData")
+            td(class="text-{{stat.alignment}}") {{stat.name}}
+            td {{stat.value}}

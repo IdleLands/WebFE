@@ -9,8 +9,28 @@ script(id="player-options", type="text/ng-template")
                a(href,editable-text="player.pushbulletApiKey") {{player.pushbulletApiKey || 'No PushBullet API key set'}}
 
       div(flex="60",layout="vertical")
+         md-card.inner-card(layout="vertical")
+            md-toolbar.md-theme-light-blue
+               div.md-toolbar-tools
+                  h3 Custom Strings
+            md-content.card-padding
+               table
+                  tr(ng-repeat="key in strings.keys track by $index")
+                     td(width="15%")
+                        span(href,editable-text="strings.keys[$index]") {{strings.keys[$index] || 'Add new...'}}
+                     td(width="65%")
+                        span(href,editable-text="strings.values[$index]",ng-if="strings.keys[$index]") {{strings.values[$index] || '(not set)'}}
+                     td.text-right(width="10%")
+                        span.fa.fa-large.fa-trash.text-red.hover-cursor(ng-if="strings.keys[$index]", ng-click="removeString(strings.keys[$index], $index)")
 
       div(flex="15",layout="vertical")
+         md-card.inner-card(layout="vertical")
+            md-toolbar.md-theme-light-blue
+               div.md-toolbar-tools
+                  h3 Scrollback.io
+            md-content.card-padding
+               md-switch(ng-model="options.scrollback",ng-true-value="'true'",ng-false-value="'false'") Use Chat
+
          md-card.inner-card(layout="vertical")
             md-toolbar.md-theme-light-blue
                div.md-toolbar-tools
@@ -37,4 +57,3 @@ script(id="player-options", type="text/ng-template")
                      span &nbsp;
                      small
                         a(href="http://idle.land/s/thanks") Special Thanks
-
