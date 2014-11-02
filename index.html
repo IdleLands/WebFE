@@ -253,7 +253,7 @@
           </div>
           <div layout="horizontal" class="wrap-container">
             <div ng-repeat="stat in equipmentStatArray" flex="25" class="vital-stat"><span class="fa fa-fw fa-lg vertical-center {{stat.fa}}">
-                <md-tooltip>{{stat.name}}</md-tooltip></span><span>&nbsp;</span><small class="{{valueToColor(player._statCache[stat.name])}}">{{player._statCache[stat.name]}}</small></div>
+                <md-tooltip>{{stat.name}}</md-tooltip></span><span>&nbsp;</span><small class="{{valueToColor(player._statCache[stat.name])}}">{{player._statCache[stat.name] | number:0}}</small></div>
           </div>
         </md-content>
       </md-card>
