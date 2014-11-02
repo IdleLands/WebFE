@@ -4,6 +4,17 @@ script(id="player-options", type="text/ng-template")
          md-card.inner-card(layout="vertical")
             md-toolbar.md-theme-light-blue
                div.md-toolbar-tools
+                  h3 Player Options
+            md-content.card-padding
+               div.vital-stat
+                  span.fa.fa-fw.fa-sign-out.fa-lg.vertical-center
+                  span &nbsp;
+                  small
+                     a.inline-link(ng-click="logout()") Log Out
+
+         md-card.inner-card(layout="vertical")
+            md-toolbar.md-theme-light-blue
+               div.md-toolbar-tools
                   h3 PushBullet
             md-content.card-padding
                a(href,editable-text="player.pushbulletApiKey") {{player.pushbulletApiKey || 'No PushBullet API key set'}}
@@ -41,19 +52,19 @@ script(id="player-options", type="text/ng-template")
                      span.fa.fa-fw.fa-bar-chart.fa-lg.vertical-center
                      span &nbsp;
                      small
-                        a(href="http://idle.land/s/analytics/{{player.name}}") Your Analytics
+                        a.inline-link(target="_blank",href="http://idle.land/s/analytics/{{player.name}}") Your Analytics
                   div.vital-stat
                      span.fa.fa-fw.fa-reddit.fa-lg.vertical-center
                      span &nbsp;
                      small
-                        a(href="http://reddit.com/r/idle_lands") /r/idle_lands
+                        a.inline-link(target="_blank",href="http://reddit.com/r/idle_lands") /r/idle_lands
                   div.vital-stat
                      span.fa.fa-fw.fa-github.fa-lg.vertical-center
                      span &nbsp;
                      small
-                        a(href="https://github.com/IdleLands/IdleLands") IdleLands @ GitHub
+                        a.inline-link(target="_blank",href="https://github.com/IdleLands/IdleLands") IdleLands @ GitHub
                   div.vital-stat
                      span.fa.fa-fw.fa-thumbs-up.fa-lg.vertical-center
                      span &nbsp;
                      small
-                        a(href="http://idle.land/s/thanks") Special Thanks
+                        a.inline-link(target="_blank",href="http://idle.land/s/thanks") Special Thanks

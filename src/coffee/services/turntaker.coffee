@@ -11,6 +11,7 @@ angular.module 'IdleLands'
         return
 
       return if turnInterval
+      API.action.turn identifier: player.identifier
 
       turnInterval = $interval ->
         API.action.turn identifier: player.identifier

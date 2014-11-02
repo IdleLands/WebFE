@@ -40,7 +40,8 @@ angular.module 'IdleLands'
 
         API.auth.login data
         .then (res) ->
-          CredentialCache.setCreds data if res.data.isSuccess
-          goToPlayerView()
+          if res.data.isSuccess
+            CredentialCache.setCreds data
+            goToPlayerView()
           $scope.isSubmitting = no
   ]

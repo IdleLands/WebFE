@@ -4,7 +4,14 @@ angular.module 'IdleLands'
   ($scope, $state, $window, $timeout, $mdToast, API, Player, TurnTaker, CredentialCache, OptionsCache) ->
 
     if not Player.getPlayer()
-      CredentialCache.tryLogin().then (-> TurnTaker.beginTakingTurns Player.getPlayer()),
+      CredentialCache.tryLogin().then (->
+        if not Player.getPlayer()
+          $mdToast.show template: "<md-toast>You don't appear to be logged in! Redirecting you to the login page...</md-toast>"
+          $state.go 'login'
+
+        else
+          TurnTaker.beginTakingTurns Player.getPlayer()
+        ),
         (->
           $mdToast.show template: "<md-toast>You don't appear to be logged in! Redirecting you to the login page...</md-toast>"
           $state.go 'login'
@@ -73,6 +80,20 @@ angular.module 'IdleLands'
       {name: 'ice', fa: 'icon-snow'}
     ]
 
+    $scope.eventTypeToIcon =
+      'item-mod': ['fa-legal','fa-magic fa-rotate-90']
+      'item-find': ['icon-feather']
+      'item-enchant': ['fa-magic']
+      'item-switcheroo': ['icon-magnet']
+      'profession': ['fa-child']
+      'explore': ['fa-globe']
+      'levelup': ['icon-universal-access']
+      'achievement': ['fa-shield']
+      'party': ['fa-users']
+      'exp': ['fa-support']
+      'gold': ['icon-money']
+      'guild': ['fa-network']
+
     $scope.achievementTypeToIcon =
       'class': ['fa-child']
       'event': ['fa-info']
@@ -125,6 +146,12 @@ angular.module 'IdleLands'
           items.push item
 
       items
+
+    $scope.logout = ->
+      Player.setPlayer null
+      CredentialCache.doLogout()
+      API.auth.logout()
+      $state.go 'login'
 
     $scope.valueToColor = (value) ->
       return 'text-red' if value < 0

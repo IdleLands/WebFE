@@ -9,6 +9,13 @@ angular.module 'IdleLands'
       localStorageService.set 'name', credentials.name
       localStorageService.set 'password', credentials.password
 
+    doLogout: ->
+      localStorageService.set 'identifier', ''
+      localStorageService.set 'name', ''
+      localStorageService.set 'password', ''
+      Token.setToken ''
+      credentials = {}
+
     tryLogin: ->
 
       defer = $q.defer()
