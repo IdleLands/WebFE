@@ -34,7 +34,7 @@ script(id="player-player", type="text/ng-template")
                      span.fa.fa-fw.fa-lg.vertical-center(class="{{stat.fa}}")
                         md-tooltip {{stat.name}}
                      span &nbsp;
-                     small(class="{{valueToColor(player._statCache[stat.name])}}") {{player._statCache[stat.name]}}
+                     small(class="{{valueToColor(player._statCache[stat.name])}}") {{player._statCache[stat.name] | number:0}}
 
          md-card.inner-card(layout="vertical")
             md-toolbar.md-theme-light-blue
