@@ -19,7 +19,7 @@ angular.module 'IdleLands'
       values: []
     $scope._player = Player
     $scope.xpPercent = 0
-    $scope.selectedIndex = 3
+    $scope.selectedIndex = 0
     $scope.statisticsKeys = {}
     $scope._ = $window._
 
