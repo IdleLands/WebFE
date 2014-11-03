@@ -407,8 +407,7 @@
         if (newVal === oldVal) {
           return;
         }
-        $scope.turnTimeValue = newVal * 10;
-        return console.log($scope.turnTimeValue);
+        return $scope.turnTimeValue = newVal * 10;
       });
       $scope.$watch('strings', function(newVal, oldVal) {
         if (newVal === oldVal) {

@@ -267,10 +267,10 @@
         </md-toolbar>
         <md-content class="card-padding">
           <div layout="vertical">
-            <div><span class="fa fa-fw fa-globe"></span><span>&nbsp;{{player.map}} ~ {{player.x}}, {{player.y}}</span></div>
-            <div><span class="fa fa-fw fa-map-marker"></span><span>&nbsp;{{player.mapRegion}}</span></div>
-            <div><span class="fa fa-fw fa-users"></span><span>&nbsp;{{player.partyName || 'No party'}}</span></div>
-            <div><span class="fa fa-fw fa-sitemap"></span><span>&nbsp;{{player.guild || 'No guild'}}</span></div>
+            <div class="vital-stat"><span class="fa fa-fw fa-globe"></span><span>&nbsp;{{player.map}} ~ {{player.x}}, {{player.y}}</span></div>
+            <div class="vital-stat"><span class="fa fa-fw fa-map-marker"></span><span>&nbsp;{{player.mapRegion}}</span></div>
+            <div class="vital-stat"><span class="fa fa-fw fa-users"></span><span>&nbsp;{{player.partyName || 'No party'}}</span></div>
+            <div class="vital-stat"><span class="fa fa-fw fa-sitemap"></span><span>&nbsp;{{player.guild || 'No guild'}}</span></div>
             <div><span class="fa fa-fw fa-clock-o"></span><span>&nbsp;Started&nbsp;</span><span am-time-ago="player.registrationDate">
                 <md-tooltip>{{player.registrationDate}}</md-tooltip></span></div>
           </div>
@@ -295,25 +295,21 @@
       </md-card>
     </div>
     <div flex="20" layout="vertical">
-      <md-card layout="vertical" class="is-flex auto-flex inner-card max-width">
+      <md-card layout="vertical" class="is-flex auto-flex inner-card">
         <md-toolbar class="md-theme-light-blue">
           <div class="md-toolbar-tools">
             <h3>Unlocked Personalities</h3>
           </div>
         </md-toolbar>
-        <md-content class="is-flex auto-flex bottom-padding-8">
-          <md-list style="flex-basis:60px" layout="vertical" class="is-flex auto-flex hidden-x">
-            <md-item style="flex-basis: 1.8em" ng-repeat="personality in player.achievements | filter:{type:'personality'}">
-              <md-item-content>
-                <md-tile-left style="width:90px">
-                  <md-switch ng-model="personalityToggle[personality._personality]"></md-switch>
-                </md-tile-left>
-                <md-tile-content>
-                  <p>{{personality._personality}}</p>
-                </md-tile-content>
-              </md-item-content>
-            </md-item>
-          </md-list>
+        <md-content style="flex-basis:50px" layout="vertical" class="is-flex auto-flex">
+          <div ng-repeat="personality in player.achievements | filter:{type:'personality'}" class="is-flex auto-flex">
+            <div flex="30">
+              <md-switch ng-model="personalityToggle[personality._personality]"></md-switch>
+            </div>
+            <div flex="70">
+              <div style="margin-top:10px">{{personality._personality}}</div>
+            </div>
+          </div>
         </md-content>
       </md-card>
     </div>
