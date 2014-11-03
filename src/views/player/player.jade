@@ -42,16 +42,16 @@ script(id="player-player", type="text/ng-template")
                   h3 Miscellaneous
             md-content.card-padding
                div(layout="vertical")
-                  div
+                  div.vital-stat
                      span.fa.fa-fw.fa-globe
                      span &nbsp;{{player.map}} ~ {{player.x}}, {{player.y}}
-                  div
+                  div.vital-stat
                      span.fa.fa-fw.fa-map-marker
                      span &nbsp;{{player.mapRegion}}
-                  div
+                  div.vital-stat
                      span.fa.fa-fw.fa-users
                      span &nbsp;{{player.partyName || 'No party'}}
-                  div
+                  div.vital-stat
                      span.fa.fa-fw.fa-sitemap
                      span &nbsp;{{player.guild || 'No guild'}}
                   div
@@ -74,15 +74,13 @@ script(id="player-player", type="text/ng-template")
                      div {{event.message}}
 
       div(flex="20",layout="vertical")
-         md-card.is-flex.auto-flex.inner-card.max-width(layout="vertical")
+         md-card.is-flex.auto-flex.inner-card(layout="vertical")
             md-toolbar.md-theme-light-blue
                div.md-toolbar-tools
                   h3 Unlocked Personalities
-            md-content.is-flex.auto-flex.bottom-padding-8
-               md-list.is-flex.auto-flex.hidden-x(style="flex-basis:60px",layout="vertical")
-                  md-item(style="flex-basis: 1.8em",ng-repeat="personality in player.achievements | filter:{type:'personality'}")
-                     md-item-content
-                        md-tile-left(style="width:90px")
-                           md-switch(ng-model="personalityToggle[personality._personality]")
-                        md-tile-content
-                           p {{personality._personality}}
+            md-content.is-flex.auto-flex(style="flex-basis:50px",layout="vertical")
+               div.is-flex.auto-flex(ng-repeat="personality in player.achievements | filter:{type:'personality'}")
+                  div(flex="30")
+                     md-switch(ng-model="personalityToggle[personality._personality]")
+                  div(flex="70")
+                     div(style="margin-top:10px") {{personality._personality}}
