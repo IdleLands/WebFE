@@ -77,7 +77,8 @@ script(id="player-player", type="text/ng-template")
          md-card.is-flex.auto-flex.inner-card(layout="vertical")
             md-toolbar.md-theme-light-blue
                div.md-toolbar-tools
-                  h3 Unlocked Personalities
+                  h3
+                     a.fa.fa-question-circle(href="https://github.com/IdleLands/IdleLands/wiki/Personalities",target="_blank") &nbsp;Your Personalities
             md-content.is-flex.auto-flex(style="flex-basis:50px",layout="vertical")
                div.is-flex.auto-flex(ng-repeat="personality in player.achievements | filter:{type:'personality'}")
                   div(flex="30")

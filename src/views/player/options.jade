@@ -15,7 +15,8 @@ script(id="player-options", type="text/ng-template")
          md-card.inner-card(layout="vertical")
             md-toolbar.md-theme-light-blue
                div.md-toolbar-tools
-                  h3 PushBullet
+                  h3
+                     a.fa.fa-question-circle(href="https://github.com/IdleLands/IdleLands/wiki/PushBullet-Integration",target="_blank") &nbsp;PushBullet
             md-content.card-padding
                a(href,editable-text="player.pushbulletApiKey") {{player.pushbulletApiKey || 'No PushBullet API key set'}}
 
@@ -23,7 +24,8 @@ script(id="player-options", type="text/ng-template")
          md-card.inner-card(layout="vertical")
             md-toolbar.md-theme-light-blue
                div.md-toolbar-tools
-                  h3 Custom Strings
+                  h3
+                     a.fa.fa-question-circle(href="https://github.com/IdleLands/IdleLands/wiki/Player-Strings",target="_blank") &nbsp;Custom Strings
             md-content.card-padding
                table
                   tr(ng-repeat="key in strings.keys track by $index")
@@ -48,6 +50,11 @@ script(id="player-options", type="text/ng-template")
                   h3 External Links
             md-content.card-padding
                div
+                  div.vital-stat
+                     span.fa.fa-fw.fa-question.fa-lg.vertical-center
+                     span &nbsp;
+                     small
+                        a.inline-link(target="_blank",href="https://github.com/IdleLands/IdleLands/wiki/New-Player-Guide#faq") FAQ
                   div.vital-stat
                      span.fa.fa-fw.fa-bar-chart.fa-lg.vertical-center
                      span &nbsp;
