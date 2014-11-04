@@ -19,7 +19,22 @@ script(id="player-options", type="text/ng-template")
                      a.fa.fa-question-circle(href="https://github.com/IdleLands/IdleLands/wiki/PushBullet-Integration",target="_blank") &nbsp;PushBullet
             md-content.card-padding
                a(href,editable-text="player.pushbulletApiKey") {{player.pushbulletApiKey || 'No PushBullet API key set'}}
-
+               
+         md-card.inner-card(layout="vertical")
+            md-toolbar.md-theme-light-blue
+               div.md-toolbar-tools
+                  h3 Gender
+                     md-tooltip Choose your preferred pronoun!
+            md-content.card-padding
+               a(href,editable-text="player.gender") {{player.gender || 'No gender identified'}}
+               md-radio-group(ng-model="player.gender")
+                  md-radio-button(value="Female") Female
+                  md-radio-button(value="Male") Male
+                  md-radio-button(value="Glowcloud") Glowcloud
+                  md-radio-button(value="Not a bear") Bear
+                  md-radio-button(value="Astronomical Entity") Astronomical Entity
+                  md-radio-button(value="Secret") A Secret to Everybody
+                  
       div(flex="60",layout="vertical")
          md-card.inner-card(layout="vertical")
             md-toolbar.md-theme-light-blue
