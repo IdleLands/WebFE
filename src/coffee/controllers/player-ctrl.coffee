@@ -233,6 +233,10 @@ angular.module 'IdleLands'
     $scope.$watch 'player.pushbulletApiKey', (newVal, oldVal) ->
       return if newVal is oldVal or initializing
       API.pushbullet.set {apiKey: newVal}
+      
+    $scope.$watch 'player.gender', (newVal, oldVal) ->
+      return if newVal is oldVal or initializing
+      API.gender.set {gender: newVal}
 
     $scope.$watch '_player.getPlayer()', (newVal, oldVal) ->
       return if newVal is oldVal

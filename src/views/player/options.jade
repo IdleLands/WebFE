@@ -19,6 +19,15 @@ script(id="player-options", type="text/ng-template")
                      a.fa.fa-question-circle(href="https://github.com/IdleLands/IdleLands/wiki/PushBullet-Integration",target="_blank") &nbsp;PushBullet
             md-content.card-padding
                a(href,editable-text="player.pushbulletApiKey") {{player.pushbulletApiKey || 'No PushBullet API key set'}}
+               
+         md-card.inner-card(layout="vertical")
+            md-toolbar.md-theme-light-blue
+               div.md-toolbar-tools
+                  h3
+                     &nbsp;Gender
+                     md-tooltip Choose your preferred pronoun!
+            md-content.card-padding
+               a(href,editable-text="player.gender") {{player.gender || 'No gender identified'}}
 
       div(flex="60",layout="vertical")
          md-card.inner-card(layout="vertical")
