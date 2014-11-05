@@ -1,7 +1,7 @@
 angular.module 'IdleLands'
   .factory 'API', [
-    'Authentication', 'Action', 'Personality', 'Pushbullet', 'Strings', 'Gender',
-    (Authentication, Action, Personality, Pushbullet, Strings, Gender) ->
+    'Authentication', 'Action', 'Personality', 'Pushbullet', 'Strings', 'Gender', 'Inventory',
+    (Authentication, Action, Personality, Pushbullet, Strings, Gender, Inventory) ->
 
       auth: Authentication
       action: Action
@@ -9,4 +9,5 @@ angular.module 'IdleLands'
       pushbullet: Pushbullet
       strings: Strings
       gender: Gender
+      inventory: Inventory
   ]

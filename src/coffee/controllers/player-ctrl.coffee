@@ -128,7 +128,7 @@ angular.module 'IdleLands'
           prev[key] = 0 if not (key of prev) and _.isNumber val
           prev[key] += val if _.isNumber val
         prev
-      , {name: 'Equipment Stat Totals', type: 'TOTAL', itemClass: 'total'}
+      , {name: 'Equipment Stat Totals', type: 'TOTAL', itemClass: 'total', hideButtons: yes}
 
       items.unshift test
 
@@ -143,6 +143,7 @@ angular.module 'IdleLands'
         _.each overflow, (item, index) ->
           item.extraItemClass = 'extra'
           item.extraText = "SLOT #{index}"
+          item.overflowSlot = index
           items.push item
 
       items
@@ -153,6 +154,7 @@ angular.module 'IdleLands'
       API.auth.logout()
       $state.go 'login'
 
+    # equipment page
     $scope.valueToColor = (value) ->
       return 'text-red' if value < 0
       return 'text-green' if value > 0
@@ -165,6 +167,16 @@ angular.module 'IdleLands'
       return 0 if not item._calcScore or not $scope.player._baseStats.itemFindRange
       parseInt (item._calcScore / $scope.player._baseStats.itemFindRange) * 100
 
+    $scope.sellItem = (item) ->
+      API.inventory.sell {invSlot: item.overflowSlot}
+
+    $scope.swapItem = (item) ->
+      API.inventory.swap {invSlot: item.overflowSlot}
+
+    $scope.invItem =  (item) ->
+      API.inventory.add {itemSlot: item.type}
+
+    # custom strings
     $scope.buildStringList = ->
       $scope.strings.keys = _.keys $scope.player.messages
       $scope.strings.values = _.values $scope.player.messages
@@ -193,6 +205,7 @@ angular.module 'IdleLands'
 
         $scope.buildStringList()
 
+    # player statistics page
     $scope.getAllStatisticsInFamily = (family) ->
       return if not $scope.player
       base = _.omit $scope.player.statistics, (value, key) ->
@@ -200,6 +213,7 @@ angular.module 'IdleLands'
 
       $scope.statisticsKeys[family] = _.keys base
 
+    # scrollback
     $scope.handleScrollback = ->
       classFunc = if $scope.options.scrollback is 'true' then 'removeClass' else 'addClass'
       scrollback = (angular.element '.scrollback-toast')[classFunc] 'hidden'

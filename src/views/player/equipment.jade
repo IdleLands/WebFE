@@ -6,6 +6,14 @@ script(id="player-equipment", type="text/ng-template")
                     div(class="{{classToColor(item.itemClass)}}") {{item.type}}
                         md-tooltip {{item.itemClass}}
                     div(ng-if="item.extraItemClass",class="{{classToColor(item.extraItemClass)}}") {{item.extraText}}
+                    div.text-center
+                        span.hover-cursor.fa.fa-fw.icon-money(ng-if="item.extraItemClass",ng-click="sellItem(item)")
+                            md-tooltip Sell
+                        span.hover-cursor.fa.fa-fw.fa-exchange(ng-if="item.extraItemClass",ng-click="swapItem(item)")
+                            md-tooltip Swap
+                        span.hover-cursor.fa.fa-fw.fa-caret-square-o-down(ng-if="!item.extraItemClass && !item.hideButtons",ng-click="invItem(item)")
+                            md-tooltip Add to Inventory
+
                 div.md-tile-content.item-line
                     div
                         span.super-bold {{item.enchantLevel ? '+'+item.enchantLevel+' ' : ''}}
@@ -14,9 +22,9 @@ script(id="player-equipment", type="text/ng-template")
                             span , found
                             span &nbsp;
                             span(am-time-ago="item.foundAt")
-                            span , with a PR of
+                            span , with a Player Relativity of
                             span &nbsp;{{playerItemScore(item)}}%&nbsp;
-                            span and an IR of
+                            span and an Item Relativity of
                             span &nbsp;{{itemItemScore(item)}}%
                     div.top-margin-5.wrap-container(layout="horizontal")
                         span(ng-repeat="stat in equipmentStatArray",flex="8")
