@@ -303,7 +303,8 @@
         }, {
           name: 'Equipment Stat Totals',
           type: 'TOTAL',
-          itemClass: 'total'
+          itemClass: 'total',
+          hideButtons: true
         });
         items.unshift(test);
         return items;
@@ -316,6 +317,7 @@
           _.each(overflow, function(item, index) {
             item.extraItemClass = 'extra';
             item.extraText = "SLOT " + index;
+            item.overflowSlot = index;
             return items.push(item);
           });
         }
@@ -346,6 +348,21 @@
           return 0;
         }
         return parseInt((item._calcScore / $scope.player._baseStats.itemFindRange) * 100);
+      };
+      $scope.sellItem = function(item) {
+        return API.inventory.sell({
+          invSlot: item.overflowSlot
+        });
+      };
+      $scope.swapItem = function(item) {
+        return API.inventory.swap({
+          invSlot: item.overflowSlot
+        });
+      };
+      $scope.invItem = function(item) {
+        return API.inventory.add({
+          itemSlot: item.type
+        });
       };
       $scope.buildStringList = function() {
         $scope.strings.keys = _.keys($scope.player.messages);
@@ -440,6 +457,14 @@
         }
         return API.pushbullet.set({
           apiKey: newVal
+        });
+      });
+      $scope.$watch('player.gender', function(newVal, oldVal) {
+        if (newVal === oldVal || initializing) {
+          return;
+        }
+        return API.gender.set({
+          gender: newVal
         });
       });
       return $scope.$watch('_player.getPlayer()', function(newVal, oldVal) {
@@ -644,13 +669,15 @@
 
 (function() {
   angular.module('IdleLands').factory('API', [
-    'Authentication', 'Action', 'Personality', 'Pushbullet', 'Strings', function(Authentication, Action, Personality, Pushbullet, Strings) {
+    'Authentication', 'Action', 'Personality', 'Pushbullet', 'Strings', 'Gender', 'Inventory', function(Authentication, Action, Personality, Pushbullet, Strings, Gender, Inventory) {
       return {
         auth: Authentication,
         action: Action,
         personality: Personality,
         pushbullet: Pushbullet,
-        strings: Strings
+        strings: Strings,
+        gender: Gender,
+        inventory: Inventory
       };
     }
   ]);
@@ -674,6 +701,45 @@
         },
         changePassword: function(data) {
           return $http.patch("" + url + "/password", data);
+        }
+      };
+    }
+  ]);
+
+}).call(this);
+
+(function() {
+  angular.module('IdleLands').factory('Gender', [
+    '$http', 'BaseURL', function($http, baseURL) {
+      var url;
+      url = "" + baseURL + "/player/manage/gender";
+      return {
+        set: function(data) {
+          return $http.put("" + url + "/set", data);
+        },
+        remove: function(data) {
+          return $http.post("" + url + "/remove", data);
+        }
+      };
+    }
+  ]);
+
+}).call(this);
+
+(function() {
+  angular.module('IdleLands').factory('Inventory', [
+    '$http', 'BaseURL', function($http, baseURL) {
+      var url;
+      url = "" + baseURL + "/player/manage/inventory";
+      return {
+        add: function(data) {
+          return $http.put("" + url + "/add", data);
+        },
+        sell: function(data) {
+          return $http.post("" + url + "/sell", data);
+        },
+        swap: function(data) {
+          return $http.patch("" + url + "/swap", data);
         }
       };
     }

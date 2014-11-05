@@ -121,9 +121,13 @@
             <md-tooltip>{{item.itemClass}}</md-tooltip>
           </div>
           <div ng-if="item.extraItemClass" class="{{classToColor(item.extraItemClass)}}">{{item.extraText}}</div>
+          <div class="text-center"><span ng-if="item.extraItemClass" ng-click="sellItem(item)" class="hover-cursor fa fa-fw icon-money">
+              <md-tooltip>Sell</md-tooltip></span><span ng-if="item.extraItemClass" ng-click="swapItem(item)" class="hover-cursor fa fa-fw fa-exchange">
+              <md-tooltip>Swap</md-tooltip></span><span ng-if="!item.extraItemClass &amp;&amp; !item.hideButtons" ng-click="invItem(item)" class="hover-cursor fa fa-fw fa-caret-square-o-down">
+              <md-tooltip>Add to Inventory</md-tooltip></span></div>
         </div>
         <div class="md-tile-content item-line">
-          <div><span class="super-bold">{{item.enchantLevel ? '+'+item.enchantLevel+' ' : ''}}</span><span class="super-bold">{{item.name}}</span><small ng-if="item.foundAt"><span>, found</span><span>&nbsp;</span><span am-time-ago="item.foundAt"></span><span>, with a PR of</span><span>&nbsp;{{playerItemScore(item)}}%&nbsp;</span><span>and an IR of</span><span>&nbsp;{{itemItemScore(item)}}%</span></small></div>
+          <div><span class="super-bold">{{item.enchantLevel ? '+'+item.enchantLevel+' ' : ''}}</span><span class="super-bold">{{item.name}}</span><small ng-if="item.foundAt"><span>, found</span><span>&nbsp;</span><span am-time-ago="item.foundAt"></span><span>, with a Player Relativity of</span><span>&nbsp;{{playerItemScore(item)}}%&nbsp;</span><span>and an Item Relativity of</span><span>&nbsp;{{itemItemScore(item)}}%</span></small></div>
           <div layout="horizontal" class="top-margin-5 wrap-container"><span ng-repeat="stat in equipmentStatArray" flex="8"><span class="fa fa-fw fa-lg {{stat.fa}}">
                 <md-tooltip>{{stat.name}}</md-tooltip></span><span>&nbsp;</span><small class="{{valueToColor(item[stat.name])}}">{{item[stat.name]}}</small><small>&nbsp;/&nbsp;</small><small class="{{valueToColor(item[stat.name+'Percent'])}}">{{item[stat.name+'Percent']}}%</small></span></div>
           <div class="top-margin-5"><small>{{getExtraStats(item)}}</small></div>
@@ -154,6 +158,23 @@
           </div>
         </md-toolbar>
         <md-content class="card-padding"><a href="href" editable-text="player.pushbulletApiKey">{{player.pushbulletApiKey || 'No PushBullet API key set'}}</a></md-content>
+      </md-card>
+      <md-card layout="vertical" class="inner-card">
+        <md-toolbar class="md-theme-light-blue">
+          <div class="md-toolbar-tools">
+            <h3><a href="https://github.com/IdleLands/IdleLands/wiki/Gender" target="_blank" class="fa fa-question-circle">&nbsp;Gender</a></h3>
+          </div>
+        </md-toolbar>
+        <md-content class="card-padding"><a href="href" editable-text="player.gender">{{player.gender || 'No gender identified'}}</a>
+          <md-radio-group ng-model="player.gender">
+            <md-radio-button value="female">Female</md-radio-button>
+            <md-radio-button value="male">Male</md-radio-button>
+            <md-radio-button value="glowcloud">Glowcloud</md-radio-button>
+            <md-radio-button value="not a bear">Bear</md-radio-button>
+            <md-radio-button value="astronomical entity">Astronomical Entity</md-radio-button>
+            <md-radio-button value="secret">A Secret to Everybody</md-radio-button>
+          </md-radio-group>
+        </md-content>
       </md-card>
     </div>
     <div flex="60" layout="vertical">
