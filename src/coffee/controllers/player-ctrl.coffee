@@ -85,6 +85,8 @@ angular.module 'IdleLands'
       'item-find': ['icon-feather']
       'item-enchant': ['fa-magic']
       'item-switcheroo': ['icon-magnet']
+      'shop': ['fa-money']
+      'shop-fail': ['fa-money']
       'profession': ['fa-child']
       'explore': ['fa-globe']
       'levelup': ['icon-universal-access']
