@@ -26,7 +26,7 @@ script(id="player-options", type="text/ng-template")
                   h3
                      a.fa.fa-question-circle(href="https://github.com/IdleLands/IdleLands/wiki/Gender",target="_blank") &nbsp;Gender
             md-content.card-padding
-               a(href,editable-text="player.gender") {{player.gender || 'No gender identified'}}
+               a(href,editable-text="player.gender") {{player.gender || 'No gender specified'}}
                md-radio-group(ng-model="player.gender")
                   md-radio-button(value="female") Female
                   md-radio-button(value="male") Male
