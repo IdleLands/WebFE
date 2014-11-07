@@ -1,5 +1,5 @@
 (function() {
-  angular.module('IdleLands', ['ngMaterial', 'angularMoment', 'ui.router', 'LocalStorageModule', 'xeditable']);
+  angular.module('IdleLands', ['ngMaterial', 'ngSanitize', 'angularMoment', 'ui.router', 'LocalStorageModule', 'xeditable']);
 
   angular.module('IdleLands').run([
     'editableThemes', function(editableThemes) {
@@ -121,7 +121,7 @@
 
 (function() {
   angular.module('IdleLands').controller('Player', [
-    '$scope', '$state', '$window', '$timeout', '$mdToast', 'API', 'Player', 'TurnTaker', 'CredentialCache', 'OptionsCache', function($scope, $state, $window, $timeout, $mdToast, API, Player, TurnTaker, CredentialCache, OptionsCache) {
+    '$scope', '$state', '$window', '$timeout', '$mdToast', 'API', 'Player', 'TurnTaker', 'CredentialCache', 'OptionsCache', 'BattleColorMap', function($scope, $state, $window, $timeout, $mdToast, API, Player, TurnTaker, CredentialCache, OptionsCache, BattleColorMap) {
       var initializing;
       if (!Player.getPlayer()) {
         CredentialCache.tryLogin().then((function() {
@@ -250,7 +250,8 @@
         'party': ['fa-users'],
         'exp': ['fa-support'],
         'gold': ['icon-money'],
-        'guild': ['fa-network']
+        'guild': ['fa-network'],
+        'combat': ['fa-newspaper-o faa-pulse animated']
       };
       $scope.achievementTypeToIcon = {
         'class': ['fa-child'],
@@ -317,6 +318,9 @@
         overflow = $scope.player.overflow;
         if (overflow) {
           _.each(overflow, function(item, index) {
+            if (!item) {
+              return;
+            }
             item.extraItemClass = 'extra';
             item.extraText = "SLOT " + index;
             item.overflowSlot = index;
@@ -404,6 +408,32 @@
           return $scope.buildStringList();
         });
       };
+      $scope.clickOnEvent = function(extraData) {
+        if (extraData.battleId) {
+          return $scope.retrieveBattle(extraData.battleId);
+        }
+      };
+      $scope.retrieveBattle = function(id) {
+        return API.battle.get({
+          battleId: id
+        }).then(function(res) {
+          $scope.currentBattle = res.data.battle;
+          if ($scope.currentBattle) {
+            return $scope.selectTab(2);
+          }
+        });
+      };
+      $scope.filterMessage = function(message) {
+        var regexp, replaceFunc, search;
+        for (search in BattleColorMap) {
+          replaceFunc = BattleColorMap[search];
+          regexp = new RegExp("(<" + search + ">)([\\s\\S]*?)(<\\/" + search + ">)", 'g');
+          message = message.replace(regexp, function(match, p1, p2) {
+            return replaceFunc(p2);
+          });
+        }
+        return message;
+      };
       $scope.getAllStatisticsInFamily = function(family) {
         var base;
         if (!$scope.player) {
@@ -436,7 +466,7 @@
       }, true);
       $scope.$watchCollection('personalityToggle', function(newVal, oldVal) {
         var propDiff;
-        if (initializing || newVal === oldVal || _.isEmpty(oldVal)) {
+        if (initializing || newVal === oldVal) {
           return;
         }
         propDiff = _.omit(newVal, function(v, k) {
@@ -481,8 +511,27 @@
         $scope.loadPersonalities();
         $scope.buildStringList();
         _.each(['calculated', 'combat self', 'event', 'explore', 'player'], $scope.getAllStatisticsInFamily);
-        return initializing = false;
+        return $timeout(function() {
+          return initializing = false;
+        }, 0);
       });
+    }
+  ]);
+
+}).call(this);
+
+(function() {
+  angular.module('IdleLands').directive('htmldiv', [
+    '$compile', '$parse', function($compile, $parse) {
+      return {
+        restrict: 'E',
+        link: function(scope, el, attr) {
+          return scope.$watch(attr.content, function() {
+            el.html($parse(attr.content)(scope));
+            return ($compile(el.contents()))(scope);
+          }, true);
+        }
+      };
     }
   ]);
 
@@ -671,10 +720,11 @@
 
 (function() {
   angular.module('IdleLands').factory('API', [
-    'Authentication', 'Action', 'Personality', 'Pushbullet', 'Strings', 'Gender', 'Inventory', function(Authentication, Action, Personality, Pushbullet, Strings, Gender, Inventory) {
+    'Authentication', 'Action', 'Battle', 'Personality', 'Pushbullet', 'Strings', 'Gender', 'Inventory', function(Authentication, Action, Battle, Personality, Pushbullet, Strings, Gender, Inventory) {
       return {
         auth: Authentication,
         action: Action,
+        battle: Battle,
         personality: Personality,
         pushbullet: Pushbullet,
         strings: Strings,
@@ -703,6 +753,21 @@
         },
         changePassword: function(data) {
           return $http.patch("" + url + "/password", data);
+        }
+      };
+    }
+  ]);
+
+}).call(this);
+
+(function() {
+  angular.module('IdleLands').factory('Battle', [
+    '$http', 'BaseURL', function($http, baseURL) {
+      var url;
+      url = "" + baseURL + "/game/battle";
+      return {
+        get: function(data) {
+          return $http.post("" + url, data);
         }
       };
     }
@@ -805,7 +870,78 @@
 
 (function() {
   angular.module('IdleLands').factory('BaseURL', function() {
-    return 'http://api.idle.land';
+    return 'http://localhost:3001';
+  });
+
+}).call(this);
+
+(function() {
+  var defaultReplaceFunction;
+
+  defaultReplaceFunction = function(fg, bg, fw, td) {
+    if (fg == null) {
+      fg = '#000';
+    }
+    if (bg == null) {
+      bg = '#fff';
+    }
+    if (fw == null) {
+      fw = 'normal';
+    }
+    if (td == null) {
+      td = 'none';
+    }
+    return function(msg) {
+      return "<span style='color:" + fg + ";background-color:" + bg + ";font-weight:" + fw + ";text-decoration:" + td + "'>" + msg + "</span>";
+    };
+  };
+
+  angular.module('IdleLands').constant('BattleColorMap', {
+    'player.name': defaultReplaceFunction(null, null, 'bold'),
+    'event.partyName': defaultReplaceFunction(null, null, null, 'underline'),
+    'event.partyMembers': defaultReplaceFunction(null, null, 'bold'),
+    'event.player': defaultReplaceFunction(null, null, 'bold'),
+    'event.damage': defaultReplaceFunction('#D50000'),
+    'event.gold': defaultReplaceFunction('#CDDC39'),
+    'event.realGold': defaultReplaceFunction('#CDDC39'),
+    'event.shopGold': defaultReplaceFunction('#CDDC39'),
+    'event.xp': defaultReplaceFunction('#1B5E20'),
+    'event.realXp': defaultReplaceFunction('#1B5E20'),
+    'event.percentXp': defaultReplaceFunction('#1B5E20'),
+    'event.item.newbie': defaultReplaceFunction('#9E9E9E'),
+    'event.item.Normal': defaultReplaceFunction('#9E9E9E'),
+    'event.item.basic': defaultReplaceFunction('#2196F3'),
+    'event.item.pro': defaultReplaceFunction(null, '#4527A0'),
+    'event.item.idle': defaultReplaceFunction('#FF7043'),
+    'event.item.godly': defaultReplaceFunction('#fff', '#000'),
+    'event.item.custom': defaultReplaceFunction('#fff', '#1A237E'),
+    'event.finditem.scoreboost': defaultReplaceFunction(),
+    'event.finditem.perceived': defaultReplaceFunction(),
+    'event.finditem.real': defaultReplaceFunction(),
+    'event.blessItem.stat': defaultReplaceFunction(),
+    'event.blessItem.value': defaultReplaceFunction(),
+    'event.flip.stat': defaultReplaceFunction(),
+    'event.flip.value': defaultReplaceFunction(),
+    'event.enchant.boost': defaultReplaceFunction(),
+    'event.enchant.stat': defaultReplaceFunction(),
+    'event.tinker.boost': defaultReplaceFunction(),
+    'event.tinker.stat': defaultReplaceFunction(),
+    'event.transfer.destination': defaultReplaceFunction(),
+    'event.transfer.from': defaultReplaceFunction(),
+    'player.class': defaultReplaceFunction(null, null, 'bold'),
+    'player.level': defaultReplaceFunction(null, null, 'bold'),
+    'stats.hp': defaultReplaceFunction('#B71C1C'),
+    'stats.mp': defaultReplaceFunction('#283593'),
+    'stats.sp': defaultReplaceFunction('#F57F17'),
+    'damage.hp': defaultReplaceFunction('#D50000'),
+    'damage.mp': defaultReplaceFunction('#D50000'),
+    'spell.turns': defaultReplaceFunction(null, null, 'bold'),
+    'spell.spellName': defaultReplaceFunction(null, null, 'bold'),
+    'event.casterName': defaultReplaceFunction(null, null, 'bold'),
+    'event.spellName': defaultReplaceFunction(null, null, 'bold'),
+    'event.targetName': defaultReplaceFunction(null, null, 'bold'),
+    'event.achievement': defaultReplaceFunction(null, null, 'bold'),
+    'event.guildName': defaultReplaceFunction(null, null, 'bold')
   });
 
 }).call(this);

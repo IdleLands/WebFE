@@ -112,6 +112,49 @@
 </script>
 
 
+<script id="player-battle" type="text/ng-template">
+  <div layout="horizontal" class="tab-containment is-flex auto-flex wrap-container">
+    <div flex="30" layout="vertical">
+      <md-card layout="vertical" class="inner-card">
+        <md-toolbar class="md-theme-light-blue">
+          <div class="md-toolbar-tools">
+            <h3>Teams ({{currentBattle.name}})</h3>
+          </div>
+        </md-toolbar>
+        <md-content class="card-padding">
+          <div layout="vertical">
+            <div ng-repeat="team in currentBattle.teams">
+              <h3>Team "{{team.name}}"</h3>
+              <table>
+                <tr ng-repeat="member in team.members">
+                  <td>{{member.name}}</td>
+                  <td>{{member.level}}</td>
+                  <td>{{member.profession}}</td>
+                </tr>
+              </table>
+            </div>
+          </div>
+        </md-content>
+      </md-card>
+    </div>
+    <div flex="70" layout="vertical">
+      <md-card layout="vertical" class="is-flex auto-flex inner-card">
+        <md-toolbar class="md-theme-light-blue">
+          <div class="md-toolbar-tools">
+            <h3>Combat Log ({{currentBattle.name}})</h3>
+          </div>
+        </md-toolbar>
+        <md-content style="flex-basis:40px" layout="vertical" class="is-flex auto-flex">
+          <div style="margin-top:40px;padding-left:10px;align-items:center" flex="100" ng-repeat="message in currentBattle.messages track by $index" layout="horizontal" class="is-flex top-margin-5">
+            <htmldiv content="filterMessage(message)"></htmldiv>
+          </div>
+        </md-content>
+      </md-card>
+    </div>
+  </div>
+</script>
+
+
 <script id="player-equipment" type="text/ng-template">
   <md-list class="flex-scroll">
     <md-item ng-repeat="item in playerItems track by $index">
@@ -165,13 +208,13 @@
             <h3><a href="https://github.com/IdleLands/IdleLands/wiki/Gender" target="_blank" class="fa fa-question-circle">&nbsp;Gender</a></h3>
           </div>
         </md-toolbar>
-        <md-content class="card-padding"><a href="href" editable-text="player.gender">{{player.gender || 'No gender identified'}}</a>
+        <md-content class="card-padding"><a href="href" editable-text="player.gender">{{player.gender || 'No gender specified'}}</a>
           <md-radio-group ng-model="player.gender">
             <md-radio-button value="female">Female</md-radio-button>
             <md-radio-button value="male">Male</md-radio-button>
             <md-radio-button value="glowcloud">Glowcloud</md-radio-button>
             <md-radio-button value="not a bear">Bear</md-radio-button>
-            <md-radio-button value="astronomical entity">Astronomical Entity</md-radio-button>
+            <md-radio-button value="astroentity">Astronomical Entity</md-radio-button>
             <md-radio-button value="secret">A Secret to Everybody</md-radio-button>
           </md-radio-group>
         </md-content>
@@ -242,13 +285,16 @@
       <md-tab on-select="selectTab(1)" label="Equipment">
         <div ng-include="'player-equipment'" class="tab"></div>
       </md-tab>
-      <md-tab on-select="selectTab(2)" label="Achievements ({{player.achievements.length}})">
+      <md-tab on-select="selectTab(2)" label="Battle" ng-show="currentBattle">
+        <div ng-include="'player-battle'" class="tab"></div>
+      </md-tab>
+      <md-tab on-select="selectTab(3)" label="Achievements ({{player.achievements.length}})">
         <div ng-include="'player-achievements'" class="tab"></div>
       </md-tab>
-      <md-tab on-select="selectTab(3)" label="Statistics">
+      <md-tab on-select="selectTab(4)" label="Statistics">
         <div ng-include="'player-statistics'" class="tab"></div>
       </md-tab>
-      <md-tab on-select="selectTab(4)" label="Options">
+      <md-tab on-select="selectTab(5)" label="Options">
         <div ng-include="'player-options'" class="tab"></div>
       </md-tab>
     </md-tabs>
@@ -309,7 +355,7 @@
         </md-toolbar>
         <md-content style="flex-basis:80px" layout="vertical" class="is-flex auto-flex">
           <div style="margin-top:70px;align-items:center" flex="100" ng-repeat="event in player.recentEvents | reverse" layout="horizontal" class="is-flex top-margin-5">
-            <div flex="10" class="fa-stack vertical-center"><span ng-repeat="item in $parent.eventTypeToIcon[event.type]" class="fa fa-fw fa-stack-2x {{item}}"></span></div>
+            <div flex="10" class="fa-stack vertical-center"><span ng-repeat="item in $parent.eventTypeToIcon[event.type]" ng-click="clickOnEvent(event.extra)" class="fa fa-fw fa-stack-2x {{item}} {{event.extra.battleId ? 'hover-cursor' : ''}}"></span></div>
             <div flex="90"><small am-time-ago="event.createdAt"></small>
               <div>{{event.message}}</div>
             </div>
