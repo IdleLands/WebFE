@@ -68,7 +68,7 @@ script(id="player-player", type="text/ng-template")
             md-content.is-flex.auto-flex(style="flex-basis:80px",layout="vertical")
                div.is-flex.top-margin-5(style="margin-top:70px;align-items:center",flex="100",ng-repeat="event in player.recentEvents | reverse",layout="horizontal")
                   div.fa-stack.vertical-center(flex="10")
-                     span.fa.fa-fw.fa-stack-2x(ng-repeat="item in $parent.eventTypeToIcon[event.type]",class="{{item}}")
+                     span.fa.fa-fw.fa-stack-2x(ng-repeat="item in $parent.eventTypeToIcon[event.type]",class="{{item}} {{event.extra.battleId ? 'hover-cursor' : ''}}", ng-click="clickOnEvent(event.extra)")
                   div(flex="90")
                      small(am-time-ago="event.createdAt")
                      div {{event.message}}

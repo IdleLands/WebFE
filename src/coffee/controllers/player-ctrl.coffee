@@ -1,7 +1,7 @@
 angular.module 'IdleLands'
 .controller 'Player', [
-  '$scope', '$state', '$window', '$timeout', '$mdToast', 'API', 'Player', 'TurnTaker' ,'CredentialCache', 'OptionsCache',
-  ($scope, $state, $window, $timeout, $mdToast, API, Player, TurnTaker, CredentialCache, OptionsCache) ->
+  '$scope', '$state', '$window', '$timeout', '$mdToast', 'API', 'Player', 'TurnTaker' ,'CredentialCache', 'OptionsCache', 'BattleColorMap',
+  ($scope, $state, $window, $timeout, $mdToast, API, Player, TurnTaker, CredentialCache, OptionsCache, BattleColorMap) ->
 
     if not Player.getPlayer()
       CredentialCache.tryLogin().then (->
@@ -95,6 +95,7 @@ angular.module 'IdleLands'
       'exp': ['fa-support']
       'gold': ['icon-money']
       'guild': ['fa-network']
+      'combat': ['fa-newspaper-o faa-pulse animated']
 
     $scope.achievementTypeToIcon =
       'class': ['fa-child']
@@ -207,6 +208,25 @@ angular.module 'IdleLands'
         $scope.player.messages = _.omit $scope.player.messages, key
 
         $scope.buildStringList()
+
+    # click on button
+    $scope.clickOnEvent = (extraData) ->
+      $scope.retrieveBattle extraData.battleId if extraData.battleId
+
+    # battle
+    $scope.retrieveBattle = (id) ->
+      API.battle.get {battleId: id}
+      .then (res) ->
+        $scope.currentBattle = res.data.battle
+        $scope.selectTab 2 if $scope.currentBattle
+
+    $scope.filterMessage = (message) ->
+      for search, replaceFunc of BattleColorMap
+        regexp = new RegExp "(<#{search}>)([\\s\\S]*?)(<\\/#{search}>)", 'g'
+        message = message.replace regexp, (match, p1, p2) ->
+          replaceFunc p2
+
+      message
 
     # player statistics page
     $scope.getAllStatisticsInFamily = (family) ->

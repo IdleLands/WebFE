@@ -14,8 +14,8 @@ script(id='player', type='text/ng-template')
          md-tab(on-select="selectTab(1)",label="Equipment")
             div.tab(ng-include="'player-equipment'")
 
-         md-tab(on-select="selectTab(2)",label="Battle",ng-show="false")
-            div.tab(ng-include="'player-player'")
+         md-tab(on-select="selectTab(2)",label="Battle",ng-show="currentBattle")
+            div.tab(ng-include="'player-battle'")
 
          md-tab(on-select="selectTab(3)",label="Achievements ({{player.achievements.length}})")
             div.tab(ng-include="'player-achievements'")
