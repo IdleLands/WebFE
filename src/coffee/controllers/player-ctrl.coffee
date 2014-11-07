@@ -143,6 +143,7 @@ angular.module 'IdleLands'
 
       if overflow
         _.each overflow, (item, index) ->
+          return if not item
           item.extraItemClass = 'extra'
           item.extraText = "SLOT #{index}"
           item.overflowSlot = index
