@@ -234,7 +234,7 @@ angular.module 'IdleLands'
     , yes
 
     $scope.$watchCollection 'personalityToggle', (newVal, oldVal) ->
-      return if initializing or newVal is oldVal or _.isEmpty oldVal
+      return if initializing or newVal is oldVal
 
       propDiff = _.omit newVal, (v,k) -> oldVal[k] is v
 
@@ -269,6 +269,7 @@ angular.module 'IdleLands'
 
       _.each ['calculated', 'combat self', 'event', 'explore', 'player'], $scope.getAllStatisticsInFamily
 
-      initializing = no
-
+      $timeout ->
+        initializing = no
+      , 0
 ]

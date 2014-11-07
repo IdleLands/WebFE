@@ -14,13 +14,16 @@ script(id='player', type='text/ng-template')
          md-tab(on-select="selectTab(1)",label="Equipment")
             div.tab(ng-include="'player-equipment'")
 
-         md-tab(on-select="selectTab(2)",label="Achievements ({{player.achievements.length}})")
+         md-tab(on-select="selectTab(2)",label="Battle",ng-show="false")
+            div.tab(ng-include="'player-player'")
+
+         md-tab(on-select="selectTab(3)",label="Achievements ({{player.achievements.length}})")
             div.tab(ng-include="'player-achievements'")
 
-         md-tab(on-select="selectTab(3)",label="Statistics")
+         md-tab(on-select="selectTab(4)",label="Statistics")
             div.tab(ng-include="'player-statistics'")
 
-         md-tab(on-select="selectTab(4)",label="Options")
+         md-tab(on-select="selectTab(5)",label="Options")
             div.tab(ng-include="'player-options'")
 
 <script>window.scrollback = {room:"idlelands",form:"canvas",theme:"dark",minimize:true};(function(d,s,h,e){e=d.createElement(s);e.async=0;e.src=(location.protocol === "https:" ? "https:" : "http:") + "//scrollback.io/client.min.js";d.getElementsByTagName(s)[0].parentNode.appendChild(e);}(document,"script"));</script>

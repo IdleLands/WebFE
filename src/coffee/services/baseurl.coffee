@@ -1,2 +1,2 @@
 angular.module 'IdleLands'
-  .factory 'BaseURL', -> 'http://api.idle.land'
+  .factory 'BaseURL', -> 'http://localhost:3001' #http://api.idle.land'
