@@ -1,2 +1,2 @@
 angular.module 'IdleLands'
-  .factory 'BaseURL', -> 'http://api.idle.land'
+  .factory 'BaseURL', -> 'https://api.idle.land'
