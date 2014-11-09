@@ -870,7 +870,7 @@
 
 (function() {
   angular.module('IdleLands').factory('BaseURL', function() {
-    return 'http://api.idle.land';
+    return 'https://api.idle.land';
   });
 
 }).call(this);
