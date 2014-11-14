@@ -30,6 +30,8 @@ angular.module 'IdleLands'
     $scope.statisticsKeys = {}
     $scope._ = $window._
 
+    $window.scrollTo 0, document.body.scrollHeight
+
     $scope.selectTab = (tabIndex) ->
       $scope.selectedIndex = tabIndex
 

@@ -10,7 +10,7 @@ html(lang="en", ng-app="IdleLands")
 
    body(ng-controller="Head")
       base(href="/")
-      md-toolbar.md-theme-dark
+      md-toolbar.md-theme-dark(ng-if="!player")
          h1.md-toolbar-tools
             span Idle Lands
       md-content.md-content-padding(scroll-y,flex,ui-view,layout="vertical",layout-fill)
