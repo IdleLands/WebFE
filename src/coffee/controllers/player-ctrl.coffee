@@ -186,8 +186,9 @@ angular.module 'IdleLands'
 
       phaserOpts =
         preload: ->
-          @game.load.image 'tiles', 'img/tiles.png', 16, 16
-          @game.load.spritesheet 'interactables', 'img/tiles.png', 16, 16
+          #gah, github. whatever.
+          @game.load.image 'tiles', './WebFE/img/tiles.png', 16, 16
+          @game.load.spritesheet 'interactables', './WebFE/img/tiles.png', 16, 16
           @game.load.tilemap newMapName, null, $scope.currentMap.map, Phaser.Tilemap.TILED_JSON
 
         create: ->
@@ -205,7 +206,7 @@ angular.module 'IdleLands'
 
       return if (not player) or game
       $timeout ->
-        game = new Phaser.Game '100%', '100%', Phaser.AUTO, 'map', phaserOpts
+        game = new Phaser.Game '100%', '100%', Phaser.CANVAS, 'map', phaserOpts
       , 0
       null
 
