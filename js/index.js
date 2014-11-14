@@ -387,7 +387,7 @@
           return;
         }
         $timeout(function() {
-          return game = new Phaser.Game('100%', '100%', Phaser.AUTO, 'map', phaserOpts);
+          return game = new Phaser.Game('100%', '100%', Phaser.CANVAS, 'map', phaserOpts);
         }, 0);
         return null;
       };
