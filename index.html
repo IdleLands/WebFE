@@ -10,7 +10,7 @@
   </head>
   <body ng-controller="Head">
     <base href="/">
-    <md-toolbar class="md-theme-dark">
+    <md-toolbar ng-if="!player" class="md-theme-dark">
       <h1 class="md-toolbar-tools"><span>Idle Lands</span></h1>
     </md-toolbar>
     <md-content scroll-y flex ui-view layout="vertical" layout-fill class="md-content-padding"></md-content>
@@ -114,7 +114,10 @@
 
 <script id="player-battle" type="text/ng-template">
   <div layout="horizontal" class="tab-containment is-flex auto-flex wrap-container">
-    <div flex="30" layout="vertical">
+    <div ng-if="!currentBattle">
+      <div>Nothing to see here, swipe on past this, cowboy.</div>
+    </div>
+    <div flex="30" layout="vertical" ng-if="currentBattle">
       <md-card layout="vertical" class="inner-card">
         <md-toolbar class="md-theme-light-blue">
           <div class="md-toolbar-tools">
@@ -178,6 +181,14 @@
       </md-item-content>
     </md-item>
   </md-list>
+</script>
+
+
+<script id="player-map" type="text/ng-template">
+  <div layout="horizontal" class="tab-containment is-flex auto-flex wrap-container">
+    <div>{{drawMap()}}</div>
+    <div id="map"></div>
+  </div>
 </script>
 
 
@@ -282,19 +293,22 @@
       <md-tab on-select="selectTab(0)" label="Player">
         <div ng-include="'player-player'" class="tab"></div>
       </md-tab>
-      <md-tab on-select="selectTab(1)" label="Equipment">
+      <md-tab on-select="selectTab(1)" label="Map">
+        <div ng-include="'player-map'" class="tab"></div>
+      </md-tab>
+      <md-tab on-select="selectTab(2)" label="Equipment">
         <div ng-include="'player-equipment'" class="tab"></div>
       </md-tab>
-      <md-tab on-select="selectTab(2)" label="Battle" ng-show="currentBattle">
+      <md-tab on-select="selectTab(3)" label="Battle" ng-show="currentBattle">
         <div ng-include="'player-battle'" class="tab"></div>
       </md-tab>
-      <md-tab on-select="selectTab(3)" label="Achievements ({{player.achievements.length}})">
+      <md-tab on-select="selectTab(4)" label="Achievements ({{player.achievements.length}})">
         <div ng-include="'player-achievements'" class="tab"></div>
       </md-tab>
-      <md-tab on-select="selectTab(4)" label="Statistics">
+      <md-tab on-select="selectTab(5)" label="Statistics">
         <div ng-include="'player-statistics'" class="tab"></div>
       </md-tab>
-      <md-tab on-select="selectTab(5)" label="Options">
+      <md-tab on-select="selectTab(6)" label="Options">
         <div ng-include="'player-options'" class="tab"></div>
       </md-tab>
     </md-tabs>

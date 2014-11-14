@@ -132,6 +132,9 @@
   color: #03A9F4;
   text-decoration: underline;
 }
+body {
+  overflow-y: hidden;
+}
 
 #login-tabs .tab {
   height: 300px;
@@ -183,4 +186,7 @@ body {
 }
 .bar.bar2 {
   background-color: #0a7e07;
+}
+#map {
+  width: 100%;
 }

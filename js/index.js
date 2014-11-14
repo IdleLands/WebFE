@@ -121,8 +121,8 @@
 
 (function() {
   angular.module('IdleLands').controller('Player', [
-    '$scope', '$state', '$window', '$timeout', '$mdToast', 'API', 'Player', 'TurnTaker', 'CredentialCache', 'OptionsCache', 'BattleColorMap', function($scope, $state, $window, $timeout, $mdToast, API, Player, TurnTaker, CredentialCache, OptionsCache, BattleColorMap) {
-      var initializing;
+    '$scope', '$state', '$window', '$timeout', '$mdToast', 'API', 'Player', 'TurnTaker', 'CredentialCache', 'OptionsCache', 'BattleColorMap', 'CurrentMap', function($scope, $state, $window, $timeout, $mdToast, API, Player, TurnTaker, CredentialCache, OptionsCache, BattleColorMap, CurrentMap) {
+      var game, initializing, mapName, newMapName, sprite;
       if (!Player.getPlayer()) {
         CredentialCache.tryLogin().then((function() {
           if (!Player.getPlayer()) {
@@ -152,6 +152,8 @@
       $scope.selectedIndex = 0;
       $scope.statisticsKeys = {};
       $scope._ = $window._;
+      $scope.currentMap = {};
+      $window.scrollTo(0, document.body.scrollHeight);
       $scope.selectTab = function(tabIndex) {
         return $scope.selectedIndex = tabIndex;
       };
@@ -335,6 +337,60 @@
         API.auth.logout();
         return $state.go('login');
       };
+      sprite = null;
+      game = null;
+      mapName = null;
+      newMapName = null;
+      $scope.drawMap = function() {
+        var phaserOpts, player;
+        if (_.isEmpty($scope.currentMap)) {
+          return;
+        }
+        player = $scope.player;
+        if (!newMapName) {
+          newMapName = player.map;
+        }
+        if (sprite) {
+          sprite.x = player.x * 16;
+          sprite.y = player.y * 16;
+          game.camera.x = sprite.x;
+          game.camera.y = sprite.y;
+          if (player.map !== mapName) {
+            newMapName = player.map;
+            mapName = player.map;
+            game.state.restart();
+          }
+        }
+        phaserOpts = {
+          preload: function() {
+            this.game.load.image('tiles', '//api.idle.land/img/tiles.png', 16, 16);
+            this.game.load.spritesheet('interactables', '//api.idle.land/img/tiles.png', 16, 16);
+            return this.game.load.tilemap(newMapName, null, $scope.currentMap.map, Phaser.Tilemap.TILED_JSON);
+          },
+          create: function() {
+            var i, map, terrain, _i, _len, _ref;
+            map = this.game.add.tilemap(newMapName);
+            map.addTilesetImage('tiles', 'tiles');
+            terrain = map.createLayer('Terrain');
+            terrain.resizeWorld();
+            map.createLayer('Blocking');
+            _ref = [1, 2, 12, 13, 14, 15, 18, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 35];
+            for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+              i = _ref[_i];
+              map.createFromObjects('Interactables', i, 'interactables', i - 1);
+            }
+            sprite = this.game.add.sprite(player.x * 16, player.y * 16, 'interactables', 12);
+            return this.game.camera.follow(sprite);
+          }
+        };
+        if ((!player) || game) {
+          return;
+        }
+        $timeout(function() {
+          return game = new Phaser.Game('100%', '100%', Phaser.AUTO, 'map', phaserOpts);
+        }, 0);
+        return null;
+      };
       $scope.valueToColor = function(value) {
         if (value < 0) {
           return 'text-red';
@@ -419,7 +475,7 @@
         }).then(function(res) {
           $scope.currentBattle = res.data.battle;
           if ($scope.currentBattle) {
-            return $scope.selectTab(2);
+            return $scope.selectTab(3);
           }
         });
       };
@@ -499,7 +555,7 @@
           gender: newVal
         });
       });
-      return $scope.$watch('_player.getPlayer()', function(newVal, oldVal) {
+      $scope.$watch('_player.getPlayer()', function(newVal, oldVal) {
         if (newVal === oldVal) {
           return;
         }
@@ -514,6 +570,14 @@
         return $timeout(function() {
           return initializing = false;
         }, 0);
+      });
+      return $scope.$watch((function() {
+        return CurrentMap.getMap();
+      }), function(newVal, oldVal) {
+        if (newVal === oldVal) {
+          return;
+        }
+        return $scope.currentMap = newVal;
       });
     }
   ]);
@@ -659,7 +723,7 @@
   angular.module('IdleLands').factory('ToastInterceptor', [
     '$injector', function($injector) {
       var badMessages, canShowMessage;
-      badMessages = ['Turn taken.', 'Token validation failed.', 'You can only have one turn every 10 seconds!'];
+      badMessages = ['Turn taken.', 'Token validation failed.', 'You can only have one turn every 10 seconds!', 'Map retrieved successfully.'];
       canShowMessage = function(response) {
         var msg;
         msg = response.data.message;
@@ -992,6 +1056,42 @@
           if (credentials.remember) {
             return cacheCreds();
           }
+        }
+      };
+    }
+  ]);
+
+}).call(this);
+
+(function() {
+  angular.module('IdleLands').factory('CurrentMap', [
+    '$rootScope', 'Player', '$http', function($root, Player, $http) {
+      var map, player;
+      map = null;
+      player = null;
+      $root.$watch((function() {
+        return Player.getPlayer();
+      }), function(newVal, oldVal) {
+        if (newVal === oldVal) {
+          return;
+        }
+        return player = newVal;
+      });
+      $root.$watch((function() {
+        return player != null ? player.map : void 0;
+      }), function(newVal, oldVal) {
+        if (newVal === oldVal) {
+          return;
+        }
+        return $http.post('//api.idle.land/game/map', {
+          map: newVal
+        }).then(function(res) {
+          return map = res.data.map;
+        });
+      });
+      return {
+        getMap: function() {
+          return map;
         }
       };
     }
