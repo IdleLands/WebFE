@@ -186,8 +186,8 @@ angular.module 'IdleLands'
 
       phaserOpts =
         preload: ->
-          @game.load.image 'tiles', '//api.idle.land/img/tiles.png', 16, 16
-          @game.load.spritesheet 'interactables', '//api.idle.land/img/tiles.png', 16, 16
+          @game.load.image 'tiles', 'img/tiles.png', 16, 16
+          @game.load.spritesheet 'interactables', 'img/tiles.png', 16, 16
           @game.load.tilemap newMapName, null, $scope.currentMap.map, Phaser.Tilemap.TILED_JSON
 
         create: ->
