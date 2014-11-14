@@ -363,8 +363,8 @@
         }
         phaserOpts = {
           preload: function() {
-            this.game.load.image('tiles', './img/tiles.png', 16, 16);
-            this.game.load.spritesheet('interactables', './img/tiles.png', 16, 16);
+            this.game.load.image('tiles', './WebFE/img/tiles.png', 16, 16);
+            this.game.load.spritesheet('interactables', './WebFE/img/tiles.png', 16, 16);
             return this.game.load.tilemap(newMapName, null, $scope.currentMap.map, Phaser.Tilemap.TILED_JSON);
           },
           create: function() {
