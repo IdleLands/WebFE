@@ -5,6 +5,7 @@ angular.module 'IdleLands'
     'Turn taken.'
     'Token validation failed.'
     'You can only have one turn every 10 seconds!'
+    'Map retrieved successfully.'
   ]
 
   canShowMessage = (response) ->

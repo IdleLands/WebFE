@@ -37,6 +37,7 @@
       "bower_components/jquery/dist/jquery.js",
       "bower_components/hammerjs/hammer.js",
       "bower_components/moment/moment.js",
+      "bower_components/phaser/build/phaser.js",
       "bower_components/angular/angular.js",
       "bower_components/angular-ui-router/release/angular-ui-router.js",
       "bower_components/angular-material/angular-material.js",

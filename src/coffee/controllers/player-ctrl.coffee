@@ -1,7 +1,7 @@
 angular.module 'IdleLands'
 .controller 'Player', [
-  '$scope', '$state', '$window', '$timeout', '$mdToast', 'API', 'Player', 'TurnTaker' ,'CredentialCache', 'OptionsCache', 'BattleColorMap',
-  ($scope, $state, $window, $timeout, $mdToast, API, Player, TurnTaker, CredentialCache, OptionsCache, BattleColorMap) ->
+  '$scope', '$state', '$window', '$timeout', '$mdToast', 'API', 'Player', 'TurnTaker' ,'CredentialCache', 'OptionsCache', 'BattleColorMap', 'CurrentMap'
+  ($scope, $state, $window, $timeout, $mdToast, API, Player, TurnTaker, CredentialCache, OptionsCache, BattleColorMap, CurrentMap) ->
 
     if not Player.getPlayer()
       CredentialCache.tryLogin().then (->
@@ -29,6 +29,7 @@ angular.module 'IdleLands'
     $scope.selectedIndex = 0
     $scope.statisticsKeys = {}
     $scope._ = $window._
+    $scope.currentMap = {}
 
     $window.scrollTo 0, document.body.scrollHeight
 
@@ -160,6 +161,54 @@ angular.module 'IdleLands'
       API.auth.logout()
       $state.go 'login'
 
+    # map
+    sprite = null
+    game = null
+    mapName = null
+    newMapName = null
+
+    $scope.drawMap = ->
+      return if _.isEmpty $scope.currentMap
+      player = $scope.player
+
+      newMapName = player.map if not newMapName
+
+      if sprite
+        sprite.x = (player.x*16)
+        sprite.y = (player.y*16)
+        game.camera.x = sprite.x
+        game.camera.y = sprite.y
+
+        if player.map isnt mapName
+          newMapName = player.map
+          mapName = player.map
+          game.state.restart()
+
+      phaserOpts =
+        preload: ->
+          @game.load.image 'tiles', '//api.idle.land/img/tiles.png', 16, 16
+          @game.load.spritesheet 'interactables', '//api.idle.land/img/tiles.png', 16, 16
+          @game.load.tilemap newMapName, null, $scope.currentMap.map, Phaser.Tilemap.TILED_JSON
+
+        create: ->
+          map = @game.add.tilemap newMapName
+          map.addTilesetImage 'tiles', 'tiles'
+          terrain = map.createLayer 'Terrain'
+          terrain.resizeWorld()
+          map.createLayer 'Blocking'
+
+          for i in [1, 2, 12, 13, 14, 15, 18, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 35]
+            map.createFromObjects 'Interactables', i, 'interactables', i-1
+
+          sprite = @game.add.sprite player.x*16, player.y*16, 'interactables', 12
+          @game.camera.follow sprite
+
+      return if (not player) or game
+      $timeout ->
+        game = new Phaser.Game '100%', '100%', Phaser.AUTO, 'map', phaserOpts
+      , 0
+      null
+
     # equipment page
     $scope.valueToColor = (value) ->
       return 'text-red' if value < 0
@@ -220,7 +269,7 @@ angular.module 'IdleLands'
       API.battle.get {battleId: id}
       .then (res) ->
         $scope.currentBattle = res.data.battle
-        $scope.selectTab 2 if $scope.currentBattle
+        $scope.selectTab 3 if $scope.currentBattle
 
     $scope.filterMessage = (message) ->
       for search, replaceFunc of BattleColorMap
@@ -294,4 +343,8 @@ angular.module 'IdleLands'
       $timeout ->
         initializing = no
       , 0
+
+    $scope.$watch (-> CurrentMap.getMap()), (newVal, oldVal) ->
+      return if newVal is oldVal
+      $scope.currentMap = newVal
 ]
