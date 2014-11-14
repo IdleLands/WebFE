@@ -211,7 +211,7 @@ angular.module 'IdleLands'
 
     # click on button
     $scope.clickOnEvent = (extraData) ->
-      $scope.retrieveBattle extraData.battleId if extraData?.battleId
+      $scope.retrieveBattle extraData.battleId if extraData.battleId
 
     # battle
     $scope.retrieveBattle = (id) ->

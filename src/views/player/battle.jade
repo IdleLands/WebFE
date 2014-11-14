@@ -1,6 +1,8 @@
 script(id="player-battle",type="text/ng-template")
    div.tab-containment.is-flex.auto-flex.wrap-container(layout="horizontal")
-      div(flex="30",layout="vertical")
+      div(ng-if="!currentBattle")
+         div Nothing to see here, swipe on past this, cowboy.
+      div(flex="30",layout="vertical",ng-if="currentBattle")
          md-card.inner-card(layout="vertical")
             md-toolbar.md-theme-light-blue
                div.md-toolbar-tools
