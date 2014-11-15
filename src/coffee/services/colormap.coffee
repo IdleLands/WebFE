@@ -19,7 +19,7 @@ angular.module 'IdleLands'
   'event.item.newbie':          defaultReplaceFunction('#9E9E9E')
   'event.item.Normal':          defaultReplaceFunction('#9E9E9E')
   'event.item.basic':           defaultReplaceFunction('#2196F3')
-  'event.item.pro':             defaultReplaceFunction(null,'#4527A0')
+  'event.item.pro':             defaultReplaceFunction('#4527A0')
   'event.item.idle':            defaultReplaceFunction('#FF7043')
   'event.item.godly':           defaultReplaceFunction('#fff','#000')
   'event.item.custom':          defaultReplaceFunction('#fff','#1A237E')
