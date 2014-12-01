@@ -8963,7 +8963,7 @@
 })(window, document, "Hammer");
 
 (function(undefined) {
-    var moment, VERSION = "2.8.3", globalScope = typeof global !== "undefined" ? global : this, oldGlobalMoment, round = Math.round, hasOwnProperty = Object.prototype.hasOwnProperty, i, YEAR = 0, MONTH = 1, DATE = 2, HOUR = 3, MINUTE = 4, SECOND = 5, MILLISECOND = 6, locales = {}, momentProperties = [], hasModule = typeof module !== "undefined" && module.exports, aspNetJsonRegex = /^\/?Date\((\-?\d+)/i, aspNetTimeSpanJsonRegex = /(\-)?(?:(\d*)\.)?(\d+)\:(\d+)(?:\:(\d+)\.?(\d{3})?)?/, isoDurationRegex = /^(-)?P(?:(?:([0-9,.]*)Y)?(?:([0-9,.]*)M)?(?:([0-9,.]*)D)?(?:T(?:([0-9,.]*)H)?(?:([0-9,.]*)M)?(?:([0-9,.]*)S)?)?|([0-9,.]*)W)$/, formattingTokens = /(\[[^\[]*\])|(\\)?(Mo|MM?M?M?|Do|DDDo|DD?D?D?|ddd?d?|do?|w[o|w]?|W[o|W]?|Q|YYYYYY|YYYYY|YYYY|YY|gg(ggg?)?|GG(GGG?)?|e|E|a|A|hh?|HH?|mm?|ss?|S{1,4}|X|zz?|ZZ?|.)/g, localFormattingTokens = /(\[[^\[]*\])|(\\)?(LT|LL?L?L?|l{1,4})/g, parseTokenOneOrTwoDigits = /\d\d?/, parseTokenOneToThreeDigits = /\d{1,3}/, parseTokenOneToFourDigits = /\d{1,4}/, parseTokenOneToSixDigits = /[+\-]?\d{1,6}/, parseTokenDigits = /\d+/, parseTokenWord = /[0-9]*['a-z\u00A0-\u05FF\u0700-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF]+|[\u0600-\u06FF\/]+(\s*?[\u0600-\u06FF]+){1,2}/i, parseTokenTimezone = /Z|[\+\-]\d\d:?\d\d/gi, parseTokenT = /T/i, parseTokenTimestampMs = /[\+\-]?\d+(\.\d{1,3})?/, parseTokenOrdinal = /\d{1,2}/, parseTokenOneDigit = /\d/, parseTokenTwoDigits = /\d\d/, parseTokenThreeDigits = /\d{3}/, parseTokenFourDigits = /\d{4}/, parseTokenSixDigits = /[+-]?\d{6}/, parseTokenSignedNumber = /[+-]?\d+/, isoRegex = /^\s*(?:[+-]\d{6}|\d{4})-(?:(\d\d-\d\d)|(W\d\d$)|(W\d\d-\d)|(\d\d\d))((T| )(\d\d(:\d\d(:\d\d(\.\d+)?)?)?)?([\+\-]\d\d(?::?\d\d)?|\s*Z)?)?$/, isoFormat = "YYYY-MM-DDTHH:mm:ssZ", isoDates = [ [ "YYYYYY-MM-DD", /[+-]\d{6}-\d{2}-\d{2}/ ], [ "YYYY-MM-DD", /\d{4}-\d{2}-\d{2}/ ], [ "GGGG-[W]WW-E", /\d{4}-W\d{2}-\d/ ], [ "GGGG-[W]WW", /\d{4}-W\d{2}/ ], [ "YYYY-DDD", /\d{4}-\d{3}/ ] ], isoTimes = [ [ "HH:mm:ss.SSSS", /(T| )\d\d:\d\d:\d\d\.\d+/ ], [ "HH:mm:ss", /(T| )\d\d:\d\d:\d\d/ ], [ "HH:mm", /(T| )\d\d:\d\d/ ], [ "HH", /(T| )\d\d/ ] ], parseTimezoneChunker = /([\+\-]|\d\d)/gi, proxyGettersAndSetters = "Date|Hours|Minutes|Seconds|Milliseconds".split("|"), unitMillisecondFactors = {
+    var moment, VERSION = "2.8.4", globalScope = typeof global !== "undefined" ? global : this, oldGlobalMoment, round = Math.round, hasOwnProperty = Object.prototype.hasOwnProperty, i, YEAR = 0, MONTH = 1, DATE = 2, HOUR = 3, MINUTE = 4, SECOND = 5, MILLISECOND = 6, locales = {}, momentProperties = [], hasModule = typeof module !== "undefined" && module && module.exports, aspNetJsonRegex = /^\/?Date\((\-?\d+)/i, aspNetTimeSpanJsonRegex = /(\-)?(?:(\d*)\.)?(\d+)\:(\d+)(?:\:(\d+)\.?(\d{3})?)?/, isoDurationRegex = /^(-)?P(?:(?:([0-9,.]*)Y)?(?:([0-9,.]*)M)?(?:([0-9,.]*)D)?(?:T(?:([0-9,.]*)H)?(?:([0-9,.]*)M)?(?:([0-9,.]*)S)?)?|([0-9,.]*)W)$/, formattingTokens = /(\[[^\[]*\])|(\\)?(Mo|MM?M?M?|Do|DDDo|DD?D?D?|ddd?d?|do?|w[o|w]?|W[o|W]?|Q|YYYYYY|YYYYY|YYYY|YY|gg(ggg?)?|GG(GGG?)?|e|E|a|A|hh?|HH?|mm?|ss?|S{1,4}|x|X|zz?|ZZ?|.)/g, localFormattingTokens = /(\[[^\[]*\])|(\\)?(LTS|LT|LL?L?L?|l{1,4})/g, parseTokenOneOrTwoDigits = /\d\d?/, parseTokenOneToThreeDigits = /\d{1,3}/, parseTokenOneToFourDigits = /\d{1,4}/, parseTokenOneToSixDigits = /[+\-]?\d{1,6}/, parseTokenDigits = /\d+/, parseTokenWord = /[0-9]*['a-z\u00A0-\u05FF\u0700-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF]+|[\u0600-\u06FF\/]+(\s*?[\u0600-\u06FF]+){1,2}/i, parseTokenTimezone = /Z|[\+\-]\d\d:?\d\d/gi, parseTokenT = /T/i, parseTokenOffsetMs = /[\+\-]?\d+/, parseTokenTimestampMs = /[\+\-]?\d+(\.\d{1,3})?/, parseTokenOneDigit = /\d/, parseTokenTwoDigits = /\d\d/, parseTokenThreeDigits = /\d{3}/, parseTokenFourDigits = /\d{4}/, parseTokenSixDigits = /[+-]?\d{6}/, parseTokenSignedNumber = /[+-]?\d+/, isoRegex = /^\s*(?:[+-]\d{6}|\d{4})-(?:(\d\d-\d\d)|(W\d\d$)|(W\d\d-\d)|(\d\d\d))((T| )(\d\d(:\d\d(:\d\d(\.\d+)?)?)?)?([\+\-]\d\d(?::?\d\d)?|\s*Z)?)?$/, isoFormat = "YYYY-MM-DDTHH:mm:ssZ", isoDates = [ [ "YYYYYY-MM-DD", /[+-]\d{6}-\d{2}-\d{2}/ ], [ "YYYY-MM-DD", /\d{4}-\d{2}-\d{2}/ ], [ "GGGG-[W]WW-E", /\d{4}-W\d{2}-\d/ ], [ "GGGG-[W]WW", /\d{4}-W\d{2}/ ], [ "YYYY-DDD", /\d{4}-\d{3}/ ] ], isoTimes = [ [ "HH:mm:ss.SSSS", /(T| )\d\d:\d\d:\d\d\.\d+/ ], [ "HH:mm:ss", /(T| )\d\d:\d\d:\d\d/ ], [ "HH:mm", /(T| )\d\d:\d\d/ ], [ "HH", /(T| )\d\d/ ] ], parseTimezoneChunker = /([\+\-]|\d\d)/gi, proxyGettersAndSetters = "Date|Hours|Minutes|Seconds|Milliseconds".split("|"), unitMillisecondFactors = {
         Milliseconds: 1,
         Seconds: 1e3,
         Minutes: 6e4,
@@ -9122,6 +9122,9 @@
         },
         zz: function() {
             return this.zoneName();
+        },
+        x: function() {
+            return this.valueOf();
         },
         X: function() {
             return this.unix();
@@ -9433,7 +9436,7 @@
     function checkOverflow(m) {
         var overflow;
         if (m._a && m._pf.overflow === -2) {
-            overflow = m._a[MONTH] < 0 || m._a[MONTH] > 11 ? MONTH : m._a[DATE] < 1 || m._a[DATE] > daysInMonth(m._a[YEAR], m._a[MONTH]) ? DATE : m._a[HOUR] < 0 || m._a[HOUR] > 23 ? HOUR : m._a[MINUTE] < 0 || m._a[MINUTE] > 59 ? MINUTE : m._a[SECOND] < 0 || m._a[SECOND] > 59 ? SECOND : m._a[MILLISECOND] < 0 || m._a[MILLISECOND] > 999 ? MILLISECOND : -1;
+            overflow = m._a[MONTH] < 0 || m._a[MONTH] > 11 ? MONTH : m._a[DATE] < 1 || m._a[DATE] > daysInMonth(m._a[YEAR], m._a[MONTH]) ? DATE : m._a[HOUR] < 0 || m._a[HOUR] > 24 || m._a[HOUR] === 24 && (m._a[MINUTE] !== 0 || m._a[SECOND] !== 0 || m._a[MILLISECOND] !== 0) ? HOUR : m._a[MINUTE] < 0 || m._a[MINUTE] > 59 ? MINUTE : m._a[SECOND] < 0 || m._a[SECOND] > 59 ? SECOND : m._a[MILLISECOND] < 0 || m._a[MILLISECOND] > 999 ? MILLISECOND : -1;
             if (m._pf._overflowDayOfYear && (overflow < YEAR || overflow > DATE)) {
                 overflow = DATE;
             }
@@ -9444,7 +9447,7 @@
         if (m._isValid == null) {
             m._isValid = !isNaN(m._d.getTime()) && m._pf.overflow < 0 && !m._pf.empty && !m._pf.invalidMonth && !m._pf.nullInput && !m._pf.invalidFormat && !m._pf.userInvalidated;
             if (m._strict) {
-                m._isValid = m._isValid && m._pf.charsLeftOver === 0 && m._pf.unusedTokens.length === 0;
+                m._isValid = m._isValid && m._pf.charsLeftOver === 0 && m._pf.unusedTokens.length === 0 && m._pf.bigHour === undefined;
             }
         }
         return m._isValid;
@@ -9485,7 +9488,16 @@
         return locales[name];
     }
     function makeAs(input, model) {
-        return model._isUTC ? moment(input).zone(model._offset || 0) : moment(input).local();
+        var res, diff;
+        if (model._isUTC) {
+            res = model.clone();
+            diff = (moment.isMoment(input) || isDate(input) ? +input : +moment(input)) - +res;
+            res._d.setTime(+res._d + diff);
+            moment.updateOffset(res, false);
+            return res;
+        } else {
+            return moment(input).local();
+        }
     }
     extend(Locale.prototype, {
         set: function(config) {
@@ -9498,6 +9510,7 @@
                     this["_" + i] = prop;
                 }
             }
+            this._ordinalParseLenient = new RegExp(this._ordinalParse.source + "|" + /\d{1,2}/.source);
         },
         _months: "January_February_March_April_May_June_July_August_September_October_November_December".split("_"),
         months: function(m) {
@@ -9507,18 +9520,28 @@
         monthsShort: function(m) {
             return this._monthsShort[m.month()];
         },
-        monthsParse: function(monthName) {
+        monthsParse: function(monthName, format, strict) {
             var i, mom, regex;
             if (!this._monthsParse) {
                 this._monthsParse = [];
+                this._longMonthsParse = [];
+                this._shortMonthsParse = [];
             }
             for (i = 0; i < 12; i++) {
-                if (!this._monthsParse[i]) {
-                    mom = moment.utc([ 2e3, i ]);
+                mom = moment.utc([ 2e3, i ]);
+                if (strict && !this._longMonthsParse[i]) {
+                    this._longMonthsParse[i] = new RegExp("^" + this.months(mom, "").replace(".", "") + "$", "i");
+                    this._shortMonthsParse[i] = new RegExp("^" + this.monthsShort(mom, "").replace(".", "") + "$", "i");
+                }
+                if (!strict && !this._monthsParse[i]) {
                     regex = "^" + this.months(mom, "") + "|^" + this.monthsShort(mom, "");
                     this._monthsParse[i] = new RegExp(regex.replace(".", ""), "i");
                 }
-                if (this._monthsParse[i].test(monthName)) {
+                if (strict && format === "MMMM" && this._longMonthsParse[i].test(monthName)) {
+                    return i;
+                } else if (strict && format === "MMM" && this._shortMonthsParse[i].test(monthName)) {
+                    return i;
+                } else if (!strict && this._monthsParse[i].test(monthName)) {
                     return i;
                 }
             }
@@ -9552,6 +9575,7 @@
             }
         },
         _longDateFormat: {
+            LTS: "h:mm:ss A",
             LT: "h:mm A",
             L: "MM/DD/YYYY",
             LL: "MMMM D, YYYY",
@@ -9587,9 +9611,9 @@
             lastWeek: "[Last] dddd [at] LT",
             sameElse: "L"
         },
-        calendar: function(key, mom) {
+        calendar: function(key, mom, now) {
             var output = this._calendar[key];
-            return typeof output === "function" ? output.apply(mom) : output;
+            return typeof output === "function" ? output.apply(mom, [ now ]) : output;
         },
         _relativeTime: {
             future: "in %s",
@@ -9618,6 +9642,7 @@
             return this._ordinal.replace("%d", number);
         },
         _ordinal: "%d",
+        _ordinalParse: /\d{1,2}/,
         preparse: function(string) {
             return string;
         },
@@ -9736,6 +9761,9 @@
           case "A":
             return config._locale._meridiemParse;
 
+          case "x":
+            return parseTokenOffsetMs;
+
           case "X":
             return parseTokenTimestampMs;
 
@@ -9776,7 +9804,7 @@
             return parseTokenOneOrTwoDigits;
 
           case "Do":
-            return parseTokenOrdinal;
+            return strict ? config._locale._ordinalParse : config._locale._ordinalParseLenient;
 
           default:
             a = new RegExp(regexpEscape(unescapeFormat(token.replace("\\", "")), "i"));
@@ -9806,7 +9834,7 @@
 
           case "MMM":
           case "MMMM":
-            a = config._locale.monthsParse(input);
+            a = config._locale.monthsParse(input, token, config._strict);
             if (a != null) {
                 datePartArray[MONTH] = a;
             } else {
@@ -9823,7 +9851,7 @@
 
           case "Do":
             if (input != null) {
-                datePartArray[DATE] = toInt(parseInt(input, 10));
+                datePartArray[DATE] = toInt(parseInt(input.match(/\d{1,2}/)[0], 10));
             }
             break;
 
@@ -9849,10 +9877,12 @@
             config._isPm = config._locale.isPM(input);
             break;
 
-          case "H":
-          case "HH":
           case "h":
           case "hh":
+            config._pf.bigHour = true;
+
+          case "H":
+          case "HH":
             datePartArray[HOUR] = toInt(input);
             break;
 
@@ -9871,6 +9901,10 @@
           case "SSS":
           case "SSSS":
             datePartArray[MILLISECOND] = toInt(("0." + input) * 1e3);
+            break;
+
+          case "x":
+            config._d = new Date(toInt(input));
             break;
 
           case "X":
@@ -9973,9 +10007,16 @@
         for (;i < 7; i++) {
             config._a[i] = input[i] = config._a[i] == null ? i === 2 ? 1 : 0 : config._a[i];
         }
+        if (config._a[HOUR] === 24 && config._a[MINUTE] === 0 && config._a[SECOND] === 0 && config._a[MILLISECOND] === 0) {
+            config._nextDay = true;
+            config._a[HOUR] = 0;
+        }
         config._d = (config._useUTC ? makeUTCDate : makeDate).apply(null, input);
         if (config._tzm != null) {
             config._d.setUTCMinutes(config._d.getUTCMinutes() + config._tzm);
+        }
+        if (config._nextDay) {
+            config._a[HOUR] = 24;
         }
     }
     function dateFromObject(config) {
@@ -9984,7 +10025,7 @@
             return;
         }
         normalizedInput = normalizeObjectUnits(config._i);
-        config._a = [ normalizedInput.year, normalizedInput.month, normalizedInput.day, normalizedInput.hour, normalizedInput.minute, normalizedInput.second, normalizedInput.millisecond ];
+        config._a = [ normalizedInput.year, normalizedInput.month, normalizedInput.day || normalizedInput.date, normalizedInput.hour, normalizedInput.minute, normalizedInput.second, normalizedInput.millisecond ];
         dateFromConfig(config);
     }
     function currentDateArray(config) {
@@ -10029,6 +10070,9 @@
         config._pf.charsLeftOver = stringLength - totalParsedInputLength;
         if (string.length > 0) {
             config._pf.unusedInput.push(string);
+        }
+        if (config._pf.bigHour === true && config._a[HOUR] <= 12) {
+            config._pf.bigHour = undefined;
         }
         if (config._isPm && config._a[HOUR] < 12) {
             config._a[HOUR] += 12;
@@ -10200,7 +10244,7 @@
         };
     }
     function makeMoment(config) {
-        var input = config._i, format = config._f;
+        var input = config._i, format = config._f, res;
         config._locale = config._locale || moment.localeData(config._l);
         if (input === null || format === undefined && input === "") {
             return moment.invalid({
@@ -10221,7 +10265,12 @@
         } else {
             makeDateFromInput(config);
         }
-        return new Moment(config);
+        res = new Moment(config);
+        if (res._nextDay) {
+            res.add(1, "d");
+            res._nextDay = undefined;
+        }
+        return res;
     }
     moment = function(input, format, locale, strict) {
         var c;
@@ -10241,7 +10290,7 @@
     };
     moment.suppressDeprecationWarnings = false;
     moment.createFromInputFallback = deprecate("moment construction falls back to js Date. This is " + "discouraged and will be removed in upcoming major " + "release. Please refer to " + "https://github.com/moment/moment/issues/1407 for more info.", function(config) {
-        config._d = new Date(config._i);
+        config._d = new Date(config._i + (config._useUTC ? " UTC" : ""));
     });
     function pickBy(fn, moments) {
         var res, i;
@@ -10451,7 +10500,11 @@
         toISOString: function() {
             var m = moment(this).utc();
             if (0 < m.year() && m.year() <= 9999) {
-                return formatMoment(m, "YYYY-MM-DD[T]HH:mm:ss.SSS[Z]");
+                if ("function" === typeof Date.prototype.toISOString) {
+                    return this.toDate().toISOString();
+                } else {
+                    return formatMoment(m, "YYYY-MM-DD[T]HH:mm:ss.SSS[Z]");
+                }
             } else {
                 return formatMoment(m, "YYYYYY-MM-DD[T]HH:mm:ss.SSS[Z]");
             }
@@ -10523,7 +10576,7 @@
         },
         calendar: function(time) {
             var now = time || moment(), sod = makeAs(now, this).startOf("day"), diff = this.diff(sod, "days", true), format = diff < -6 ? "sameElse" : diff < -1 ? "lastWeek" : diff < 0 ? "lastDay" : diff < 1 ? "sameDay" : diff < 2 ? "nextDay" : diff < 7 ? "nextWeek" : "sameElse";
-            return this.format(this.localeData().calendar(format, this));
+            return this.format(this.localeData().calendar(format, this, moment(now)));
         },
         isLeapYear: function() {
             return isLeapYear(this.year());
@@ -10577,33 +10630,42 @@
         },
         endOf: function(units) {
             units = normalizeUnits(units);
+            if (units === undefined || units === "millisecond") {
+                return this;
+            }
             return this.startOf(units).add(1, units === "isoWeek" ? "week" : units).subtract(1, "ms");
         },
         isAfter: function(input, units) {
+            var inputMs;
             units = normalizeUnits(typeof units !== "undefined" ? units : "millisecond");
             if (units === "millisecond") {
                 input = moment.isMoment(input) ? input : moment(input);
                 return +this > +input;
             } else {
-                return +this.clone().startOf(units) > +moment(input).startOf(units);
+                inputMs = moment.isMoment(input) ? +input : +moment(input);
+                return inputMs < +this.clone().startOf(units);
             }
         },
         isBefore: function(input, units) {
+            var inputMs;
             units = normalizeUnits(typeof units !== "undefined" ? units : "millisecond");
             if (units === "millisecond") {
                 input = moment.isMoment(input) ? input : moment(input);
                 return +this < +input;
             } else {
-                return +this.clone().startOf(units) < +moment(input).startOf(units);
+                inputMs = moment.isMoment(input) ? +input : +moment(input);
+                return +this.clone().endOf(units) < inputMs;
             }
         },
         isSame: function(input, units) {
+            var inputMs;
             units = normalizeUnits(units || "millisecond");
             if (units === "millisecond") {
                 input = moment.isMoment(input) ? input : moment(input);
                 return +this === +input;
             } else {
-                return +this.clone().startOf(units) === +makeAs(input, this).startOf(units);
+                inputMs = +moment(input);
+                return +this.clone().startOf(units) <= inputMs && inputMs <= +this.clone().endOf(units);
             }
         },
         min: deprecate("moment().min is deprecated, use moment.min instead. https://github.com/moment/moment/issues/1548", function(other) {
@@ -10730,7 +10792,7 @@
                 return this;
             }
         },
-        lang: deprecate("moment().lang() is deprecated. Use moment().localeData() instead.", function(key) {
+        lang: deprecate("moment().lang() is deprecated. Instead, use moment().localeData() to get the language configuration. Use moment().locale() to change languages.", function(key) {
             if (key === undefined) {
                 return this.localeData();
             } else {
@@ -10871,7 +10933,7 @@
                 months = this._months + daysToYears(days) * 12;
                 return units === "month" ? months : months / 12;
             } else {
-                days = this._days + yearsToDays(this._months / 12);
+                days = this._days + Math.round(yearsToDays(this._months / 12));
                 switch (units) {
                   case "week":
                     return days / 7 + this._milliseconds / 6048e5;
@@ -10948,6 +11010,7 @@
         return this.as("y");
     };
     moment.locale("en", {
+        ordinalParse: /\d{1,2}(th|st|nd|rd)/,
         ordinal: function(number) {
             var b = number % 10, output = toInt(number % 100 / 10) === 1 ? "th" : b === 1 ? "st" : b === 2 ? "nd" : b === 3 ? "rd" : "th";
             return number + output;
@@ -54309,7 +54372,7 @@ if (typeof module !== "undefined" && typeof exports !== "undefined" && module.ex
         });
         return result;
     }
-    function arraySearch(array, value) {
+    function indexOf(array, value) {
         if (Array.prototype.indexOf) {
             return array.indexOf(value, Number(arguments[2]) || 0);
         }
@@ -54328,7 +54391,7 @@ if (typeof module !== "undefined" && typeof exports !== "undefined" && module.ex
             parentParams = objectKeys(parents[i].params);
             if (!parentParams.length) continue;
             for (var j in parentParams) {
-                if (arraySearch(inheritList, parentParams[j]) >= 0) continue;
+                if (indexOf(inheritList, parentParams[j]) >= 0) continue;
                 inheritList.push(parentParams[j]);
                 inherited[parentParams[j]] = currentParams[parentParams[j]];
             }
@@ -54353,6 +54416,53 @@ if (typeof module !== "undefined" && typeof exports !== "undefined" && module.ex
         });
         return filtered;
     }
+    function indexBy(array, propName) {
+        var result = {};
+        forEach(array, function(item) {
+            result[item[propName]] = item;
+        });
+        return result;
+    }
+    function pick(obj) {
+        var copy = {};
+        var keys = Array.prototype.concat.apply(Array.prototype, Array.prototype.slice.call(arguments, 1));
+        forEach(keys, function(key) {
+            if (key in obj) copy[key] = obj[key];
+        });
+        return copy;
+    }
+    function omit(obj) {
+        var copy = {};
+        var keys = Array.prototype.concat.apply(Array.prototype, Array.prototype.slice.call(arguments, 1));
+        for (var key in obj) {
+            if (indexOf(keys, key) == -1) copy[key] = obj[key];
+        }
+        return copy;
+    }
+    function pluck(collection, key) {
+        var result = isArray(collection) ? [] : {};
+        forEach(collection, function(val, i) {
+            result[i] = isFunction(key) ? key(val) : val[key];
+        });
+        return result;
+    }
+    function filter(collection, callback) {
+        var array = isArray(collection);
+        var result = array ? [] : {};
+        forEach(collection, function(val, i) {
+            if (callback(val, i)) {
+                result[array ? result.length : i] = val;
+            }
+        });
+        return result;
+    }
+    function map(collection, callback) {
+        var result = isArray(collection) ? [] : {};
+        forEach(collection, function(val, i) {
+            result[i] = callback(val, i);
+        });
+        return result;
+    }
     angular.module("ui.router.util", [ "ng" ]);
     angular.module("ui.router.router", [ "ui.router.util" ]);
     angular.module("ui.router.state", [ "ui.router.router", "ui.router.util" ]);
@@ -54366,12 +54476,13 @@ if (typeof module !== "undefined" && typeof exports !== "undefined" && module.ex
         });
         this.study = function(invocables) {
             if (!isObject(invocables)) throw new Error("'invocables' must be an object");
+            var invocableKeys = objectKeys(invocables || {});
             var plan = [], cycle = [], visited = {};
             function visit(value, key) {
                 if (visited[key] === VISIT_DONE) return;
                 cycle.push(key);
                 if (visited[key] === VISIT_IN_PROGRESS) {
-                    cycle.splice(0, cycle.indexOf(key));
+                    cycle.splice(0, indexOf(cycle, key));
                     throw new Error("Cyclic dependency: " + cycle.join(" -> "));
                 }
                 visited[key] = VISIT_IN_PROGRESS;
@@ -54411,7 +54522,7 @@ if (typeof module !== "undefined" && typeof exports !== "undefined" && module.ex
                     if (!--wait) {
                         if (!merged) merge(values, parent.$$values);
                         result.$$values = values;
-                        result.$$promises = true;
+                        result.$$promises = result.$$promises || true;
                         delete result.$$inheritedValues;
                         resolution.resolve(values);
                     }
@@ -54425,17 +54536,17 @@ if (typeof module !== "undefined" && typeof exports !== "undefined" && module.ex
                     return result;
                 }
                 if (parent.$$inheritedValues) {
-                    merge(values, parent.$$inheritedValues);
+                    merge(values, omit(parent.$$inheritedValues, invocableKeys));
                 }
+                extend(promises, parent.$$promises);
                 if (parent.$$values) {
-                    merged = merge(values, parent.$$values);
-                    result.$$inheritedValues = parent.$$values;
+                    merged = merge(values, omit(parent.$$values, invocableKeys));
+                    result.$$inheritedValues = omit(parent.$$values, invocableKeys);
                     done();
                 } else {
                     if (parent.$$inheritedValues) {
-                        result.$$inheritedValues = parent.$$inheritedValues;
+                        result.$$inheritedValues = omit(parent.$$inheritedValues, invocableKeys);
                     }
-                    extend(promises, parent.$$promises);
                     parent.then(done, fail);
                 }
                 for (var i = 0, ii = plan.length; i < ii; i += 3) {
@@ -54490,7 +54601,10 @@ if (typeof module !== "undefined" && typeof exports !== "undefined" && module.ex
         this.fromUrl = function(url, params) {
             if (isFunction(url)) url = url(params);
             if (url == null) return null; else return $http.get(url, {
-                cache: $templateCache
+                cache: $templateCache,
+                headers: {
+                    Accept: "text/html"
+                }
             }).then(function(response) {
                 return response.data;
             });
@@ -54502,47 +54616,63 @@ if (typeof module !== "undefined" && typeof exports !== "undefined" && module.ex
         };
     }
     angular.module("ui.router.util").service("$templateFactory", $TemplateFactory);
-    function UrlMatcher(pattern, config) {
-        config = angular.isObject(config) ? config : {};
-        var placeholder = /([:*])(\w+)|\{(\w+)(?:\:((?:[^{}\\]+|\\.|\{(?:[^{}\\]+|\\.)*\})+))?\}/g, compiled = "^", last = 0, m, segments = this.segments = [], params = this.params = {};
-        function $value(value) {
-            return isDefined(value) ? this.type.decode(value) : $UrlMatcherFactory.$$getDefaultValue(this);
-        }
-        function addParameter(id, type, config) {
-            if (!/^\w+(-+\w+)*$/.test(id)) throw new Error("Invalid parameter name '" + id + "' in pattern '" + pattern + "'");
+    var $$UMFP;
+    function UrlMatcher(pattern, config, parentMatcher) {
+        config = extend({
+            params: {}
+        }, isObject(config) ? config : {});
+        var placeholder = /([:*])([\w\[\]]+)|\{([\w\[\]]+)(?:\:((?:[^{}\\]+|\\.|\{(?:[^{}\\]+|\\.)*\})+))?\}/g, searchPlaceholder = /([:]?)([\w\[\]-]+)|\{([\w\[\]-]+)(?:\:((?:[^{}\\]+|\\.|\{(?:[^{}\\]+|\\.)*\})+))?\}/g, compiled = "^", last = 0, m, segments = this.segments = [], parentParams = parentMatcher ? parentMatcher.params : {}, params = this.params = parentMatcher ? parentMatcher.params.$$new() : new $$UMFP.ParamSet(), paramNames = [];
+        function addParameter(id, type, config, location) {
+            paramNames.push(id);
+            if (parentParams[id]) return parentParams[id];
+            if (!/^\w+(-+\w+)*(?:\[\])?$/.test(id)) throw new Error("Invalid parameter name '" + id + "' in pattern '" + pattern + "'");
             if (params[id]) throw new Error("Duplicate parameter name '" + id + "' in pattern '" + pattern + "'");
-            params[id] = extend({
-                type: type || new Type(),
-                $value: $value
-            }, config);
+            params[id] = new $$UMFP.Param(id, type, config, location);
+            return params[id];
         }
-        function quoteRegExp(string, pattern, isOptional) {
-            var result = string.replace(/[\\\[\]\^$*+?.()|{}]/g, "\\$&");
+        function quoteRegExp(string, pattern, squash) {
+            var surroundPattern = [ "", "" ], result = string.replace(/[\\\[\]\^$*+?.()|{}]/g, "\\$&");
             if (!pattern) return result;
-            var flag = isOptional ? "?" : "";
-            return result + flag + "(" + pattern + ")" + flag;
-        }
-        function paramConfig(param) {
-            if (!config.params || !config.params[param]) return {};
-            var cfg = config.params[param];
-            return isObject(cfg) ? cfg : {
-                value: cfg
-            };
+            switch (squash) {
+              case false:
+                surroundPattern = [ "(", ")" ];
+                break;
+
+              case true:
+                surroundPattern = [ "?(", ")?" ];
+                break;
+
+              default:
+                surroundPattern = [ "(" + squash + "|", ")?" ];
+                break;
+            }
+            return result + surroundPattern[0] + pattern + surroundPattern[1];
         }
         this.source = pattern;
-        var id, regexp, segment, type, cfg;
-        while (m = placeholder.exec(pattern)) {
+        function matchDetails(m, isSearch) {
+            var id, regexp, segment, type, cfg, arrayMode;
             id = m[2] || m[3];
-            regexp = m[4] || (m[1] == "*" ? ".*" : "[^/]*");
+            cfg = config.params[id];
             segment = pattern.substring(last, m.index);
-            type = this.$types[regexp] || new Type({
+            regexp = isSearch ? m[4] : m[4] || (m[1] == "*" ? ".*" : null);
+            type = $$UMFP.type(regexp || "string") || inherit($$UMFP.type("string"), {
                 pattern: new RegExp(regexp)
             });
-            cfg = paramConfig(id);
-            if (segment.indexOf("?") >= 0) break;
-            compiled += quoteRegExp(segment, type.$subPattern(), isDefined(cfg.value));
-            addParameter(id, type, cfg);
-            segments.push(segment);
+            return {
+                id: id,
+                regexp: regexp,
+                segment: segment,
+                type: type,
+                cfg: cfg
+            };
+        }
+        var p, param, segment;
+        while (m = placeholder.exec(pattern)) {
+            p = matchDetails(m, false);
+            if (p.segment.indexOf("?") >= 0) break;
+            param = addParameter(p.id, p.type, p.cfg, "path");
+            compiled += quoteRegExp(p.segment, param.type.pattern.source, param.squash);
+            segments.push(p.segment);
             last = placeholder.lastIndex;
         }
         segment = pattern.substring(last);
@@ -54551,9 +54681,14 @@ if (typeof module !== "undefined" && typeof exports !== "undefined" && module.ex
             var search = this.sourceSearch = segment.substring(i);
             segment = segment.substring(0, i);
             this.sourcePath = pattern.substring(0, last + i);
-            forEach(search.substring(1).split(/[&?]/), function(key) {
-                addParameter(key, null, paramConfig(key));
-            });
+            if (search.length > 0) {
+                last = 0;
+                while (m = searchPlaceholder.exec(search)) {
+                    p = matchDetails(m, true);
+                    param = addParameter(p.id, p.type, p.cfg, "search");
+                    last = placeholder.lastIndex;
+                }
+            }
         } else {
             this.sourcePath = pattern;
             this.sourceSearch = "";
@@ -54562,9 +54697,15 @@ if (typeof module !== "undefined" && typeof exports !== "undefined" && module.ex
         segments.push(segment);
         this.regexp = new RegExp(compiled, config.caseInsensitive ? "i" : undefined);
         this.prefix = segments[0];
+        this.$$paramNames = paramNames;
     }
     UrlMatcher.prototype.concat = function(pattern, config) {
-        return new UrlMatcher(this.sourcePath + pattern + this.sourceSearch, config);
+        var defaultConfig = {
+            caseInsensitive: $$UMFP.caseInsensitive(),
+            strict: $$UMFP.strictMode(),
+            squash: $$UMFP.defaultSquashPolicy()
+        };
+        return new UrlMatcher(this.sourcePath + pattern + this.sourceSearch, extend(defaultConfig, config), this);
     };
     UrlMatcher.prototype.toString = function() {
         return this.source;
@@ -54573,61 +54714,85 @@ if (typeof module !== "undefined" && typeof exports !== "undefined" && module.ex
         var m = this.regexp.exec(path);
         if (!m) return null;
         searchParams = searchParams || {};
-        var params = this.parameters(), nTotal = params.length, nPath = this.segments.length - 1, values = {}, i, cfg, param;
+        var paramNames = this.parameters(), nTotal = paramNames.length, nPath = this.segments.length - 1, values = {}, i, j, cfg, paramName;
         if (nPath !== m.length - 1) throw new Error("Unbalanced capture group in route '" + this.source + "'");
+        function decodePathArray(string) {
+            function reverseString(str) {
+                return str.split("").reverse().join("");
+            }
+            function unquoteDashes(str) {
+                return str.replace(/\\-/, "-");
+            }
+            var split = reverseString(string).split(/-(?!\\)/);
+            var allReversed = map(split, reverseString);
+            return map(allReversed, unquoteDashes).reverse();
+        }
         for (i = 0; i < nPath; i++) {
-            param = params[i];
-            cfg = this.params[param];
-            values[param] = cfg.$value(m[i + 1]);
+            paramName = paramNames[i];
+            var param = this.params[paramName];
+            var paramVal = m[i + 1];
+            for (j = 0; j < param.replace; j++) {
+                if (param.replace[j].from === paramVal) paramVal = param.replace[j].to;
+            }
+            if (paramVal && param.array === true) paramVal = decodePathArray(paramVal);
+            values[paramName] = param.value(paramVal);
         }
         for (;i < nTotal; i++) {
-            param = params[i];
-            cfg = this.params[param];
-            values[param] = cfg.$value(searchParams[param]);
+            paramName = paramNames[i];
+            values[paramName] = this.params[paramName].value(searchParams[paramName]);
         }
         return values;
     };
     UrlMatcher.prototype.parameters = function(param) {
-        if (!isDefined(param)) return objectKeys(this.params);
+        if (!isDefined(param)) return this.$$paramNames;
         return this.params[param] || null;
     };
     UrlMatcher.prototype.validates = function(params) {
-        var result = true, isOptional, cfg, self = this;
-        forEach(params, function(val, key) {
-            if (!self.params[key]) return;
-            cfg = self.params[key];
-            isOptional = !val && isDefined(cfg.value);
-            result = result && (isOptional || cfg.type.is(val));
-        });
-        return result;
+        return this.params.$$validates(params);
     };
     UrlMatcher.prototype.format = function(values) {
-        var segments = this.segments, params = this.parameters();
-        if (!values) return segments.join("").replace("//", "/");
-        var nPath = segments.length - 1, nTotal = params.length, result = segments[0], i, search, value, param, cfg, array;
+        values = values || {};
+        var segments = this.segments, params = this.parameters(), paramset = this.params;
         if (!this.validates(values)) return null;
-        for (i = 0; i < nPath; i++) {
-            param = params[i];
-            value = values[param];
-            cfg = this.params[param];
-            if (!isDefined(value) && (segments[i] === "/" || segments[i + 1] === "/")) continue;
-            if (value != null) result += encodeURIComponent(cfg.type.encode(value));
-            result += segments[i + 1];
+        var i, search = false, nPath = segments.length - 1, nTotal = params.length, result = segments[0];
+        function encodeDashes(str) {
+            return encodeURIComponent(str).replace(/-/g, function(c) {
+                return "%5C%" + c.charCodeAt(0).toString(16).toUpperCase();
+            });
         }
-        for (;i < nTotal; i++) {
-            param = params[i];
-            value = values[param];
-            if (value == null) continue;
-            array = isArray(value);
-            if (array) {
-                value = value.map(encodeURIComponent).join("&" + param + "=");
+        for (i = 0; i < nTotal; i++) {
+            var isPathParam = i < nPath;
+            var name = params[i], param = paramset[name], value = param.value(values[name]);
+            var isDefaultValue = param.isOptional && param.type.equals(param.value(), value);
+            var squash = isDefaultValue ? param.squash : false;
+            var encoded = param.type.encode(value);
+            if (isPathParam) {
+                var nextSegment = segments[i + 1];
+                if (squash === false) {
+                    if (encoded != null) {
+                        if (isArray(encoded)) {
+                            result += map(encoded, encodeDashes).join("-");
+                        } else {
+                            result += encodeURIComponent(encoded);
+                        }
+                    }
+                    result += nextSegment;
+                } else if (squash === true) {
+                    var capture = result.match(/\/$/) ? /\/?(.*)/ : /(.*)/;
+                    result += nextSegment.match(capture)[1];
+                } else if (isString(squash)) {
+                    result += squash + nextSegment;
+                }
+            } else {
+                if (encoded == null || isDefaultValue && squash !== false) continue;
+                if (!isArray(encoded)) encoded = [ encoded ];
+                encoded = map(encoded, encodeURIComponent).join("&" + name + "=");
+                result += (search ? "&" : "?") + (name + "=" + encoded);
+                search = true;
             }
-            result += (search ? "&" : "?") + param + "=" + (array ? value : encodeURIComponent(value));
-            search = true;
         }
         return result;
     };
-    UrlMatcher.prototype.$types = {};
     function Type(config) {
         extend(this, config);
     }
@@ -54648,16 +54813,89 @@ if (typeof module !== "undefined" && typeof exports !== "undefined" && module.ex
         return sub.substr(1, sub.length - 2);
     };
     Type.prototype.pattern = /.*/;
+    Type.prototype.toString = function() {
+        return "{Type:" + this.name + "}";
+    };
+    Type.prototype.$asArray = function(mode, isSearch) {
+        if (!mode) return this;
+        if (mode === "auto" && !isSearch) throw new Error("'auto' array mode is for query parameters only");
+        return new ArrayType(this, mode);
+        function ArrayType(type, mode) {
+            function bindTo(type, callbackName) {
+                return function() {
+                    return type[callbackName].apply(type, arguments);
+                };
+            }
+            function arrayWrap(val) {
+                return isArray(val) ? val : isDefined(val) ? [ val ] : [];
+            }
+            function arrayUnwrap(val) {
+                switch (val.length) {
+                  case 0:
+                    return undefined;
+
+                  case 1:
+                    return mode === "auto" ? val[0] : val;
+
+                  default:
+                    return val;
+                }
+            }
+            function falsey(val) {
+                return !val;
+            }
+            function arrayHandler(callback, allTruthyMode) {
+                return function handleArray(val) {
+                    val = arrayWrap(val);
+                    var result = map(val, callback);
+                    if (allTruthyMode === true) return filter(result, falsey).length === 0;
+                    return arrayUnwrap(result);
+                };
+            }
+            function arrayEqualsHandler(callback) {
+                return function handleArray(val1, val2) {
+                    var left = arrayWrap(val1), right = arrayWrap(val2);
+                    if (left.length !== right.length) return false;
+                    for (var i = 0; i < left.length; i++) {
+                        if (!callback(left[i], right[i])) return false;
+                    }
+                    return true;
+                };
+            }
+            this.encode = arrayHandler(bindTo(type, "encode"));
+            this.decode = arrayHandler(bindTo(type, "decode"));
+            this.is = arrayHandler(bindTo(type, "is"), true);
+            this.equals = arrayEqualsHandler(bindTo(type, "equals"));
+            this.pattern = type.pattern;
+            this.$arrayMode = mode;
+        }
+    };
     function $UrlMatcherFactory() {
-        var isCaseInsensitive = false, isStrictMode = true;
-        var enqueue = true, typeQueue = [], injector, defaultTypes = {
+        $$UMFP = this;
+        var isCaseInsensitive = false, isStrictMode = true, defaultSquashPolicy = false;
+        function valToString(val) {
+            return val != null ? val.toString().replace(/\//g, "%2F") : val;
+        }
+        function valFromString(val) {
+            return val != null ? val.toString().replace(/%2F/g, "/") : val;
+        }
+        function regexpMatches(val) {
+            return this.pattern.test(val);
+        }
+        var $types = {}, enqueue = true, typeQueue = [], injector, defaultTypes = {
+            string: {
+                encode: valToString,
+                decode: valFromString,
+                is: regexpMatches,
+                pattern: /[^/]*/
+            },
             "int": {
+                encode: valToString,
                 decode: function(val) {
                     return parseInt(val, 10);
                 },
                 is: function(val) {
-                    if (!isDefined(val)) return false;
-                    return this.decode(val.toString()) === val;
+                    return isDefined(val) && this.decode(val.toString()) === val;
                 },
                 pattern: /\d+/
             },
@@ -54666,27 +54904,45 @@ if (typeof module !== "undefined" && typeof exports !== "undefined" && module.ex
                     return val ? 1 : 0;
                 },
                 decode: function(val) {
-                    return parseInt(val, 10) === 0 ? false : true;
+                    return parseInt(val, 10) !== 0;
                 },
                 is: function(val) {
                     return val === true || val === false;
                 },
                 pattern: /0|1/
             },
-            string: {
-                pattern: /[^\/]*/
-            },
             date: {
-                equals: function(a, b) {
-                    return a.toISOString() === b.toISOString();
-                },
-                decode: function(val) {
-                    return new Date(val);
-                },
                 encode: function(val) {
+                    if (!this.is(val)) return undefined;
                     return [ val.getFullYear(), ("0" + (val.getMonth() + 1)).slice(-2), ("0" + val.getDate()).slice(-2) ].join("-");
                 },
-                pattern: /[0-9]{4}-(?:0[1-9]|1[0-2])-(?:0[1-9]|[1-2][0-9]|3[0-1])/
+                decode: function(val) {
+                    if (this.is(val)) return val;
+                    var match = this.capture.exec(val);
+                    return match ? new Date(match[1], match[2] - 1, match[3]) : undefined;
+                },
+                is: function(val) {
+                    return val instanceof Date && !isNaN(val.valueOf());
+                },
+                equals: function(a, b) {
+                    return this.is(a) && this.is(b) && a.toISOString() === b.toISOString();
+                },
+                pattern: /[0-9]{4}-(?:0[1-9]|1[0-2])-(?:0[1-9]|[1-2][0-9]|3[0-1])/,
+                capture: /([0-9]{4})-(0[1-9]|1[0-2])-(0[1-9]|[1-2][0-9]|3[0-1])/
+            },
+            json: {
+                encode: angular.toJson,
+                decode: angular.fromJson,
+                is: angular.isObject,
+                equals: angular.equals,
+                pattern: /[^/]*/
+            },
+            any: {
+                encode: angular.identity,
+                decode: angular.identity,
+                is: angular.identity,
+                equals: angular.equals,
+                pattern: /.*/
             }
         };
         function getDefaultConfig() {
@@ -54704,10 +54960,18 @@ if (typeof module !== "undefined" && typeof exports !== "undefined" && module.ex
             return injector.invoke(config.value);
         };
         this.caseInsensitive = function(value) {
-            isCaseInsensitive = value;
+            if (isDefined(value)) isCaseInsensitive = value;
+            return isCaseInsensitive;
         };
         this.strictMode = function(value) {
-            isStrictMode = value;
+            if (isDefined(value)) isStrictMode = value;
+            return isStrictMode;
+        };
+        this.defaultSquashPolicy = function(value) {
+            if (!isDefined(value)) return defaultSquashPolicy;
+            if (value !== true && value !== false && !isString(value)) throw new Error("Invalid squash policy: " + value + ". Valid policies: false, true, arbitrary-string");
+            defaultSquashPolicy = value;
+            return value;
         };
         this.compile = function(pattern, config) {
             return new UrlMatcher(pattern, extend(getDefaultConfig(), config));
@@ -54722,36 +54986,196 @@ if (typeof module !== "undefined" && typeof exports !== "undefined" && module.ex
             });
             return result;
         };
-        this.type = function(name, def) {
-            if (!isDefined(def)) return UrlMatcher.prototype.$types[name];
-            typeQueue.push({
-                name: name,
-                def: def
-            });
-            if (!enqueue) flushTypeQueue();
+        this.type = function(name, definition, definitionFn) {
+            if (!isDefined(definition)) return $types[name];
+            if ($types.hasOwnProperty(name)) throw new Error("A type named '" + name + "' has already been defined.");
+            $types[name] = new Type(extend({
+                name: name
+            }, definition));
+            if (definitionFn) {
+                typeQueue.push({
+                    name: name,
+                    def: definitionFn
+                });
+                if (!enqueue) flushTypeQueue();
+            }
             return this;
         };
+        function flushTypeQueue() {
+            while (typeQueue.length) {
+                var type = typeQueue.shift();
+                if (type.pattern) throw new Error("You cannot override a type's .pattern at runtime.");
+                angular.extend($types[type.name], injector.invoke(type.def));
+            }
+        }
+        forEach(defaultTypes, function(type, name) {
+            $types[name] = new Type(extend({
+                name: name
+            }, type));
+        });
+        $types = inherit($types, {});
         this.$get = [ "$injector", function($injector) {
             injector = $injector;
             enqueue = false;
-            UrlMatcher.prototype.$types = {};
             flushTypeQueue();
             forEach(defaultTypes, function(type, name) {
-                if (!UrlMatcher.prototype.$types[name]) UrlMatcher.prototype.$types[name] = new Type(type);
+                if (!$types[name]) $types[name] = new Type(type);
             });
             return this;
         } ];
-        function flushTypeQueue() {
-            forEach(typeQueue, function(type) {
-                if (UrlMatcher.prototype.$types[type.name]) {
-                    throw new Error("A type named '" + type.name + "' has already been defined.");
+        this.Param = function Param(id, type, config, location) {
+            var self = this;
+            config = unwrapShorthand(config);
+            type = getType(config, type, location);
+            var arrayMode = getArrayMode();
+            type = arrayMode ? type.$asArray(arrayMode, location === "search") : type;
+            if (type.name === "string" && !arrayMode && location === "path" && config.value === undefined) config.value = "";
+            var isOptional = config.value !== undefined;
+            var squash = getSquashPolicy(config, isOptional);
+            var replace = getReplace(config, arrayMode, isOptional, squash);
+            function unwrapShorthand(config) {
+                var keys = isObject(config) ? objectKeys(config) : [];
+                var isShorthand = indexOf(keys, "value") === -1 && indexOf(keys, "type") === -1 && indexOf(keys, "squash") === -1 && indexOf(keys, "array") === -1;
+                if (isShorthand) config = {
+                    value: config
+                };
+                config.$$fn = isInjectable(config.value) ? config.value : function() {
+                    return config.value;
+                };
+                return config;
+            }
+            function getType(config, urlType, location) {
+                if (config.type && urlType) throw new Error("Param '" + id + "' has two type configurations.");
+                if (urlType) return urlType;
+                if (!config.type) return location === "config" ? $types.any : $types.string;
+                return config.type instanceof Type ? config.type : new Type(config.type);
+            }
+            function getArrayMode() {
+                var arrayDefaults = {
+                    array: location === "search" ? "auto" : false
+                };
+                var arrayParamNomenclature = id.match(/\[\]$/) ? {
+                    array: true
+                } : {};
+                return extend(arrayDefaults, arrayParamNomenclature, config).array;
+            }
+            function getSquashPolicy(config, isOptional) {
+                var squash = config.squash;
+                if (!isOptional || squash === false) return false;
+                if (!isDefined(squash) || squash == null) return defaultSquashPolicy;
+                if (squash === true || isString(squash)) return squash;
+                throw new Error("Invalid squash policy: '" + squash + "'. Valid policies: false, true, or arbitrary string");
+            }
+            function getReplace(config, arrayMode, isOptional, squash) {
+                var replace, configuredKeys, defaultPolicy = [ {
+                    from: "",
+                    to: isOptional || arrayMode ? undefined : ""
+                }, {
+                    from: null,
+                    to: isOptional || arrayMode ? undefined : ""
+                } ];
+                replace = isArray(config.replace) ? config.replace : [];
+                if (isString(squash)) replace.push({
+                    from: squash,
+                    to: undefined
+                });
+                configuredKeys = map(replace, function(item) {
+                    return item.from;
+                });
+                return filter(defaultPolicy, function(item) {
+                    return indexOf(configuredKeys, item.from) === -1;
+                }).concat(replace);
+            }
+            function $$getDefaultValue() {
+                if (!injector) throw new Error("Injectable functions cannot be called at configuration time");
+                return injector.invoke(config.$$fn);
+            }
+            function $value(value) {
+                function hasReplaceVal(val) {
+                    return function(obj) {
+                        return obj.from === val;
+                    };
                 }
-                var def = new Type(isInjectable(type.def) ? injector.invoke(type.def) : type.def);
-                UrlMatcher.prototype.$types[type.name] = def;
+                function $replace(value) {
+                    var replacement = map(filter(self.replace, hasReplaceVal(value)), function(obj) {
+                        return obj.to;
+                    });
+                    return replacement.length ? replacement[0] : value;
+                }
+                value = $replace(value);
+                return isDefined(value) ? self.type.decode(value) : $$getDefaultValue();
+            }
+            function toString() {
+                return "{Param:" + id + " " + type + " squash: '" + squash + "' optional: " + isOptional + "}";
+            }
+            extend(this, {
+                id: id,
+                type: type,
+                location: location,
+                array: arrayMode,
+                squash: squash,
+                replace: replace,
+                isOptional: isOptional,
+                value: $value,
+                dynamic: undefined,
+                config: config,
+                toString: toString
             });
+        };
+        function ParamSet(params) {
+            extend(this, params || {});
         }
+        ParamSet.prototype = {
+            $$new: function() {
+                return inherit(this, extend(new ParamSet(), {
+                    $$parent: this
+                }));
+            },
+            $$keys: function() {
+                var keys = [], chain = [], parent = this, ignore = objectKeys(ParamSet.prototype);
+                while (parent) {
+                    chain.push(parent);
+                    parent = parent.$$parent;
+                }
+                chain.reverse();
+                forEach(chain, function(paramset) {
+                    forEach(objectKeys(paramset), function(key) {
+                        if (indexOf(keys, key) === -1 && indexOf(ignore, key) === -1) keys.push(key);
+                    });
+                });
+                return keys;
+            },
+            $$values: function(paramValues) {
+                var values = {}, self = this;
+                forEach(self.$$keys(), function(key) {
+                    values[key] = self[key].value(paramValues && paramValues[key]);
+                });
+                return values;
+            },
+            $$equals: function(paramValues1, paramValues2) {
+                var equal = true, self = this;
+                forEach(self.$$keys(), function(key) {
+                    var left = paramValues1 && paramValues1[key], right = paramValues2 && paramValues2[key];
+                    if (!self[key].type.equals(left, right)) equal = false;
+                });
+                return equal;
+            },
+            $$validates: function $$validate(paramValues) {
+                var result = true, isOptional, val, param, self = this;
+                forEach(this.$$keys(), function(key) {
+                    param = self[key];
+                    val = paramValues[key];
+                    isOptional = !val && param.isOptional;
+                    result = result && (isOptional || !!param.type.is(val));
+                });
+                return result;
+            },
+            $$parent: undefined
+        };
+        this.ParamSet = ParamSet;
     }
     angular.module("ui.router.util").provider("$urlMatcherFactory", $UrlMatcherFactory);
+    angular.module("ui.router.util").run([ "$urlMatcherFactory", function($urlMatcherFactory) {} ]);
     $UrlRouterProvider.$inject = [ "$locationProvider", "$urlMatcherFactoryProvider" ];
     function $UrlRouterProvider($locationProvider, $urlMatcherFactory) {
         var rules = [], otherwise = null, interceptDeferred = false, listener;
@@ -54835,7 +55259,7 @@ if (typeof module !== "undefined" && typeof exports !== "undefined" && module.ex
         this.$get = $get;
         $get.$inject = [ "$location", "$rootScope", "$injector", "$browser" ];
         function $get($location, $rootScope, $injector, $browser) {
-            var baseHref = $browser.baseHref(), location = $location.url();
+            var baseHref = $browser.baseHref(), location = $location.url(), lastPushedUrl;
             function appendBasePath(url, isHtml5, absolute) {
                 if (baseHref === "/") return url;
                 if (isHtml5) return baseHref.slice(0, -1) + url;
@@ -54844,6 +55268,9 @@ if (typeof module !== "undefined" && typeof exports !== "undefined" && module.ex
             }
             function update(evt) {
                 if (evt && evt.defaultPrevented) return;
+                var ignoreUpdate = lastPushedUrl && $location.url() === lastPushedUrl;
+                lastPushedUrl = undefined;
+                if (ignoreUpdate) return true;
                 function check(rule) {
                     var handled = rule($injector, $location);
                     if (!handled) return false;
@@ -54879,11 +55306,15 @@ if (typeof module !== "undefined" && typeof exports !== "undefined" && module.ex
                 },
                 push: function(urlMatcher, params, options) {
                     $location.url(urlMatcher.format(params || {}));
+                    lastPushedUrl = options && options.$$avoidResync ? $location.url() : undefined;
                     if (options && options.replace) $location.replace();
                 },
                 href: function(urlMatcher, params, options) {
                     if (!urlMatcher.validates(params)) return null;
                     var isHtml5 = $locationProvider.html5Mode();
+                    if (angular.isObject(isHtml5)) {
+                        isHtml5 = isHtml5.enabled;
+                    }
                     var url = urlMatcher.format(params);
                     options = options || {};
                     if (!isHtml5 && url !== null) {
@@ -54930,11 +55361,15 @@ if (typeof module !== "undefined" && typeof exports !== "undefined" && module.ex
             navigable: function(state) {
                 return state.url ? state : state.parent ? state.parent.navigable : null;
             },
+            ownParams: function(state) {
+                var params = state.url && state.url.params || new $$UMFP.ParamSet();
+                forEach(state.params || {}, function(config, id) {
+                    if (!params[id]) params[id] = new $$UMFP.Param(id, null, config, "config");
+                });
+                return params;
+            },
             params: function(state) {
-                if (!state.params) {
-                    return state.url ? state.url.params : state.parent.params;
-                }
-                return state.params;
+                return state.parent && state.parent.params ? extend(state.parent.params.$$new(), state.ownParams) : new $$UMFP.ParamSet();
             },
             views: function(state) {
                 var views = {};
@@ -54945,27 +55380,6 @@ if (typeof module !== "undefined" && typeof exports !== "undefined" && module.ex
                     views[name] = view;
                 });
                 return views;
-            },
-            ownParams: function(state) {
-                state.params = state.params || {};
-                if (!state.parent) {
-                    return objectKeys(state.params);
-                }
-                var paramNames = {};
-                forEach(state.params, function(v, k) {
-                    paramNames[k] = true;
-                });
-                forEach(state.parent.params, function(v, k) {
-                    if (!paramNames[k]) {
-                        throw new Error("Missing required parameter '" + k + "' in state '" + state.name + "'");
-                    }
-                    paramNames[k] = false;
-                });
-                var ownParams = [];
-                forEach(paramNames, function(own, p) {
-                    if (own) ownParams.push(p);
-                });
-                return ownParams;
             },
             path: function(state) {
                 return state.parent ? state.parent.path.concat(state) : [];
@@ -54985,6 +55399,7 @@ if (typeof module !== "undefined" && typeof exports !== "undefined" && module.ex
             var isStr = isString(stateOrName), name = isStr ? stateOrName : stateOrName.name, path = isRelative(name);
             if (path) {
                 if (!base) throw new Error("No reference point given for path '" + name + "'");
+                base = findState(base);
                 var rel = name.split("."), i = 0, pathLength = rel.length, current = base;
                 for (;i < pathLength; i++) {
                     if (rel[i] === "" && i === 0) {
@@ -55013,6 +55428,12 @@ if (typeof module !== "undefined" && typeof exports !== "undefined" && module.ex
             }
             queue[parentName].push(state);
         }
+        function flushQueuedChildren(parentName) {
+            var queued = queue[parentName] || [];
+            while (queued.length) {
+                registerState(queued.shift());
+            }
+        }
         function registerState(state) {
             state = inherit(state, {
                 self: state,
@@ -55024,7 +55445,7 @@ if (typeof module !== "undefined" && typeof exports !== "undefined" && module.ex
             var name = state.name;
             if (!isString(name) || name.indexOf("@") >= 0) throw new Error("State must have a valid name");
             if (states.hasOwnProperty(name)) throw new Error("State '" + name + "'' is already defined");
-            var parentName = name.indexOf(".") !== -1 ? name.substring(0, name.lastIndexOf(".")) : isString(state.parent) ? state.parent : "";
+            var parentName = name.indexOf(".") !== -1 ? name.substring(0, name.lastIndexOf(".")) : isString(state.parent) ? state.parent : isObject(state.parent) && isString(state.parent.name) ? state.parent.name : "";
             if (parentName && !states[parentName]) {
                 return queueState(parentName, state.self);
             }
@@ -55036,16 +55457,13 @@ if (typeof module !== "undefined" && typeof exports !== "undefined" && module.ex
                 $urlRouterProvider.when(state.url, [ "$match", "$stateParams", function($match, $stateParams) {
                     if ($state.$current.navigable != state || !equalForKeys($match, $stateParams)) {
                         $state.transitionTo(state, $match, {
+                            inherit: true,
                             location: false
                         });
                     }
                 } ]);
             }
-            if (queue[name]) {
-                for (var i = 0; i < queue[name].length; i++) {
-                    registerState(queue[name][i]);
-                }
-            }
+            flushQueuedChildren(name);
             return state;
         }
         function isGlob(text) {
@@ -55054,11 +55472,11 @@ if (typeof module !== "undefined" && typeof exports !== "undefined" && module.ex
         function doesStateMatchGlob(glob) {
             var globSegments = glob.split("."), segments = $state.$current.name.split(".");
             if (globSegments[0] === "**") {
-                segments = segments.slice(segments.indexOf(globSegments[1]));
+                segments = segments.slice(indexOf(segments, globSegments[1]));
                 segments.unshift("**");
             }
             if (globSegments[globSegments.length - 1] === "**") {
-                segments.splice(segments.indexOf(globSegments[globSegments.length - 2]) + 1, Number.MAX_VALUE);
+                segments.splice(indexOf(segments, globSegments[globSegments.length - 2]) + 1, Number.MAX_VALUE);
                 segments.push("**");
             }
             if (globSegments.length != segments.length) {
@@ -55099,8 +55517,8 @@ if (typeof module !== "undefined" && typeof exports !== "undefined" && module.ex
             return this;
         }
         this.$get = $get;
-        $get.$inject = [ "$rootScope", "$q", "$view", "$injector", "$resolve", "$stateParams", "$urlRouter" ];
-        function $get($rootScope, $q, $view, $injector, $resolve, $stateParams, $urlRouter) {
+        $get.$inject = [ "$rootScope", "$q", "$view", "$injector", "$resolve", "$stateParams", "$urlRouter", "$location", "$urlMatcherFactory" ];
+        function $get($rootScope, $q, $view, $injector, $resolve, $stateParams, $urlRouter, $location, $urlMatcherFactory) {
             var TransitionSuperseded = $q.reject(new Error("transition superseded"));
             var TransitionPrevented = $q.reject(new Error("transition prevented"));
             var TransitionAborted = $q.reject(new Error("transition aborted"));
@@ -55142,10 +55560,10 @@ if (typeof module !== "undefined" && typeof exports !== "undefined" && module.ex
                 transition: null
             };
             $state.reload = function reload() {
-                $state.transitionTo($state.current, $stateParams, {
+                return $state.transitionTo($state.current, $stateParams, {
                     reload: true,
                     inherit: false,
-                    notify: false
+                    notify: true
                 });
             };
             $state.go = function go(to, params, options) {
@@ -55187,11 +55605,13 @@ if (typeof module !== "undefined" && typeof exports !== "undefined" && module.ex
                 }
                 if (toState[abstractKey]) throw new Error("Cannot transition to abstract state '" + to + "'");
                 if (options.inherit) toParams = inheritParams($stateParams, toParams || {}, $state.$current, toState);
+                if (!toState.params.$$validates(toParams)) return TransitionFailed;
+                toParams = toState.params.$$values(toParams);
                 to = toState;
                 var toPath = to.path;
                 var keep = 0, state = toPath[keep], locals = root.locals, toLocals = [];
                 if (!options.reload) {
-                    while (state && state === fromPath[keep] && equalForKeys(toParams, fromParams, state.ownParams)) {
+                    while (state && state === fromPath[keep] && state.ownParams.$$equals(toParams, fromParams)) {
                         locals = toLocals[keep] = state.locals;
                         keep++;
                         state = toPath[keep];
@@ -55202,7 +55622,7 @@ if (typeof module !== "undefined" && typeof exports !== "undefined" && module.ex
                     $state.transition = null;
                     return $q.when($state.current);
                 }
-                toParams = filterByKeys(objectKeys(to.params), toParams || {});
+                toParams = filterByKeys(to.params.$$keys(), toParams || {});
                 if (options.notify) {
                     if ($rootScope.$broadcast("$stateChangeStart", to.self, toParams, from.self, fromParams).defaultPrevented) {
                         $urlRouter.update();
@@ -55212,7 +55632,7 @@ if (typeof module !== "undefined" && typeof exports !== "undefined" && module.ex
                 var resolved = $q.when(locals);
                 for (var l = keep; l < toPath.length; l++, state = toPath[l]) {
                     locals = toLocals[l] = inherit(locals);
-                    resolved = resolveState(state, toParams, state === to, resolved, locals);
+                    resolved = resolveState(state, toParams, state === to, resolved, locals, options);
                 }
                 var transition = $state.transition = resolved.then(function() {
                     var l, entering, exiting;
@@ -55239,6 +55659,7 @@ if (typeof module !== "undefined" && typeof exports !== "undefined" && module.ex
                     $state.transition = null;
                     if (options.location && to.navigable) {
                         $urlRouter.push(to.navigable.url, to.navigable.locals.globals.$stateParams, {
+                            $$avoidResync: true,
                             replace: options.location === "replace"
                         });
                     }
@@ -55258,31 +55679,37 @@ if (typeof module !== "undefined" && typeof exports !== "undefined" && module.ex
                 });
                 return transition;
             };
-            $state.is = function is(stateOrName, params) {
-                var state = findState(stateOrName);
+            $state.is = function is(stateOrName, params, options) {
+                options = extend({
+                    relative: $state.$current
+                }, options || {});
+                var state = findState(stateOrName, options.relative);
                 if (!isDefined(state)) {
                     return undefined;
                 }
                 if ($state.$current !== state) {
                     return false;
                 }
-                return isDefined(params) && params !== null ? angular.equals($stateParams, params) : true;
+                return params ? equalForKeys(state.params.$$values(params), $stateParams) : true;
             };
-            $state.includes = function includes(stateOrName, params) {
+            $state.includes = function includes(stateOrName, params, options) {
+                options = extend({
+                    relative: $state.$current
+                }, options || {});
                 if (isString(stateOrName) && isGlob(stateOrName)) {
                     if (!doesStateMatchGlob(stateOrName)) {
                         return false;
                     }
                     stateOrName = $state.$current.name;
                 }
-                var state = findState(stateOrName);
+                var state = findState(stateOrName, options.relative);
                 if (!isDefined(state)) {
                     return undefined;
                 }
                 if (!isDefined($state.$current.includes[state.name])) {
                     return false;
                 }
-                return equalForKeys(params, $stateParams);
+                return params ? equalForKeys(state.params.$$values(params), $stateParams, objectKeys(params)) : true;
             };
             $state.href = function href(stateOrName, params, options) {
                 options = extend({
@@ -55295,22 +55722,22 @@ if (typeof module !== "undefined" && typeof exports !== "undefined" && module.ex
                 if (!isDefined(state)) return null;
                 if (options.inherit) params = inheritParams($stateParams, params || {}, $state.$current, state);
                 var nav = state && options.lossy ? state.navigable : state;
-                if (!nav || !nav.url) {
+                if (!nav || nav.url === undefined || nav.url === null) {
                     return null;
                 }
-                return $urlRouter.href(nav.url, filterByKeys(objectKeys(state.params), params || {}), {
+                return $urlRouter.href(nav.url, filterByKeys(state.params.$$keys(), params || {}), {
                     absolute: options.absolute
                 });
             };
             $state.get = function(stateOrName, context) {
-                if (arguments.length === 0) return objectKeys(states).map(function(name) {
+                if (arguments.length === 0) return map(objectKeys(states), function(name) {
                     return states[name].self;
                 });
-                var state = findState(stateOrName, context);
+                var state = findState(stateOrName, context || $state.$current);
                 return state && state.self ? state.self : null;
             };
-            function resolveState(state, params, paramsAreFiltered, inherited, dst) {
-                var $stateParams = paramsAreFiltered ? params : filterByKeys(objectKeys(state.params), params);
+            function resolveState(state, params, paramsAreFiltered, inherited, dst, options) {
+                var $stateParams = paramsAreFiltered ? params : filterByKeys(state.params.$$keys(), params);
                 var locals = {
                     $stateParams: $stateParams
                 };
@@ -55325,7 +55752,8 @@ if (typeof module !== "undefined" && typeof exports !== "undefined" && module.ex
                         return $view.load(name, {
                             view: view,
                             locals: locals,
-                            params: $stateParams
+                            params: $stateParams,
+                            notify: options.notify
                         }) || "";
                     } ];
                     promises.push($resolve.resolve(injectables, locals, dst.resolve, state).then(function(result) {
@@ -55399,8 +55827,8 @@ if (typeof module !== "undefined" && typeof exports !== "undefined" && module.ex
         } ];
     }
     angular.module("ui.router.state").provider("$uiViewScroll", $ViewScrollProvider);
-    $ViewDirective.$inject = [ "$state", "$injector", "$uiViewScroll" ];
-    function $ViewDirective($state, $injector, $uiViewScroll) {
+    $ViewDirective.$inject = [ "$state", "$injector", "$uiViewScroll", "$interpolate" ];
+    function $ViewDirective($state, $injector, $uiViewScroll, $interpolate) {
         function getService() {
             return $injector.has ? function(service) {
                 return $injector.has(service) ? $injector.get(service) : null;
@@ -55429,10 +55857,12 @@ if (typeof module !== "undefined" && typeof exports !== "undefined" && module.ex
             if ($animate) {
                 return {
                     enter: function(element, target, cb) {
-                        $animate.enter(element, null, target, cb);
+                        var promise = $animate.enter(element, null, target, cb);
+                        if (promise && promise.then) promise.then(cb);
                     },
                     leave: function(element, cb) {
-                        $animate.leave(element, cb);
+                        var promise = $animate.leave(element, cb);
+                        if (promise && promise.then) promise.then(cb);
                     }
                 };
             }
@@ -55484,12 +55914,15 @@ if (typeof module !== "undefined" && typeof exports !== "undefined" && module.ex
                         }
                     }
                     function updateView(firstTime) {
-                        var newScope, name = getUiViewName(attrs, $element.inheritedData("$uiView")), previousLocals = name && $state.$current && $state.$current.locals[name];
+                        var newScope, name = getUiViewName(scope, attrs, $element, $interpolate), previousLocals = name && $state.$current && $state.$current.locals[name];
                         if (!firstTime && previousLocals === latestLocals) return;
                         newScope = scope.$new();
                         latestLocals = $state.$current.locals[name];
                         var clone = $transclude(newScope, function(clone) {
                             renderer.enter(clone, $element, function onUiViewEnter() {
+                                if (currentScope) {
+                                    currentScope.$emit("$viewContentAnimationEnded");
+                                }
                                 if (angular.isDefined(autoScrollExp) && !autoScrollExp || scope.$eval(autoScrollExp)) {
                                     $uiViewScroll(clone);
                                 }
@@ -55506,15 +55939,15 @@ if (typeof module !== "undefined" && typeof exports !== "undefined" && module.ex
         };
         return directive;
     }
-    $ViewDirectiveFill.$inject = [ "$compile", "$controller", "$state" ];
-    function $ViewDirectiveFill($compile, $controller, $state) {
+    $ViewDirectiveFill.$inject = [ "$compile", "$controller", "$state", "$interpolate" ];
+    function $ViewDirectiveFill($compile, $controller, $state, $interpolate) {
         return {
             restrict: "ECA",
             priority: -400,
             compile: function(tElement) {
                 var initial = tElement.html();
                 return function(scope, $element, attrs) {
-                    var current = $state.$current, name = getUiViewName(attrs, $element.inheritedData("$uiView")), locals = current && current.locals[name];
+                    var current = $state.$current, name = getUiViewName(scope, attrs, $element, $interpolate), locals = current && current.locals[name];
                     if (!locals) {
                         return;
                     }
@@ -55538,8 +55971,9 @@ if (typeof module !== "undefined" && typeof exports !== "undefined" && module.ex
             }
         };
     }
-    function getUiViewName(attrs, inherited) {
-        var name = attrs.uiView || attrs.name || "";
+    function getUiViewName(scope, attrs, element, $interpolate) {
+        var name = $interpolate(attrs.uiView || attrs.name || "")(scope);
+        var inherited = element.inheritedData("$uiView");
         return name.indexOf("@") >= 0 ? name : name + "@" + (inherited ? inherited.state.name : "");
     }
     angular.module("ui.router.state").directive("uiView", $ViewDirective);
@@ -55569,6 +56003,7 @@ if (typeof module !== "undefined" && typeof exports !== "undefined" && module.ex
             link: function(scope, element, attrs, uiSrefActive) {
                 var ref = parseStateRef(attrs.uiSref, $state.current.name);
                 var params = null, url = null, base = stateContext(element) || $state.$current;
+                var newHref = null, isAnchor = element.prop("tagName") === "A";
                 var isForm = element[0].nodeName === "FORM";
                 var attr = isForm ? "action" : "href", nav = true;
                 var options = {
@@ -55582,9 +56017,9 @@ if (typeof module !== "undefined" && typeof exports !== "undefined" && module.ex
                     }
                 });
                 var update = function(newVal) {
-                    if (newVal) params = newVal;
+                    if (newVal) params = angular.copy(newVal);
                     if (!nav) return;
-                    var newHref = $state.href(ref.state, params, options);
+                    newHref = $state.href(ref.state, params, options);
                     var activeDirective = uiSrefActive[1] || uiSrefActive[0];
                     if (activeDirective) {
                         activeDirective.$$setStateInfo(ref.state, params);
@@ -55593,13 +56028,13 @@ if (typeof module !== "undefined" && typeof exports !== "undefined" && module.ex
                         nav = false;
                         return false;
                     }
-                    element[0][attr] = newHref;
+                    attrs.$set(attr, newHref);
                 };
                 if (ref.paramExpr) {
                     scope.$watch(ref.paramExpr, function(newVal, oldVal) {
                         if (newVal !== params) update(newVal);
                     }, true);
-                    params = scope.$eval(ref.paramExpr);
+                    params = angular.copy(scope.$eval(ref.paramExpr));
                 }
                 update();
                 if (isForm) return;
@@ -55610,8 +56045,9 @@ if (typeof module !== "undefined" && typeof exports !== "undefined" && module.ex
                             $state.go(ref.state, params, options);
                         });
                         e.preventDefault();
+                        var ignorePreventDefaultCount = isAnchor && !newHref ? 1 : 0;
                         e.preventDefault = function() {
-                            $timeout.cancel(transition);
+                            if (ignorePreventDefaultCount-- <= 0) $timeout.cancel(transition);
                         };
                     }
                 });
@@ -55640,13 +56076,10 @@ if (typeof module !== "undefined" && typeof exports !== "undefined" && module.ex
                 }
                 function isMatch() {
                     if (typeof $attrs.uiSrefActiveEq !== "undefined") {
-                        return $state.$current.self === state && matchesParams();
+                        return state && $state.is(state.name, params);
                     } else {
-                        return $state.includes(state.name) && matchesParams();
+                        return state && $state.includes(state.name, params);
                     }
-                }
-                function matchesParams() {
-                    return !params || equalForKeys(params, $stateParams);
                 }
             } ]
         };
@@ -55654,15 +56087,19 @@ if (typeof module !== "undefined" && typeof exports !== "undefined" && module.ex
     angular.module("ui.router.state").directive("uiSref", $StateRefDirective).directive("uiSrefActive", $StateRefActiveDirective).directive("uiSrefActiveEq", $StateRefActiveDirective);
     $IsStateFilter.$inject = [ "$state" ];
     function $IsStateFilter($state) {
-        return function(state) {
+        var isFilter = function(state) {
             return $state.is(state);
         };
+        isFilter.$stateful = true;
+        return isFilter;
     }
     $IncludedByStateFilter.$inject = [ "$state" ];
     function $IncludedByStateFilter($state) {
-        return function(state) {
+        var includesFilter = function(state) {
             return $state.includes(state);
         };
+        includesFilter.$stateful = true;
+        return includesFilter;
     }
     angular.module("ui.router.state").filter("isState", $IsStateFilter).filter("includedByState", $IncludedByStateFilter);
 })(window, window.angular);
@@ -59661,24 +60098,29 @@ if (typeof module !== "undefined" && typeof exports !== "undefined" && module.ex
         };
         this.setPrefix = function(prefix) {
             this.prefix = prefix;
+            return this;
         };
         this.setStorageType = function(storageType) {
             this.storageType = storageType;
+            return this;
         };
         this.setStorageCookie = function(exp, path) {
             this.cookie = {
                 expiry: exp,
                 path: path
             };
+            return this;
         };
         this.setStorageCookieDomain = function(domain) {
             this.cookie.domain = domain;
+            return this;
         };
         this.setNotify = function(itemSet, itemRemove) {
             this.notify = {
                 setItem: itemSet,
                 removeItem: itemRemove
             };
+            return this;
         };
         this.$get = [ "$rootScope", "$window", "$document", "$parse", function($rootScope, $window, $document, $parse) {
             var self = this;
@@ -61121,13 +61563,9 @@ angular.module("xeditable").factory("editableThemes", function() {
             function addLink(url, text) {
                 html.push("<a ");
                 if (angular.isDefined(target)) {
-                    html.push('target="');
-                    html.push(target);
-                    html.push('" ');
+                    html.push('target="', target, '" ');
                 }
-                html.push('href="');
-                html.push(url);
-                html.push('">');
+                html.push('href="', url.replace('"', "&quot;"), '">');
                 addText(text);
                 html.push("</a>");
             }

@@ -34,7 +34,8 @@
 .bg-teal,
 .bg-black,
 .bg-gray,
-.bg-blue {
+.bg-blue,
+.bg-darkblue {
   color: #fafafa;
 }
 .bg-black {
@@ -51,6 +52,9 @@
 }
 .bg-blue {
   background-color: #03a9f4;
+}
+.bg-darkblue {
+  background-color: #0d47a1;
 }
 .bg-orange {
   background-color: #ff5722;

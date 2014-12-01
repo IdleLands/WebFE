@@ -197,6 +197,8 @@
             return 'bg-orange';
           case 'total':
             return 'bg-teal';
+          case 'shop':
+            return 'bg-darkblue';
         }
       };
       $scope.equipmentStatArray = [
@@ -271,6 +273,8 @@
       }, {
         name: 'enchantLevel'
       }, {
+        name: 'shopSlot'
+      }, {
         name: '_calcScore'
       }, {
         name: '_baseScore'
@@ -315,8 +319,20 @@
         return items;
       };
       $scope.getOverflows = function() {
-        var items, overflow;
+        var items, overflow, shop;
         items = [];
+        shop = $scope.player.shop;
+        if (shop) {
+          _.each(shop.slots, function(slot, index) {
+            var item;
+            item = slot.item;
+            item.cost = slot.price;
+            item.extraItemClass = 'shop';
+            item.extraText = "SHOP " + index;
+            item.shopSlot = index;
+            return items.push(item);
+          });
+        }
         overflow = $scope.player.overflow;
         if (overflow) {
           _.each(overflow, function(item, index) {
@@ -424,6 +440,11 @@
       $scope.invItem = function(item) {
         return API.inventory.add({
           itemSlot: item.type
+        });
+      };
+      $scope.buyItem = function(item) {
+        return API.shop.buy({
+          shopSlot: item.shopSlot
         });
       };
       $scope.buildStringList = function() {
@@ -784,7 +805,7 @@
 
 (function() {
   angular.module('IdleLands').factory('API', [
-    'Authentication', 'Action', 'Battle', 'Personality', 'Pushbullet', 'Strings', 'Gender', 'Inventory', function(Authentication, Action, Battle, Personality, Pushbullet, Strings, Gender, Inventory) {
+    'Authentication', 'Action', 'Battle', 'Personality', 'Pushbullet', 'Strings', 'Gender', 'Inventory', 'Shop', function(Authentication, Action, Battle, Personality, Pushbullet, Strings, Gender, Inventory, Shop) {
       return {
         auth: Authentication,
         action: Action,
@@ -793,7 +814,8 @@
         pushbullet: Pushbullet,
         strings: Strings,
         gender: Gender,
-        inventory: Inventory
+        inventory: Inventory,
+        shop: Shop
       };
     }
   ]);
@@ -915,6 +937,21 @@
 }).call(this);
 
 (function() {
+  angular.module('IdleLands').factory('Shop', [
+    '$http', 'BaseURL', function($http, baseURL) {
+      var url;
+      url = "" + baseURL + "/player/manage/shop";
+      return {
+        buy: function(data) {
+          return $http.put("" + url + "/buy", data);
+        }
+      };
+    }
+  ]);
+
+}).call(this);
+
+(function() {
   angular.module('IdleLands').factory('Strings', [
     '$http', 'BaseURL', function($http, baseURL) {
       var url;
@@ -975,7 +1012,7 @@
     'event.item.newbie': defaultReplaceFunction('#9E9E9E'),
     'event.item.Normal': defaultReplaceFunction('#9E9E9E'),
     'event.item.basic': defaultReplaceFunction('#2196F3'),
-    'event.item.pro': defaultReplaceFunction(null, '#4527A0'),
+    'event.item.pro': defaultReplaceFunction('#4527A0'),
     'event.item.idle': defaultReplaceFunction('#FF7043'),
     'event.item.godly': defaultReplaceFunction('#fff', '#000'),
     'event.item.custom': defaultReplaceFunction('#fff', '#1A237E'),

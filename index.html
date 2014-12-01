@@ -167,10 +167,12 @@
             <md-tooltip>{{item.itemClass}}</md-tooltip>
           </div>
           <div ng-if="item.extraItemClass" class="{{classToColor(item.extraItemClass)}}">{{item.extraText}}</div>
-          <div class="text-center"><span ng-if="item.extraItemClass" ng-click="sellItem(item)" class="hover-cursor fa fa-fw icon-money">
+          <div ng-if="_.isNumber(item.overflowSlot)" class="text-center"><span ng-if="item.extraItemClass" ng-click="sellItem(item)" class="hover-cursor fa fa-fw icon-money text-red">
               <md-tooltip>Sell</md-tooltip></span><span ng-if="item.extraItemClass" ng-click="swapItem(item)" class="hover-cursor fa fa-fw fa-exchange">
               <md-tooltip>Swap</md-tooltip></span><span ng-if="!item.extraItemClass &amp;&amp; !item.hideButtons" ng-click="invItem(item)" class="hover-cursor fa fa-fw fa-caret-square-o-down">
               <md-tooltip>Add to Inventory</md-tooltip></span></div>
+          <div ng-if="_.isNumber(item.shopSlot)" class="text-center"><span ng-if="item.extraItemClass" ng-click="buyItem(item)" class="hover-cursor fa fa-fw icon-money text-green">
+              <md-tooltip>Buy</md-tooltip></span></div>
         </div>
         <div class="md-tile-content item-line">
           <div><span class="super-bold">{{item.enchantLevel ? '+'+item.enchantLevel+' ' : ''}}</span><span class="super-bold">{{item.name}}</span><small ng-if="item.foundAt"><span>, found</span><span>&nbsp;</span><span am-time-ago="item.foundAt"></span><span>, with a Player Relativity of</span><span>&nbsp;{{playerItemScore(item)}}%&nbsp;</span><span>and an Item Relativity of</span><span>&nbsp;{{itemItemScore(item)}}%</span></small></div>
@@ -352,6 +354,7 @@
           <div layout="vertical">
             <div class="vital-stat"><span class="fa fa-fw fa-globe"></span><span>&nbsp;{{player.map}} ~ {{player.x}}, {{player.y}}</span></div>
             <div class="vital-stat"><span class="fa fa-fw fa-map-marker"></span><span>&nbsp;{{player.mapRegion}}</span></div>
+            <div ng-if="player.shop" class="vital-stat"><span class="fa fa-fw icon-money faa-tada animated"></span><span>&nbsp;In shop: {{player.shop.region}}!</span></div>
             <div class="vital-stat"><span class="fa fa-fw fa-users"></span><span>&nbsp;{{player.partyName || 'No party'}}</span></div>
             <div class="vital-stat"><span class="fa fa-fw fa-sitemap"></span><span>&nbsp;{{player.guild || 'No guild'}}</span></div>
             <div><span class="fa fa-fw fa-clock-o"></span><span>&nbsp;Started&nbsp;</span><span am-time-ago="player.registrationDate">
