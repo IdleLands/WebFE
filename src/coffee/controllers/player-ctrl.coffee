@@ -1,7 +1,7 @@
 angular.module 'IdleLands'
 .controller 'Player', [
-  '$scope', '$state', '$window', '$timeout', '$mdToast', 'API', 'Player', 'TurnTaker' ,'CredentialCache', 'OptionsCache', 'BattleColorMap', 'CurrentMap'
-  ($scope, $state, $window, $timeout, $mdToast, API, Player, TurnTaker, CredentialCache, OptionsCache, BattleColorMap, CurrentMap) ->
+  '$scope', '$state', '$window', '$timeout', '$mdToast', 'API', 'Player', 'TurnTaker' ,'CredentialCache', 'OptionsCache', 'BattleColorMap', 'CurrentMap', 'BaseURL'
+  ($scope, $state, $window, $timeout, $mdToast, API, Player, TurnTaker, CredentialCache, OptionsCache, BattleColorMap, CurrentMap, BaseURL) ->
 
     if not Player.getPlayer()
       CredentialCache.tryLogin().then (->
@@ -201,8 +201,8 @@ angular.module 'IdleLands'
       phaserOpts =
         preload: ->
           #gah, github. whatever.
-          @game.load.image 'tiles', './WebFE/img/tiles.png', 16, 16
-          @game.load.spritesheet 'interactables', './WebFE/img/tiles.png', 16, 16
+          @game.load.image 'tiles', "#{BaseURL}/img/tiles.png", 16, 16
+          @game.load.spritesheet 'interactables', "#{BaseURL}/img/tiles.png", 16, 16
           @game.load.tilemap newMapName, null, $scope.currentMap.map, Phaser.Tilemap.TILED_JSON
 
         create: ->
