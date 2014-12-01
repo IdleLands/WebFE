@@ -48,6 +48,9 @@ script(id="player-player", type="text/ng-template")
                   div.vital-stat
                      span.fa.fa-fw.fa-map-marker
                      span &nbsp;{{player.mapRegion}}
+                  div.vital-stat(ng-if="player.shop")
+                     span.fa.fa-fw.icon-money.faa-tada.animated
+                     span &nbsp;In shop: {{player.shop.region}}!
                   div.vital-stat
                      span.fa.fa-fw.fa-users
                      span &nbsp;{{player.partyName || 'No party'}}

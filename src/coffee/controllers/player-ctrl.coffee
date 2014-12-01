@@ -67,6 +67,7 @@ angular.module 'IdleLands'
         when 'custom' then return 'bg-blue'
         when 'extra'  then return 'bg-orange'
         when 'total'  then return 'bg-teal'
+        when 'shop'   then return 'bg-darkblue'
 
     $scope.equipmentStatArray = [
       {name: 'str', fa: 'fa-legal fa-rotate-90'}
@@ -112,6 +113,7 @@ angular.module 'IdleLands'
     $scope.extendedEquipmentStatArray = $scope.equipmentStatArray.concat {name: 'sentimentality'},
       {name: 'piety'},
       {name: 'enchantLevel'},
+      {name: 'shopSlot'},
       {name: '_calcScore'},
       {name: '_baseScore'}
 
@@ -143,6 +145,18 @@ angular.module 'IdleLands'
     $scope.getOverflows = ->
 
       items = []
+
+      shop = $scope.player.shop
+      if shop
+        _.each shop.slots, (slot, index) ->
+          item = slot.item
+          item.cost = slot.price
+
+          item.extraItemClass = 'shop'
+          item.extraText = "SHOP #{index}"
+          item.shopSlot = index
+          items.push item
+
       overflow = $scope.player.overflow
 
       if overflow
@@ -231,6 +245,9 @@ angular.module 'IdleLands'
 
     $scope.invItem =  (item) ->
       API.inventory.add {itemSlot: item.type}
+
+    $scope.buyItem =  (item) ->
+      API.shop.buy {shopSlot: item.shopSlot}
 
     # custom strings
     $scope.buildStringList = ->

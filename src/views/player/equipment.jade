@@ -6,13 +6,16 @@ script(id="player-equipment", type="text/ng-template")
                     div(class="{{classToColor(item.itemClass)}}") {{item.type}}
                         md-tooltip {{item.itemClass}}
                     div(ng-if="item.extraItemClass",class="{{classToColor(item.extraItemClass)}}") {{item.extraText}}
-                    div.text-center
-                        span.hover-cursor.fa.fa-fw.icon-money(ng-if="item.extraItemClass",ng-click="sellItem(item)")
+                    div.text-center(ng-if="_.isNumber(item.overflowSlot)")
+                        span.hover-cursor.fa.fa-fw.icon-money.text-red(ng-if="item.extraItemClass",ng-click="sellItem(item)")
                             md-tooltip Sell
                         span.hover-cursor.fa.fa-fw.fa-exchange(ng-if="item.extraItemClass",ng-click="swapItem(item)")
                             md-tooltip Swap
                         span.hover-cursor.fa.fa-fw.fa-caret-square-o-down(ng-if="!item.extraItemClass && !item.hideButtons",ng-click="invItem(item)")
                             md-tooltip Add to Inventory
+                    div.text-center(ng-if="_.isNumber(item.shopSlot)")
+                        span.hover-cursor.fa.fa-fw.icon-money.text-green(ng-if="item.extraItemClass",ng-click="buyItem(item)")
+                            md-tooltip Buy
 
                 div.md-tile-content.item-line
                     div

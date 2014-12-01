@@ -56,6 +56,7 @@ module.exports = (grunt) ->
           livereload: yes
           base: 'dist'
           open:
+            appName: 'google-chrome-stable'
             target: 'http://127.0.0.1:<%= connect.dev.options.port %>'
 
     copy:
