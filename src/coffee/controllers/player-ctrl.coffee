@@ -59,15 +59,16 @@ angular.module 'IdleLands'
 
     $scope.classToColor = (itemClass) ->
       switch itemClass
-        when 'newbie' then return 'bg-maroon'
-        when 'basic'  then return 'bg-gray'
-        when 'pro'    then return 'bg-purple'
-        when 'idle'   then return 'bg-rainbow'
-        when 'godly'  then return 'bg-black'
-        when 'custom' then return 'bg-blue'
-        when 'extra'  then return 'bg-orange'
-        when 'total'  then return 'bg-teal'
-        when 'shop'   then return 'bg-darkblue'
+        when 'newbie'   then return 'bg-maroon'
+        when 'basic'    then return 'bg-gray'
+        when 'pro'      then return 'bg-purple'
+        when 'idle'     then return 'bg-rainbow'
+        when 'godly'    then return 'bg-black'
+        when 'custom'   then return 'bg-blue'
+        when 'guardian' then return 'bg-cyan'
+        when 'extra'    then return 'bg-orange'
+        when 'total'    then return 'bg-teal'
+        when 'shop'     then return 'bg-darkblue'
 
     $scope.equipmentStatArray = [
       {name: 'str', fa: 'fa-legal fa-rotate-90'}
