@@ -35,7 +35,8 @@
 .bg-black,
 .bg-gray,
 .bg-blue,
-.bg-darkblue {
+.bg-darkblue,
+.bg-cyan {
   color: #fafafa;
 }
 .bg-black {
@@ -49,6 +50,9 @@
 }
 .bg-gray {
   background-color: #757575;
+}
+.bg-cyan {
+  background-color: #006064;
 }
 .bg-blue {
   background-color: #03a9f4;

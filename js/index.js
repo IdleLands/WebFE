@@ -121,7 +121,7 @@
 
 (function() {
   angular.module('IdleLands').controller('Player', [
-    '$scope', '$state', '$window', '$timeout', '$mdToast', 'API', 'Player', 'TurnTaker', 'CredentialCache', 'OptionsCache', 'BattleColorMap', 'CurrentMap', function($scope, $state, $window, $timeout, $mdToast, API, Player, TurnTaker, CredentialCache, OptionsCache, BattleColorMap, CurrentMap) {
+    '$scope', '$state', '$window', '$timeout', '$mdToast', 'API', 'Player', 'TurnTaker', 'CredentialCache', 'OptionsCache', 'BattleColorMap', 'CurrentMap', 'BaseURL', function($scope, $state, $window, $timeout, $mdToast, API, Player, TurnTaker, CredentialCache, OptionsCache, BattleColorMap, CurrentMap, BaseURL) {
       var game, initializing, mapName, newMapName, sprite;
       if (!Player.getPlayer()) {
         CredentialCache.tryLogin().then((function() {
@@ -193,6 +193,8 @@
             return 'bg-black';
           case 'custom':
             return 'bg-blue';
+          case 'guardian':
+            return 'bg-cyan';
           case 'extra':
             return 'bg-orange';
           case 'total':
@@ -379,8 +381,8 @@
         }
         phaserOpts = {
           preload: function() {
-            this.game.load.image('tiles', './WebFE/img/tiles.png', 16, 16);
-            this.game.load.spritesheet('interactables', './WebFE/img/tiles.png', 16, 16);
+            this.game.load.image('tiles', "" + BaseURL + "/img/tiles.png", 16, 16);
+            this.game.load.spritesheet('interactables', "" + BaseURL + "/img/tiles.png", 16, 16);
             return this.game.load.tilemap(newMapName, null, $scope.currentMap.map, Phaser.Tilemap.TILED_JSON);
           },
           create: function() {
@@ -1102,7 +1104,7 @@
 
 (function() {
   angular.module('IdleLands').factory('CurrentMap', [
-    '$rootScope', 'Player', '$http', function($root, Player, $http) {
+    '$rootScope', 'Player', '$http', 'BaseURL', function($root, Player, $http, baseURL) {
       var map, player;
       map = null;
       player = null;
@@ -1120,7 +1122,7 @@
         if (newVal === oldVal) {
           return;
         }
-        return $http.post('//api.idle.land/game/map', {
+        return $http.post("" + baseURL + "/game/map", {
           map: newVal
         }).then(function(res) {
           return map = res.data.map;
