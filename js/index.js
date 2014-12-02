@@ -20,6 +20,7 @@
       $httpProvider.interceptors.push('PlayerInterceptor');
       $httpProvider.interceptors.push('ReloginInterceptor');
       $urp.otherwise('/');
+      $urp.when('/player', '/player/overview');
       return $sp.state('home', {
         url: '/',
         templateUrl: 'home',
@@ -32,6 +33,83 @@
         url: '/player',
         templateUrl: 'player',
         controller: 'Player'
+      }).state('player.overview', {
+        url: '/overview',
+        data: {
+          selectedTab: 0
+        },
+        views: {
+          'overview': {
+            templateUrl: 'player-overview',
+            controller: 'PlayerOverview'
+          }
+        }
+      }).state('player.map', {
+        url: '/map',
+        data: {
+          selectedTab: 1
+        },
+        views: {
+          'map': {
+            templateUrl: 'player-map',
+            controller: 'PlayerMap'
+          }
+        }
+      }).state('player.equipment', {
+        url: '/equipment',
+        data: {
+          selectedTab: 2
+        },
+        views: {
+          'equipment': {
+            templateUrl: 'player-equipment',
+            controller: 'PlayerEquipment'
+          }
+        }
+      }).state('player.battle', {
+        url: '/battle',
+        data: {
+          selectedTab: 3
+        },
+        views: {
+          'battle': {
+            templateUrl: 'player-battle',
+            controller: 'PlayerBattle'
+          }
+        }
+      }).state('player.achievements', {
+        url: '/achievements',
+        data: {
+          selectedTab: 4
+        },
+        views: {
+          'achievements': {
+            templateUrl: 'player-achievements',
+            controller: 'PlayerAchievements'
+          }
+        }
+      }).state('player.statistics', {
+        url: '/statistics',
+        data: {
+          selectedTab: 5
+        },
+        views: {
+          'statistics': {
+            templateUrl: 'player-statistics',
+            controller: 'PlayerStatistics'
+          }
+        }
+      }).state('player.options', {
+        url: '/options',
+        data: {
+          selectedTab: 6
+        },
+        views: {
+          'options': {
+            templateUrl: 'player-options',
+            controller: 'PlayerOptions'
+          }
+        }
       });
     }
   ]);
@@ -120,9 +198,58 @@
 }).call(this);
 
 (function() {
+  angular.module('IdleLands').controller('PlayerAchievements', [
+    '$scope', 'Player', function($scope, Player) {
+      $scope.achievementTypeToIcon = {
+        'class': ['fa-child'],
+        'event': ['fa-info'],
+        'combat': ['fa-legal', 'fa-magic fa-rotate-90'],
+        'special': ['fa-gift'],
+        'personality': ['fa-group'],
+        'exploration': ['fa-compass'],
+        'progress': ['fa-signal']
+      };
+      return $scope.$watch((function() {
+        return Player.getPlayer();
+      }), function(newVal, oldVal) {
+        if (newVal === oldVal && (!newVal || !oldVal)) {
+          return;
+        }
+        return $scope.player = newVal;
+      });
+    }
+  ]);
+
+}).call(this);
+
+(function() {
+  angular.module('IdleLands').controller('PlayerBattle', [
+    '$scope', 'BattleColorMap', 'CurrentBattle', function($scope, BattleColorMap, CurrentBattle) {
+      $scope.filterMessage = function(message) {
+        var regexp, replaceFunc, search;
+        for (search in BattleColorMap) {
+          replaceFunc = BattleColorMap[search];
+          regexp = new RegExp("(<" + search + ">)([\\s\\S]*?)(<\\/" + search + ">)", 'g');
+          message = message.replace(regexp, function(match, p1, p2) {
+            return replaceFunc(p2);
+          });
+        }
+        return message;
+      };
+      return $scope.$watch((function() {
+        return CurrentBattle.getBattle();
+      }), function(newVal) {
+        return $scope.currentBattle = newVal;
+      });
+    }
+  ]);
+
+}).call(this);
+
+(function() {
   angular.module('IdleLands').controller('Player', [
-    '$scope', '$state', '$window', '$timeout', '$mdToast', 'API', 'Player', 'TurnTaker', 'CredentialCache', 'OptionsCache', 'BattleColorMap', 'CurrentMap', 'BaseURL', function($scope, $state, $window, $timeout, $mdToast, API, Player, TurnTaker, CredentialCache, OptionsCache, BattleColorMap, CurrentMap, BaseURL) {
-      var game, initializing, mapName, newMapName, sprite;
+    '$scope', '$state', '$window', '$timeout', '$mdToast', 'API', 'Player', 'TurnTaker', 'CredentialCache', 'OptionsCache', 'BaseURL', function($scope, $state, $window, $timeout, $mdToast, API, Player, TurnTaker, CredentialCache, OptionsCache, BaseURL) {
+      var initializing;
       if (!Player.getPlayer()) {
         CredentialCache.tryLogin().then((function() {
           if (!Player.getPlayer()) {
@@ -142,67 +269,77 @@
       }
       OptionsCache.load(['scrollback']);
       $scope.options = OptionsCache.getOpts();
-      $scope.personalityToggle = {};
-      $scope.strings = {
-        keys: [],
-        values: []
-      };
       $scope._player = Player;
       $scope.xpPercent = 0;
-      $scope.selectedIndex = 0;
       $scope.statisticsKeys = {};
       $scope._ = $window._;
-      $scope.currentMap = {};
       $window.scrollTo(0, document.body.scrollHeight);
-      $scope.selectTab = function(tabIndex) {
-        return $scope.selectedIndex = tabIndex;
-      };
       $scope.calcXpPercent = function() {
         return $scope.xpPercent = ($scope.player.xp.__current / $scope.player.xp.maximum) * 100;
       };
-      $scope.sortPlayerItems = function() {
-        return $scope.playerItems = (_.sortBy($scope.getEquipmentAndTotals($scope.player.equipment), function(item) {
-          return item.type;
-        })).concat($scope.getOverflows());
-      };
       initializing = true;
-      $scope.loadPersonalities = function() {
-        return _.each($scope.player.personalityStrings, function(personality) {
-          return $scope.personalityToggle[personality] = true;
-        });
+      $scope.logout = function() {
+        Player.setPlayer(null);
+        CredentialCache.doLogout();
+        API.auth.logout();
+        return $state.go('login');
       };
-      $scope.setPersonality = function(personality, to) {
-        var func, key, props;
-        func = to ? 'add' : 'remove';
-        key = to ? 'newPers' : 'oldPers';
-        props = {};
-        props[key] = personality;
-        return API.personality[func](props);
-      };
-      $scope.classToColor = function(itemClass) {
-        switch (itemClass) {
-          case 'newbie':
-            return 'bg-maroon';
-          case 'basic':
-            return 'bg-gray';
-          case 'pro':
-            return 'bg-purple';
-          case 'idle':
-            return 'bg-rainbow';
-          case 'godly':
-            return 'bg-black';
-          case 'custom':
-            return 'bg-blue';
-          case 'guardian':
-            return 'bg-cyan';
-          case 'extra':
-            return 'bg-orange';
-          case 'total':
-            return 'bg-teal';
-          case 'shop':
-            return 'bg-darkblue';
+      $scope.valueToColor = function(value) {
+        if (value < 0) {
+          return 'text-red';
+        }
+        if (value > 0) {
+          return 'text-green';
         }
       };
+      $scope.handleScrollback = function() {
+        var classFunc, scrollback;
+        classFunc = $scope.options.scrollback === 'true' ? 'removeClass' : 'addClass';
+        return scrollback = (angular.element('.scrollback-toast'))[classFunc]('hidden');
+      };
+      $timeout($scope.handleScrollback, 3000);
+      $scope.$watch((function() {
+        return TurnTaker.getSeconds();
+      }), function(newVal, oldVal) {
+        if (newVal === oldVal) {
+          return;
+        }
+        return $scope.turnTimeValue = newVal * 10;
+      });
+      $scope.$watch('options', function(newVal, oldVal) {
+        if (newVal === oldVal) {
+          return;
+        }
+        OptionsCache.saveAll();
+        return $scope.handleScrollback();
+      }, true);
+      $scope.$watch('_player.getPlayer()', function(newVal, oldVal) {
+        if (newVal === oldVal) {
+          return;
+        }
+        initializing = true;
+        $scope.player = newVal;
+        $window.scrollback.nick = newVal.name;
+        $scope.calcXpPercent();
+        return $timeout(function() {
+          return initializing = false;
+        }, 0);
+      });
+      return $scope.$watch((function() {
+        return $state.current.data.selectedTab;
+      }), function(newVal) {
+        return $timeout(function() {
+          return $scope.selectedIndex = newVal;
+        }, 0);
+      });
+    }
+  ]);
+
+}).call(this);
+
+(function() {
+  angular.module('IdleLands').controller('PlayerEquipment', [
+    '$scope', 'Player', 'API', function($scope, Player, API) {
       $scope.equipmentStatArray = [
         {
           name: 'str',
@@ -242,32 +379,6 @@
           fa: 'icon-snow'
         }
       ];
-      $scope.eventTypeToIcon = {
-        'item-mod': ['fa-legal', 'fa-magic fa-rotate-90'],
-        'item-find': ['icon-feather'],
-        'item-enchant': ['fa-magic'],
-        'item-switcheroo': ['icon-magnet'],
-        'shop': ['fa-money'],
-        'shop-fail': ['fa-money'],
-        'profession': ['fa-child'],
-        'explore': ['fa-globe'],
-        'levelup': ['icon-universal-access'],
-        'achievement': ['fa-shield'],
-        'party': ['fa-users'],
-        'exp': ['fa-support'],
-        'gold': ['icon-money'],
-        'guild': ['fa-network'],
-        'combat': ['fa-newspaper-o faa-pulse animated']
-      };
-      $scope.achievementTypeToIcon = {
-        'class': ['fa-child'],
-        'event': ['fa-info'],
-        'combat': ['fa-legal', 'fa-magic fa-rotate-90'],
-        'special': ['fa-gift'],
-        'personality': ['fa-group'],
-        'exploration': ['fa-compass'],
-        'progress': ['fa-signal']
-      };
       $scope.extendedEquipmentStatArray = $scope.equipmentStatArray.concat({
         name: 'sentimentality'
       }, {
@@ -281,6 +392,30 @@
       }, {
         name: '_baseScore'
       });
+      $scope.classToColor = function(itemClass) {
+        switch (itemClass) {
+          case 'newbie':
+            return 'bg-maroon';
+          case 'basic':
+            return 'bg-gray';
+          case 'pro':
+            return 'bg-purple';
+          case 'idle':
+            return 'bg-rainbow';
+          case 'godly':
+            return 'bg-black';
+          case 'custom':
+            return 'bg-blue';
+          case 'guardian':
+            return 'bg-cyan';
+          case 'extra':
+            return 'bg-orange';
+          case 'total':
+            return 'bg-teal';
+          case 'shop':
+            return 'bg-darkblue';
+        }
+      };
       $scope.getExtraStats = function(item) {
         var keys;
         keys = _.filter(_.compact(_.keys(item)), function(key) {
@@ -349,12 +484,62 @@
         }
         return items;
       };
-      $scope.logout = function() {
-        Player.setPlayer(null);
-        CredentialCache.doLogout();
-        API.auth.logout();
-        return $state.go('login');
+      $scope.sortPlayerItems = function() {
+        return $scope.playerItems = (_.sortBy($scope.getEquipmentAndTotals($scope.player.equipment), function(item) {
+          return item.type;
+        })).concat($scope.getOverflows());
       };
+      $scope.itemItemScore = function(item) {
+        if (!item._baseScore || !item._calcScore) {
+          return 0;
+        }
+        return parseInt((item._calcScore / item._baseScore) * 100);
+      };
+      $scope.playerItemScore = function(item) {
+        if (!item._calcScore || !$scope.player._baseStats.itemFindRange) {
+          return 0;
+        }
+        return parseInt((item._calcScore / $scope.player._baseStats.itemFindRange) * 100);
+      };
+      $scope.sellItem = function(item) {
+        return API.inventory.sell({
+          invSlot: item.overflowSlot
+        });
+      };
+      $scope.swapItem = function(item) {
+        return API.inventory.swap({
+          invSlot: item.overflowSlot
+        });
+      };
+      $scope.invItem = function(item) {
+        return API.inventory.add({
+          itemSlot: item.type
+        });
+      };
+      $scope.buyItem = function(item) {
+        return API.shop.buy({
+          shopSlot: item.shopSlot
+        });
+      };
+      return $scope.$watch((function() {
+        return Player.getPlayer();
+      }), function(newVal, oldVal) {
+        if (newVal === oldVal && (!newVal || !oldVal)) {
+          return;
+        }
+        $scope.player = newVal;
+        return $scope.sortPlayerItems();
+      });
+    }
+  ]);
+
+}).call(this);
+
+(function() {
+  angular.module('IdleLands').controller('PlayerMap', [
+    '$scope', '$timeout', 'Player', 'CurrentMap', 'BaseURL', function($scope, $timeout, Player, CurrentMap, BaseURL) {
+      var game, mapName, newMapName, sprite;
+      $scope.currentMap = {};
       sprite = null;
       game = null;
       mapName = null;
@@ -409,45 +594,36 @@
         }, 0);
         return null;
       };
-      $scope.valueToColor = function(value) {
-        if (value < 0) {
-          return 'text-red';
+      $scope.$watch((function() {
+        return CurrentMap.getMap();
+      }), function(newVal, oldVal) {
+        if (newVal === oldVal) {
+          return;
         }
-        if (value > 0) {
-          return 'text-green';
+        return $scope.currentMap = newVal;
+      });
+      return $scope.$watch((function() {
+        return Player.getPlayer();
+      }), function(newVal, oldVal) {
+        if (newVal === oldVal && (!newVal || !oldVal)) {
+          return;
         }
-      };
-      $scope.itemItemScore = function(item) {
-        if (!item._baseScore || !item._calcScore) {
-          return 0;
-        }
-        return parseInt((item._calcScore / item._baseScore) * 100);
-      };
-      $scope.playerItemScore = function(item) {
-        if (!item._calcScore || !$scope.player._baseStats.itemFindRange) {
-          return 0;
-        }
-        return parseInt((item._calcScore / $scope.player._baseStats.itemFindRange) * 100);
-      };
-      $scope.sellItem = function(item) {
-        return API.inventory.sell({
-          invSlot: item.overflowSlot
-        });
-      };
-      $scope.swapItem = function(item) {
-        return API.inventory.swap({
-          invSlot: item.overflowSlot
-        });
-      };
-      $scope.invItem = function(item) {
-        return API.inventory.add({
-          itemSlot: item.type
-        });
-      };
-      $scope.buyItem = function(item) {
-        return API.shop.buy({
-          shopSlot: item.shopSlot
-        });
+        return $scope.player = newVal;
+      });
+    }
+  ]);
+
+}).call(this);
+
+(function() {
+  angular.module('IdleLands').controller('PlayerOptions', [
+    '$scope', '$timeout', 'Player', 'OptionsCache', 'API', function($scope, $timeout, Player, OptionsCache, API) {
+      var initializing;
+      initializing = true;
+      $scope.options = OptionsCache.getOpts();
+      $scope.strings = {
+        keys: [],
+        values: []
       };
       $scope.buildStringList = function() {
         $scope.strings.keys = _.keys($scope.player.messages);
@@ -487,80 +663,11 @@
           return $scope.buildStringList();
         });
       };
-      $scope.clickOnEvent = function(extraData) {
-        if (extraData.battleId) {
-          return $scope.retrieveBattle(extraData.battleId);
-        }
-      };
-      $scope.retrieveBattle = function(id) {
-        return API.battle.get({
-          battleId: id
-        }).then(function(res) {
-          $scope.currentBattle = res.data.battle;
-          if ($scope.currentBattle) {
-            return $scope.selectTab(3);
-          }
-        });
-      };
-      $scope.filterMessage = function(message) {
-        var regexp, replaceFunc, search;
-        for (search in BattleColorMap) {
-          replaceFunc = BattleColorMap[search];
-          regexp = new RegExp("(<" + search + ">)([\\s\\S]*?)(<\\/" + search + ">)", 'g');
-          message = message.replace(regexp, function(match, p1, p2) {
-            return replaceFunc(p2);
-          });
-        }
-        return message;
-      };
-      $scope.getAllStatisticsInFamily = function(family) {
-        var base;
-        if (!$scope.player) {
-          return;
-        }
-        base = _.omit($scope.player.statistics, function(value, key) {
-          return key.indexOf(family) !== 0;
-        });
-        return $scope.statisticsKeys[family] = _.keys(base);
-      };
-      $scope.handleScrollback = function() {
-        var classFunc, scrollback;
-        classFunc = $scope.options.scrollback === 'true' ? 'removeClass' : 'addClass';
-        return scrollback = (angular.element('.scrollback-toast'))[classFunc]('hidden');
-      };
-      $timeout($scope.handleScrollback, 3000);
-      $scope.$watch((function() {
-        return TurnTaker.getSeconds();
-      }), function(newVal, oldVal) {
-        if (newVal === oldVal) {
-          return;
-        }
-        return $scope.turnTimeValue = newVal * 10;
-      });
       $scope.$watch('strings', function(newVal, oldVal) {
         if (newVal === oldVal) {
           return;
         }
         return $scope.updateStrings();
-      }, true);
-      $scope.$watchCollection('personalityToggle', function(newVal, oldVal) {
-        var propDiff;
-        if (initializing || newVal === oldVal) {
-          return;
-        }
-        propDiff = _.omit(newVal, function(v, k) {
-          return oldVal[k] === v;
-        });
-        return _.each(_.keys(propDiff), function(pers) {
-          return $scope.setPersonality(pers, propDiff[pers]);
-        });
-      });
-      $scope.$watch('options', function(newVal, oldVal) {
-        if (newVal === oldVal) {
-          return;
-        }
-        OptionsCache.saveAll();
-        return $scope.handleScrollback();
       }, true);
       $scope.$watch('player.pushbulletApiKey', function(newVal, oldVal) {
         if (newVal === oldVal || initializing) {
@@ -578,29 +685,165 @@
           gender: newVal
         });
       });
-      $scope.$watch('_player.getPlayer()', function(newVal, oldVal) {
-        if (newVal === oldVal) {
+      return $scope.$watch((function() {
+        return Player.getPlayer();
+      }), function(newVal, oldVal) {
+        if (newVal === oldVal && (!newVal || !oldVal)) {
           return;
         }
         initializing = true;
         $scope.player = newVal;
-        $window.scrollback.nick = newVal.name;
-        $scope.calcXpPercent();
-        $scope.sortPlayerItems();
-        $scope.loadPersonalities();
         $scope.buildStringList();
-        _.each(['calculated', 'combat self', 'event', 'explore', 'player'], $scope.getAllStatisticsInFamily);
         return $timeout(function() {
           return initializing = false;
         }, 0);
       });
-      return $scope.$watch((function() {
-        return CurrentMap.getMap();
-      }), function(newVal, oldVal) {
-        if (newVal === oldVal) {
+    }
+  ]);
+
+}).call(this);
+
+(function() {
+  angular.module('IdleLands').controller('PlayerOverview', [
+    '$scope', '$timeout', '$state', 'Player', 'API', 'CurrentBattle', function($scope, $timeout, $state, Player, API, CurrentBattle) {
+      var initializing;
+      initializing = true;
+      $scope.personalityToggle = {};
+      $scope.equipmentStatArray = [
+        {
+          name: 'str',
+          fa: 'fa-legal fa-rotate-90'
+        }, {
+          name: 'dex',
+          fa: 'fa-crosshairs'
+        }, {
+          name: 'agi',
+          fa: 'fa-bicycle'
+        }, {
+          name: 'con',
+          fa: 'fa-heart'
+        }, {
+          name: 'int',
+          fa: 'fa-mortar-board'
+        }, {
+          name: 'wis',
+          fa: 'fa-book'
+        }, {
+          name: 'luck',
+          fa: 'fa-moon-o'
+        }, {
+          name: 'fire',
+          fa: 'fa-fire'
+        }, {
+          name: 'water',
+          fa: 'icon-water'
+        }, {
+          name: 'thunder',
+          fa: 'fa-bolt'
+        }, {
+          name: 'earth',
+          fa: 'fa-leaf'
+        }, {
+          name: 'ice',
+          fa: 'icon-snow'
+        }
+      ];
+      $scope.eventTypeToIcon = {
+        'item-mod': ['fa-legal', 'fa-magic fa-rotate-90'],
+        'item-find': ['icon-feather'],
+        'item-enchant': ['fa-magic'],
+        'item-switcheroo': ['icon-magnet'],
+        'shop': ['fa-money'],
+        'shop-fail': ['fa-money'],
+        'profession': ['fa-child'],
+        'explore': ['fa-globe'],
+        'levelup': ['icon-universal-access'],
+        'achievement': ['fa-shield'],
+        'party': ['fa-users'],
+        'exp': ['fa-support'],
+        'gold': ['icon-money'],
+        'guild': ['fa-network'],
+        'combat': ['fa-newspaper-o faa-pulse animated']
+      };
+      $scope.clickOnEvent = function(extraData) {
+        if (extraData.battleId) {
+          return $scope.retrieveBattle(extraData.battleId);
+        }
+      };
+      $scope.retrieveBattle = function(id) {
+        return API.battle.get({
+          battleId: id
+        }).then(function(res) {
+          CurrentBattle.setBattle(res.data.battle);
+          if (res.data.battle) {
+            return $state.go('player.battle');
+          }
+        });
+      };
+      $scope.loadPersonalities = function() {
+        return _.each($scope.player.personalityStrings, function(personality) {
+          return $scope.personalityToggle[personality] = true;
+        });
+      };
+      $scope.setPersonality = function(personality, to) {
+        var func, key, props;
+        func = to ? 'add' : 'remove';
+        key = to ? 'newPers' : 'oldPers';
+        props = {};
+        props[key] = personality;
+        return API.personality[func](props);
+      };
+      $scope.$watchCollection('personalityToggle', function(newVal, oldVal) {
+        var propDiff;
+        if (initializing || newVal === oldVal) {
           return;
         }
-        return $scope.currentMap = newVal;
+        propDiff = _.omit(newVal, function(v, k) {
+          return oldVal[k] === v;
+        });
+        return _.each(_.keys(propDiff), function(pers) {
+          return $scope.setPersonality(pers, propDiff[pers]);
+        });
+      });
+      return $scope.$watch((function() {
+        return Player.getPlayer();
+      }), function(newVal, oldVal) {
+        if (newVal === oldVal && (!newVal || !oldVal)) {
+          return;
+        }
+        initializing = true;
+        $scope.player = newVal;
+        $scope.loadPersonalities();
+        return $timeout(function() {
+          return initializing = false;
+        }, 0);
+      });
+    }
+  ]);
+
+}).call(this);
+
+(function() {
+  angular.module('IdleLands').controller('PlayerStatistics', [
+    '$scope', 'Player', function($scope, Player) {
+      $scope.getAllStatisticsInFamily = function(family) {
+        var base;
+        if (!$scope.player) {
+          return;
+        }
+        base = _.omit($scope.player.statistics, function(value, key) {
+          return key.indexOf(family) !== 0;
+        });
+        return $scope.statisticsKeys[family] = _.keys(base);
+      };
+      return $scope.$watch((function() {
+        return Player.getPlayer();
+      }), function(newVal, oldVal) {
+        if (newVal === oldVal && (!newVal || !oldVal)) {
+          return;
+        }
+        $scope.player = newVal;
+        return _.each(['calculated', 'combat self', 'event', 'explore', 'player'], $scope.getAllStatisticsInFamily);
       });
     }
   ]);
@@ -979,6 +1222,24 @@
 }).call(this);
 
 (function() {
+  angular.module('IdleLands').factory('CurrentBattle', [
+    function() {
+      var battle;
+      battle = null;
+      return {
+        getBattle: function() {
+          return battle;
+        },
+        setBattle: function(newBattle) {
+          return battle = newBattle;
+        }
+      };
+    }
+  ]);
+
+}).call(this);
+
+(function() {
   var defaultReplaceFunction;
 
   defaultReplaceFunction = function(fg, bg, fw, td) {
@@ -1018,6 +1279,7 @@
     'event.item.idle': defaultReplaceFunction('#FF7043'),
     'event.item.godly': defaultReplaceFunction('#fff', '#000'),
     'event.item.custom': defaultReplaceFunction('#fff', '#1A237E'),
+    'event.item.guardian': defaultReplaceFunction('#fff', '#006064'),
     'event.finditem.scoreboost': defaultReplaceFunction(),
     'event.finditem.perceived': defaultReplaceFunction(),
     'event.finditem.real': defaultReplaceFunction(),

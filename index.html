@@ -114,8 +114,8 @@
 
 <script id="player-battle" type="text/ng-template">
   <div layout="horizontal" class="tab-containment is-flex auto-flex wrap-container">
-    <div ng-if="!currentBattle">
-      <div>Nothing to see here, swipe on past this, cowboy.</div>
+    <div ng-if="!currentBattle" layout="vertical" style="align-items:center;justify-content:center" flex="100" class="text-center md-theme-yellow">
+      <div>Nothing to see here. You have to select a battle from your Adventure Log to see it here.</div>
     </div>
     <div flex="30" layout="vertical" ng-if="currentBattle">
       <md-card layout="vertical" class="inner-card">
@@ -140,7 +140,7 @@
         </md-content>
       </md-card>
     </div>
-    <div flex="70" layout="vertical">
+    <div flex="70" layout="vertical" ng-if="currentBattle">
       <md-card layout="vertical" class="is-flex auto-flex inner-card">
         <md-toolbar class="md-theme-light-blue">
           <div class="md-toolbar-tools">
@@ -167,10 +167,14 @@
             <md-tooltip>{{item.itemClass}}</md-tooltip>
           </div>
           <div ng-if="item.extraItemClass" class="{{classToColor(item.extraItemClass)}}">{{item.extraText}}</div>
+          <!--equipped-->
+          <div ng-if="!item.extraItemClass &amp;&amp; !item.hideButtons" class="text-center"><span ng-click="invItem(item)" class="hover-cursor fa fa-fw fa-caret-square-o-down">
+              <md-tooltip>Add to Inventory</md-tooltip></span></div>
+          <!--in overflow-->
           <div ng-if="_.isNumber(item.overflowSlot)" class="text-center"><span ng-if="item.extraItemClass" ng-click="sellItem(item)" class="hover-cursor fa fa-fw icon-money text-red">
               <md-tooltip>Sell</md-tooltip></span><span ng-if="item.extraItemClass" ng-click="swapItem(item)" class="hover-cursor fa fa-fw fa-exchange">
-              <md-tooltip>Swap</md-tooltip></span><span ng-if="!item.extraItemClass &amp;&amp; !item.hideButtons" ng-click="invItem(item)" class="hover-cursor fa fa-fw fa-caret-square-o-down">
-              <md-tooltip>Add to Inventory</md-tooltip></span></div>
+              <md-tooltip>Swap</md-tooltip></span></div>
+          <!--in shop-->
           <div ng-if="_.isNumber(item.shopSlot)" class="text-center"><span ng-if="item.extraItemClass" ng-click="buyItem(item)" class="hover-cursor fa fa-fw icon-money text-green">
               <md-tooltip>Buy</md-tooltip></span></div>
         </div>
@@ -283,42 +287,7 @@
 </script>
 
 
-<script id="player" type="text/ng-template">
-  <md-toolbar class="md-theme-light">
-    <h1 class="md-toolbar-tools">
-      <md-progress-circular mode="determinate" value="{{turnTimeValue}}" style="float:right" class="player-turn md-theme-yellow"></md-progress-circular><span>{{player.name}}, the level {{player.level.__current}} {{player.professionName}}</span>
-    </h1>
-  </md-toolbar>
-  <md-progress-linear mode="determinate" ng-value="xpPercent" md-theme="green" class="player-xp"></md-progress-linear>
-  <div id="player-tabs" class="auto-flex md-whiteframe-z1 is-flex">
-    <md-tabs selected="selectedIndex" layout="vertical" class="is-flex auto-flex">
-      <md-tab on-select="selectTab(0)" label="Player">
-        <div ng-include="'player-player'" class="tab"></div>
-      </md-tab>
-      <md-tab on-select="selectTab(1)" label="Map">
-        <div ng-include="'player-map'" class="tab"></div>
-      </md-tab>
-      <md-tab on-select="selectTab(2)" label="Equipment">
-        <div ng-include="'player-equipment'" class="tab"></div>
-      </md-tab>
-      <md-tab on-select="selectTab(3)" label="Battle" ng-show="currentBattle">
-        <div ng-include="'player-battle'" class="tab"></div>
-      </md-tab>
-      <md-tab on-select="selectTab(4)" label="Achievements ({{player.achievements.length}})">
-        <div ng-include="'player-achievements'" class="tab"></div>
-      </md-tab>
-      <md-tab on-select="selectTab(5)" label="Statistics">
-        <div ng-include="'player-statistics'" class="tab"></div>
-      </md-tab>
-      <md-tab on-select="selectTab(6)" label="Options">
-        <div ng-include="'player-options'" class="tab"></div>
-      </md-tab>
-    </md-tabs>
-  </div>
-</script><script>window.scrollback = {room:"idlelands",form:"canvas",theme:"dark",minimize:true};(function(d,s,h,e){e=d.createElement(s);e.async=0;e.src=(location.protocol === "https:" ? "https:" : "http:") + "//scrollback.io/client.min.js";d.getElementsByTagName(s)[0].parentNode.appendChild(e);}(document,"script"));</script>
-
-
-<script id="player-player" type="text/ng-template">
+<script id="player-overview" type="text/ng-template">
   <div layout="horizontal" class="tab-containment is-flex auto-flex wrap-container">
     <div flex="25" layout="vertical">
       <md-card layout="vertical" class="inner-card">
@@ -401,6 +370,41 @@
     </div>
   </div>
 </script>
+
+
+<script id="player" type="text/ng-template">
+  <md-toolbar class="md-theme-light">
+    <h1 class="md-toolbar-tools">
+      <md-progress-circular mode="determinate" value="{{turnTimeValue}}" style="float:right" class="player-turn md-theme-yellow"></md-progress-circular><span>{{player.name}}, the level {{player.level.__current}} {{player.professionName}}</span>
+    </h1>
+  </md-toolbar>
+  <md-progress-linear mode="determinate" ng-value="xpPercent" md-theme="green" class="player-xp"></md-progress-linear>
+  <div id="player-tabs" class="auto-flex md-whiteframe-z1 is-flex">
+    <md-tabs selected="selectedIndex" layout="vertical" class="is-flex auto-flex">
+      <md-tab ui-sref="player.overview" label="Player">
+        <div ui-view="overview" class="tab"></div>
+      </md-tab>
+      <md-tab ui-sref="player.map" label="Map">
+        <div ui-view="map" class="tab"></div>
+      </md-tab>
+      <md-tab ui-sref="player.equipment" label="Equipment">
+        <div ui-view="equipment" class="tab"></div>
+      </md-tab>
+      <md-tab ui-sref="player.battle" label="Battle">
+        <div ui-view="battle" class="tab"></div>
+      </md-tab>
+      <md-tab ui-sref="player.achievements" label="Achievements ({{player.achievements.length}})">
+        <div ui-view="achievements" class="tab"></div>
+      </md-tab>
+      <md-tab ui-sref="player.statistics" label="Statistics">
+        <div ui-view="statistics" class="tab"></div>
+      </md-tab>
+      <md-tab ui-sref="player.options" label="Options">
+        <div ui-view="options" class="tab"></div>
+      </md-tab>
+    </md-tabs>
+  </div>
+</script><script>window.scrollback = {room:"idlelands",form:"canvas",theme:"dark",minimize:true};(function(d,s,h,e){e=d.createElement(s);e.async=0;e.src=(location.protocol === "https:" ? "https:" : "http:") + "//scrollback.io/client.min.js";d.getElementsByTagName(s)[0].parentNode.appendChild(e);}(document,"script"));</script>
 
 
 <script id="player-statistics" type="text/ng-template">
