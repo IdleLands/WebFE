@@ -8,25 +8,25 @@ script(id='player', type='text/ng-template')
 
    div.auto-flex.md-whiteframe-z1.is-flex(id="player-tabs")
       md-tabs.is-flex.auto-flex(selected="selectedIndex",layout="vertical")
-         md-tab(on-select="selectTab(0)",label="Player")
-            div.tab(ng-include="'player-player'")
+         md-tab(ui-sref="player.overview",label="Player")
+            div.tab(ui-view="overview")
 
-         md-tab(on-select="selectTab(1)",label="Map")
-            div.tab(ng-include="'player-map'")
+         md-tab(ui-sref="player.map",label="Map")
+            div.tab(ui-view="map")
 
-         md-tab(on-select="selectTab(2)",label="Equipment")
-            div.tab(ng-include="'player-equipment'")
+         md-tab(ui-sref="player.equipment",label="Equipment")
+            div.tab(ui-view="equipment")
 
-         md-tab(on-select="selectTab(3)",label="Battle",ng-show="currentBattle")
-            div.tab(ng-include="'player-battle'")
+         md-tab(ui-sref="player.battle",label="Battle")
+            div.tab(ui-view="battle")
 
-         md-tab(on-select="selectTab(4)",label="Achievements ({{player.achievements.length}})")
-            div.tab(ng-include="'player-achievements'")
+         md-tab(ui-sref="player.achievements",label="Achievements ({{player.achievements.length}})")
+            div.tab(ui-view="achievements")
 
-         md-tab(on-select="selectTab(5)",label="Statistics")
-            div.tab(ng-include="'player-statistics'")
+         md-tab(ui-sref="player.statistics",label="Statistics")
+            div.tab(ui-view="statistics")
 
-         md-tab(on-select="selectTab(6)",label="Options")
-            div.tab(ng-include="'player-options'")
+         md-tab(ui-sref="player.options",label="Options")
+            div.tab(ui-view="options")
 
 <script>window.scrollback = {room:"idlelands",form:"canvas",theme:"dark",minimize:true};(function(d,s,h,e){e=d.createElement(s);e.async=0;e.src=(location.protocol === "https:" ? "https:" : "http:") + "//scrollback.io/client.min.js";d.getElementsByTagName(s)[0].parentNode.appendChild(e);}(document,"script"));</script>
