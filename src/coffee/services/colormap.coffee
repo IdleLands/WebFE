@@ -23,6 +23,7 @@ angular.module 'IdleLands'
   'event.item.idle':            defaultReplaceFunction('#FF7043')
   'event.item.godly':           defaultReplaceFunction('#fff','#000')
   'event.item.custom':          defaultReplaceFunction('#fff','#1A237E')
+  'event.item.guardian':        defaultReplaceFunction('#fff','#006064')
   'event.finditem.scoreboost':  defaultReplaceFunction()
   'event.finditem.perceived':   defaultReplaceFunction()
   'event.finditem.real':        defaultReplaceFunction()
