@@ -14,7 +14,7 @@ angular.module 'IdleLands'
       $scope.nameToIdentifier = (name) -> "web-fe##{name}"
 
       goToPlayerView = ->
-        $state.go 'player'
+        $state.go 'player.overview'
 
       $scope.doLogin = ->
         data = _.clone $scope.login
