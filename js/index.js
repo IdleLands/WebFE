@@ -158,7 +158,7 @@
         return "web-fe#" + name;
       };
       goToPlayerView = function() {
-        return $state.go('player');
+        return $state.go('player.overview');
       };
       $scope.doLogin = function() {
         var data;
