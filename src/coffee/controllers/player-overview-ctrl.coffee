@@ -1,7 +1,7 @@
 angular.module 'IdleLands'
 .controller 'PlayerOverview', [
-  '$scope', '$timeout', '$state', 'Player', 'API', 'CurrentBattle'
-  ($scope, $timeout, $state, Player, API, CurrentBattle) ->
+  '$scope', '$timeout', '$interval', '$state', 'Player', 'API', 'CurrentBattle', 'FunMessages'
+  ($scope, $timeout, $interval, $state, Player, API, CurrentBattle, FunMessages) ->
 
     initializing = yes
 
@@ -39,6 +39,34 @@ angular.module 'IdleLands'
       'guild': ['fa-network']
       'combat': ['fa-newspaper-o faa-pulse animated']
       'event': ['fa-gift faa-shake animated']
+
+    $scope.praying = no
+    $scope.prayText = 'Pray to RNGesus'
+    $scope.prayMessages = FunMessages.messages
+
+    $scope.pray = ->
+      $scope.praying = yes
+      $scope.prayText = 'Praying...'
+
+      iters = 0
+      interval = $interval ->
+
+        iters++
+
+        if iters is 9
+          $scope.prayText = if Math.random() > 0.5 then 'Prayer Unheard! :(' else 'RNGesus Listens :)'
+
+        else
+          $scope.prayText = _.sample $scope.prayMessages
+
+        if iters >= 10
+          $interval.cancel interval
+          $scope.prayText = 'Pray to RNGesus'
+          $scope.praying = no
+          return
+
+      , 6000
+
 
     # click on button
     $scope.clickOnEvent = (extraData) ->
