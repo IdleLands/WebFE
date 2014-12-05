@@ -45,6 +45,7 @@ script(id="player-overview", type="text/ng-template")
                   div.vital-stat
                      span.fa.fa-fw.fa-institution
                      md-button.inline-button.md-raised.md-theme-purple(ng-disabled="praying", ng-click="pray()") {{prayText}}
+                        md-tooltip Praying raises Superstition by 1
                   div.vital-stat
                      span.fa.fa-fw.fa-globe
                      span &nbsp;{{player.map}} ~ {{player.x}}, {{player.y}}
