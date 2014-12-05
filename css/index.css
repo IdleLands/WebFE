@@ -198,3 +198,10 @@ body {
 #map {
   width: 100%;
 }
+.inline-button {
+  font-size: 90%;
+  vertical-align: middle;
+}
+.inline-button .md-button-inner {
+  padding: 3px;
+}

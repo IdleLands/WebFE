@@ -321,6 +321,9 @@
         </md-toolbar>
         <md-content class="card-padding">
           <div layout="vertical">
+            <div class="vital-stat"><span class="fa fa-fw fa-institution"></span>
+              <md-button ng-disabled="praying" ng-click="pray()" class="inline-button md-raised md-theme-purple">{{prayText}}</md-button>
+            </div>
             <div class="vital-stat"><span class="fa fa-fw fa-globe"></span><span>&nbsp;{{player.map}} ~ {{player.x}}, {{player.y}}</span></div>
             <div class="vital-stat"><span class="fa fa-fw fa-map-marker"></span><span>&nbsp;{{player.mapRegion}}</span></div>
             <div ng-if="player.shop" class="vital-stat"><span class="fa fa-fw icon-money faa-tada animated"></span><span>&nbsp;In shop: {{player.shop.region}}!</span></div>
