@@ -81,10 +81,21 @@
             controller: 'PlayerBattle'
           }
         }
+      }).state('player.collectibles', {
+        url: '/collectibles',
+        data: {
+          selectedTab: 4
+        },
+        views: {
+          'collectibles': {
+            templateUrl: 'player-collectibles',
+            controller: 'PlayerCollectibles'
+          }
+        }
       }).state('player.achievements', {
         url: '/achievements',
         data: {
-          selectedTab: 4
+          selectedTab: 5
         },
         views: {
           'achievements': {
@@ -95,7 +106,7 @@
       }).state('player.statistics', {
         url: '/statistics',
         data: {
-          selectedTab: 5
+          selectedTab: 6
         },
         views: {
           'statistics': {
@@ -106,7 +117,7 @@
       }).state('player.options', {
         url: '/options',
         data: {
-          selectedTab: 6
+          selectedTab: 7
         },
         views: {
           'options': {
@@ -251,8 +262,24 @@
 }).call(this);
 
 (function() {
+  angular.module('IdleLands').controller('PlayerCollectibles', [
+    '$scope', 'Player', function($scope, Player) {
+      return $scope.$watch((function() {
+        return Player.getPlayer();
+      }), function(newVal, oldVal) {
+        if (newVal === oldVal && (!newVal || !oldVal)) {
+          return;
+        }
+        return $scope.player = newVal;
+      });
+    }
+  ]);
+
+}).call(this);
+
+(function() {
   angular.module('IdleLands').controller('Player', [
-    '$scope', '$state', '$window', '$timeout', '$mdToast', 'API', 'Player', 'TurnTaker', 'CredentialCache', 'OptionsCache', 'BaseURL', function($scope, $state, $window, $timeout, $mdToast, API, Player, TurnTaker, CredentialCache, OptionsCache, BaseURL) {
+    '$scope', '$state', '$window', '$timeout', '$mdToast', 'API', 'Player', 'TurnTaker', 'CredentialCache', 'OptionsCache', function($scope, $state, $window, $timeout, $mdToast, API, Player, TurnTaker, CredentialCache, OptionsCache) {
       var initializing;
       if (!Player.getPlayer()) {
         CredentialCache.tryLogin().then((function() {

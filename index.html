@@ -158,6 +158,21 @@
 </script>
 
 
+<script id="player-collectibles" type="text/ng-template">
+  <md-list layout="horizontal" class="flex-scroll wrap-container">
+    <md-item ng-repeat="collectible in player.collectibles" flex="25" class="md-whiteframe-z1">
+      <md-item-content>
+        <div class="md-tile-content">
+          <h3>{{collectible.name}}</h3>
+          <h4>Found&nbsp;<span am-time-ago="collectible.foundAt"></span>&nbsp;in {{collectible.map}} ({{collectible.region}})</h4>
+          <p>Rarity: {{collectible.rarity || 'basic'}}</p>
+        </div>
+      </md-item-content>
+    </md-item>
+  </md-list>
+</script>
+
+
 <script id="player-equipment" type="text/ng-template">
   <md-list class="flex-scroll">
     <md-item ng-repeat="item in playerItems track by $index">
@@ -322,7 +337,9 @@
         <md-content class="card-padding">
           <div layout="vertical">
             <div class="vital-stat"><span class="fa fa-fw fa-institution"></span>
-              <md-button ng-disabled="praying" ng-click="pray()" class="inline-button md-raised md-theme-purple">{{prayText}}</md-button>
+              <md-button ng-disabled="praying" ng-click="pray()" class="inline-button md-raised md-theme-purple">{{prayText}}
+                <md-tooltip>Praying raises Superstition by 1</md-tooltip>
+              </md-button>
             </div>
             <div class="vital-stat"><span class="fa fa-fw fa-globe"></span><span>&nbsp;{{player.map}} ~ {{player.x}}, {{player.y}}</span></div>
             <div class="vital-stat"><span class="fa fa-fw fa-map-marker"></span><span>&nbsp;{{player.mapRegion}}</span></div>
@@ -395,6 +412,9 @@
       </md-tab>
       <md-tab ui-sref="player.battle" label="Battle">
         <div ui-view="battle" class="tab"></div>
+      </md-tab>
+      <md-tab ui-sref="player.collectibles" label="Collectibles ({{player.collectibles.length}})" ng-show="player.collectibles.length &gt; 0">
+        <div ui-view="collectibles" class="tab"></div>
       </md-tab>
       <md-tab ui-sref="player.achievements" label="Achievements ({{player.achievements.length}})">
         <div ui-view="achievements" class="tab"></div>
