@@ -10,12 +10,18 @@ angular.module 'IdleLands'
     game = null
     mapName = null
     newMapName = null
+    text = null
+
+    textForPlayer = (player) -> "#{player.map} (#{player.mapRegion})\n#{player.x}, #{player.y}"
 
     $scope.drawMap = ->
       return if _.isEmpty $scope.currentMap
       player = $scope.player
 
       newMapName = player.map if not newMapName
+
+      if text
+        text.text = textForPlayer player
 
       if sprite
         sprite.x = (player.x*16)
@@ -26,11 +32,9 @@ angular.module 'IdleLands'
         if player.map isnt mapName
           newMapName = player.map
           mapName = player.map
-          game.state.restart()
 
       phaserOpts =
         preload: ->
-          #gah, github. whatever.
           @game.load.image 'tiles', "#{BaseURL}/img/tiles.png", 16, 16
           @game.load.spritesheet 'interactables', "#{BaseURL}/img/tiles.png", 16, 16
           @game.load.tilemap newMapName, null, $scope.currentMap.map, Phaser.Tilemap.TILED_JSON
@@ -48,6 +52,9 @@ angular.module 'IdleLands'
           sprite = @game.add.sprite player.x*16, player.y*16, 'interactables', 12
           @game.camera.follow sprite
 
+          text = @game.add.text 10, 10, (textForPlayer player), {font: '15px Arial', fill: '#fff', stroke: '#000', strokeThickness: 3}
+          text.fixedToCamera = yes
+
       return if (not player) or game
       $timeout ->
         return if game
@@ -58,6 +65,7 @@ angular.module 'IdleLands'
     $scope.$watch (-> CurrentMap.getMap()), (newVal, oldVal) ->
       return if newVal is oldVal
       $scope.currentMap = newVal
+      game?.state.restart()
 
     $scope.$watch (-> Player.getPlayer()), (newVal, oldVal) ->
       return if newVal is oldVal and (not newVal or not oldVal)
