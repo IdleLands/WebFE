@@ -11,6 +11,11 @@ module.exports = (grunt) ->
         files:
           'dist/js/index.js': ['src/**/*.coffee']
 
+    'gh-pages':
+      src: ['**']
+      options:
+        base: 'dist'
+
     uglify:
       options:
         mangle: no
