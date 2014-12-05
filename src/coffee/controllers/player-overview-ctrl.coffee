@@ -38,6 +38,7 @@ angular.module 'IdleLands'
       'gold': ['icon-money']
       'guild': ['fa-network']
       'combat': ['fa-newspaper-o faa-pulse animated']
+      'event': ['fa-gift faa-shake animated']
 
     # click on button
     $scope.clickOnEvent = (extraData) ->
