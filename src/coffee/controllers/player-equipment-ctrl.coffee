@@ -22,6 +22,7 @@ angular.module 'IdleLands'
       {name: 'piety'},
       {name: 'enchantLevel'},
       {name: 'shopSlot'},
+      {name: 'overflowSlot'},
       {name: '_calcScore'},
       {name: '_baseScore'}
 
@@ -50,7 +51,9 @@ angular.module 'IdleLands'
       _.map keys, (key) -> "#{key} (#{item[key]})"
       .join ', '
 
-    $scope.getEquipmentAndTotals = (items) ->
+    $scope.getEquipmentAndTotals = (oldItems) ->
+
+      items = _.clone oldItems
 
       test = _.reduce items, (prev, cur) ->
         for key, val of cur
