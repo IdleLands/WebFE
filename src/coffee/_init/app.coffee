@@ -10,3 +10,5 @@ angular.module 'IdleLands'
   .config ['$locationProvider', ($loc) ->
     #$loc.html5Mode yes if window.history?.pushState
   ]
+
+window.location.protocol = 'https:' if window.location.host is 'idlelands.github.io' and window.location.protocol isnt 'https:'
