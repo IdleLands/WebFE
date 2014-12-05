@@ -50,6 +50,7 @@ angular.module 'IdleLands'
 
       return if (not player) or game
       $timeout ->
+        return if game
         game = new Phaser.Game '100%', '100%', Phaser.CANVAS, 'map', phaserOpts
       , 0
       null
@@ -61,5 +62,6 @@ angular.module 'IdleLands'
     $scope.$watch (-> Player.getPlayer()), (newVal, oldVal) ->
       return if newVal is oldVal and (not newVal or not oldVal)
       $scope.player = newVal
+      $scope.drawMap()
 
 ]
