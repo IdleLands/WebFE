@@ -1,0 +1,12 @@
+script(id="player-collectibles",type="text/ng-template")
+    md-list.flex-scroll.wrap-container(layout="horizontal")
+        md-item.md-whiteframe-z1(ng-repeat="collectible in player.collectibles",flex="25")
+            md-item-content
+                div.md-tile-content
+                    h3 {{collectible.name}}
+                    h4
+                        | Found&nbsp;
+                        span(am-time-ago="collectible.foundAt")
+                        | &nbsp;in {{collectible.map}} ({{collectible.region}})
+                    p
+                        | Rarity: {{collectible.rarity || 'basic'}}

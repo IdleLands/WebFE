@@ -64,10 +64,19 @@ angular.module 'IdleLands'
               templateUrl: 'player-battle'
               controller: 'PlayerBattle'
 
+        .state 'player.collectibles',
+          url: '/collectibles'
+          data:
+            selectedTab: 4
+          views:
+            'collectibles':
+              templateUrl: 'player-collectibles'
+              controller: 'PlayerCollectibles'
+
         .state 'player.achievements',
           url: '/achievements'
           data:
-            selectedTab: 4
+            selectedTab: 5
           views:
             'achievements':
               templateUrl: 'player-achievements'
@@ -76,7 +85,7 @@ angular.module 'IdleLands'
         .state 'player.statistics',
           url: '/statistics'
           data:
-            selectedTab: 5
+            selectedTab: 6
           views:
             'statistics':
               templateUrl: 'player-statistics'
@@ -85,7 +94,7 @@ angular.module 'IdleLands'
         .state 'player.options',
           url: '/options'
           data:
-            selectedTab: 6
+            selectedTab: 7
           views:
             'options':
               templateUrl: 'player-options'

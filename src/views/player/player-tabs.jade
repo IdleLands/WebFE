@@ -20,6 +20,9 @@ script(id='player', type='text/ng-template')
          md-tab(ui-sref="player.battle",label="Battle")
             div.tab(ui-view="battle")
 
+         md-tab(ui-sref="player.collectibles",label="Collectibles ({{player.collectibles.length}})",ng-show="player.collectibles.length > 0")
+            div.tab(ui-view="collectibles")
+
          md-tab(ui-sref="player.achievements",label="Achievements ({{player.achievements.length}})")
             div.tab(ui-view="achievements")
 
