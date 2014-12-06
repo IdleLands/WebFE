@@ -53,6 +53,43 @@ angular.module 'IdleLands'
       return if newVal is oldVal or initializing
       API.gender.set {gender: newVal}
 
+    isChanging = no
+    $scope.$watch 'player.priorityPoints', (newVal, oldVal) ->
+      return if newVal is oldVal or not oldVal
+
+      propDiff = _.omit newVal, (v,k) -> oldVal[k] is v
+
+      return if _.isEmpty propDiff
+
+      _.each (_.keys propDiff), (prop) ->
+        if $scope.player.priorityPoints[prop] < 0
+          isChanging = yes
+          $scope.player.priorityPoints[prop] = 0
+          $timeout ->
+            isChanging = no
+          , 0
+          return
+
+        return if isChanging
+
+        propDiff[prop] = newVal[prop] - oldVal[prop]
+
+        return if (Math.abs propDiff[prop]) isnt 1
+
+        isChanging = yes
+        API.priority.add {stat: prop, points: propDiff[prop]}
+        .then (res) ->
+          console.log res.data.isSuccess
+          if res.data.isSuccess
+            isChanging = no
+            return
+          $scope.player.priorityPoints[prop] -= propDiff[prop]
+
+          $timeout ->
+            isChanging = no
+          , 0
+    , yes
+
     $scope.$watch (-> Player.getPlayer()), (newVal, oldVal) ->
       return if newVal is oldVal and (not newVal or not oldVal)
 
