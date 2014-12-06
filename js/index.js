@@ -151,7 +151,7 @@
 (function() {
   angular.module('IdleLands').controller('Home', [
     '$scope', '$state', function($scope, $state) {
-      return $state.go('player');
+      return $state.go('player.overview');
     }
   ]);
 
