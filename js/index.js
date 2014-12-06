@@ -670,7 +670,7 @@
 (function() {
   angular.module('IdleLands').controller('PlayerOptions', [
     '$scope', '$timeout', 'Player', 'OptionsCache', 'API', function($scope, $timeout, Player, OptionsCache, API) {
-      var initializing;
+      var initializing, isChanging;
       initializing = true;
       $scope.options = OptionsCache.getOpts();
       $scope.strings = {
@@ -737,6 +737,51 @@
           gender: newVal
         });
       });
+      isChanging = false;
+      $scope.$watch('player.priorityPoints', function(newVal, oldVal) {
+        var propDiff;
+        if (newVal === oldVal || !oldVal) {
+          return;
+        }
+        propDiff = _.omit(newVal, function(v, k) {
+          return oldVal[k] === v;
+        });
+        if (_.isEmpty(propDiff)) {
+          return;
+        }
+        return _.each(_.keys(propDiff), function(prop) {
+          if ($scope.player.priorityPoints[prop] < 0) {
+            isChanging = true;
+            $scope.player.priorityPoints[prop] = 0;
+            $timeout(function() {
+              return isChanging = false;
+            }, 0);
+            return;
+          }
+          if (isChanging) {
+            return;
+          }
+          propDiff[prop] = newVal[prop] - oldVal[prop];
+          if ((Math.abs(propDiff[prop])) !== 1) {
+            return;
+          }
+          isChanging = true;
+          return API.priority.add({
+            stat: prop,
+            points: propDiff[prop]
+          }).then(function(res) {
+            console.log(res.data.isSuccess);
+            if (res.data.isSuccess) {
+              isChanging = false;
+              return;
+            }
+            $scope.player.priorityPoints[prop] -= propDiff[prop];
+            return $timeout(function() {
+              return isChanging = false;
+            }, 0);
+          });
+        });
+      }, true);
       return $scope.$watch((function() {
         return Player.getPlayer();
       }), function(newVal, oldVal) {
@@ -1125,12 +1170,13 @@
 
 (function() {
   angular.module('IdleLands').factory('API', [
-    'Authentication', 'Action', 'Battle', 'Personality', 'Pushbullet', 'Strings', 'Gender', 'Inventory', 'Shop', function(Authentication, Action, Battle, Personality, Pushbullet, Strings, Gender, Inventory, Shop) {
+    'Authentication', 'Action', 'Battle', 'Personality', 'Pushbullet', 'Strings', 'Gender', 'Inventory', 'Shop', 'Priority', function(Authentication, Action, Battle, Personality, Pushbullet, Strings, Gender, Inventory, Shop, Priority) {
       return {
         auth: Authentication,
         action: Action,
         battle: Battle,
         personality: Personality,
+        priority: Priority,
         pushbullet: Pushbullet,
         strings: Strings,
         gender: Gender,
@@ -1225,6 +1271,24 @@
     '$http', 'BaseURL', function($http, baseURL) {
       var url;
       url = "" + baseURL + "/player/manage/personality";
+      return {
+        add: function(data) {
+          return $http.put("" + url + "/add", data);
+        },
+        remove: function(data) {
+          return $http.post("" + url + "/remove", data);
+        }
+      };
+    }
+  ]);
+
+}).call(this);
+
+(function() {
+  angular.module('IdleLands').factory('Priority', [
+    '$http', 'BaseURL', function($http, baseURL) {
+      var url;
+      url = "" + baseURL + "/player/manage/priority";
       return {
         add: function(data) {
           return $http.put("" + url + "/add", data);
