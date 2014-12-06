@@ -8,7 +8,7 @@ script(id="player-equipment", type="text/ng-template")
                     div(ng-if="item.extraItemClass",class="{{classToColor(item.extraItemClass)}}") {{item.extraText}}
 
                     //equipped
-                    div.text-center(ng-if="!item.extraItemClass && !item.hideButtons")
+                    div.text-center(ng-if="!item.extraItemClass && !item.hideButtons && item.type !== 'providence'")
                         span.hover-cursor.fa.fa-fw.fa-caret-square-o-down(ng-click="invItem(item)")
                             md-tooltip Add to Inventory
 
