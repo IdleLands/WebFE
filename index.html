@@ -183,7 +183,7 @@
           </div>
           <div ng-if="item.extraItemClass" class="{{classToColor(item.extraItemClass)}}">{{item.extraText}}</div>
           <!--equipped-->
-          <div ng-if="!item.extraItemClass &amp;&amp; !item.hideButtons &amp;&amp; item.slot !== 'providence'" class="text-center"><span ng-click="invItem(item)" class="hover-cursor fa fa-fw fa-caret-square-o-down">
+          <div ng-if="!item.extraItemClass &amp;&amp; !item.hideButtons &amp;&amp; item.type !== 'providence'" class="text-center"><span ng-click="invItem(item)" class="hover-cursor fa fa-fw fa-caret-square-o-down">
               <md-tooltip>Add to Inventory</md-tooltip></span></div>
           <!--in overflow-->
           <div ng-if="_.isNumber(item.overflowSlot)" class="text-center"><span ng-if="item.extraItemClass" ng-click="sellItem(item)" class="hover-cursor fa fa-fw icon-money text-red">
