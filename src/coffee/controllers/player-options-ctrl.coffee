@@ -79,7 +79,6 @@ angular.module 'IdleLands'
         isChanging = yes
         API.priority.add {stat: prop, points: propDiff[prop]}
         .then (res) ->
-          console.log res.data.isSuccess
           if res.data.isSuccess
             isChanging = no
             return
