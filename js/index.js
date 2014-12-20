@@ -770,7 +770,6 @@
             stat: prop,
             points: propDiff[prop]
           }).then(function(res) {
-            console.log(res.data.isSuccess);
             if (res.data.isSuccess) {
               isChanging = false;
               return;
@@ -861,7 +860,8 @@
         'gold': ['icon-money'],
         'guild': ['fa-network'],
         'combat': ['fa-newspaper-o faa-pulse animated'],
-        'event': ['fa-gift faa-shake animated']
+        'event': ['fa-gift faa-shake animated'],
+        'pet': ['fa-paw']
       };
       $scope.praying = false;
       $scope.prayText = 'Pray to RNGesus';
