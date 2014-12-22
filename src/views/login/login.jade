@@ -1,5 +1,5 @@
 script(id='login-login', type='text/ng-template')
-   div.tab-text(flex="25", layout="vertical")
+   div.tab-text(flex="25", layout="column")
       form
          md-text-float(label="Character Name",ng-model="login.name")
          md-text-float(label="Password",ng-model="login.password",type="password")
@@ -7,7 +7,7 @@ script(id='login-login', type='text/ng-template')
          md-button.md-raised.md-primary(ng-disabled="isSubmitting",ng-click="doLogin()")
             span(ng-if="!isSubmitting") Log In
             span(ng-if="isSubmitting") Logging in...
-   div.tab-text.box-text(flex="50", offset="15", layout="vertical", layout-align="space-around center")
+   div.tab-text.box-text(flex="50", offset="15", layout="column", layout-align="space-around center")
       div Welcome to Idle Lands!
       div.text-center
          span If you've previously registered a character, log in here. Otherwise, head over to&nbsp;
