@@ -23,6 +23,7 @@ angular.module 'IdleLands'
       {name: 'enchantLevel'},
       {name: 'shopSlot'},
       {name: 'overflowSlot'},
+      {name: 'uid'},
       {name: '_calcScore'},
       {name: '_baseScore'}
 

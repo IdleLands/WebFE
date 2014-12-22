@@ -66,7 +66,7 @@ script(id="pet-overview", type="text/ng-template")
             md-toolbar.md-theme-light-blue
                div.md-toolbar-tools
                   h3 Unpurchased Pets
-            md-content.is-flex.auto-flex(style="flex-basis:60px;height:60px",layout="column")
+            md-content.is-flex.auto-flex.card-padding(style="flex-basis:60px;height:60px",layout="column")
                div(ng-if="availablePets().length === 0") No unpurchased pets
 
                div.is-flex.top-margin-5(style="align-items:center",flex="100",ng-repeat="pet in availablePets()",layout="row")
@@ -90,14 +90,21 @@ script(id="pet-overview", type="text/ng-template")
             md-toolbar.md-theme-light-blue
                div.md-toolbar-tools
                   h3 Upgrade Levels
-            md-content.is-flex.auto-flex(style="flex-basis:50px",layout="column")
+            md-content.is-flex.auto-flex.card-padding(style="flex-basis:50px",layout="column")
+               div(ng-if="!pet")
+                  span No Pets Purchased
 
 script(id="buy-pet",type="text/ng-template")
    md-dialog
       md-content
          md-subheader.md-sticky-no-effect
             h2 Procure a New Pet: {{petType}}
-         p test tadsf asdf asdf asdf asdf asdf asdf asdf dasf asdf asdf asdf asdf asdf asdf asd fsdf as fasd f
+         div(layout="row")
+            div
+            md-text-float(label="Name", ng-model="newPet.name")
+            md-text-float(label="First Attribute", ng-model="newPet.attr1")
+            md-text-float(label="Second Attribute", ng-model="newPet.attr2")
+
       div.md-actions(layout="row")
          md-button(ng-click="cancel()") Cancel
          md-button.md-primary(ng-click="purchase()") Purchase

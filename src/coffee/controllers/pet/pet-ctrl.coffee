@@ -37,6 +37,7 @@ angular.module 'IdleLands'
           petType: type
       .then (res) ->
         console.log res
+        $scope.refreshPets()
 
     $scope.availablePets = ->
       pets = []
@@ -48,6 +49,8 @@ angular.module 'IdleLands'
         pets.push pet
 
       pets
+
+    $scope.refreshPets = ->
 
     # equipment page & overview page
     $scope.valueToColor = (value) ->
@@ -70,14 +73,21 @@ angular.module 'IdleLands'
       $timeout ->
         $scope.selectedIndex = newVal
       , 0
+
+    $scope.refreshPets()
 ]
 
 angular.module 'IdleLands'
 .controller 'PetBuy', [
-  '$scope', '$mdDialog'
-  ($scope, $mdDialog) ->
+  '$scope', '$mdDialog', 'petType'
+  ($scope, $mdDialog, petType) ->
 
-    $scope.newPet = {}
+    $scope.newPet =
+      name: ""
+      attr1: "a monocle"
+      attr2: "a top hat"
+
+    $scope.petType = petType
 
     $scope.cancel = $mdDialog.hide
 
