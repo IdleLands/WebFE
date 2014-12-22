@@ -1,7 +1,7 @@
 angular.module 'IdleLands'
 .controller 'Pet', [
-  '$scope', '$state', '$window', '$mdDialog', '$timeout', 'Pet', 'Player', 'CredentialCache', 'TurnTaker'
-  ($scope, $state, $window, $mdDialog, $timeout, Pet, Player, CredentialCache, TurnTaker) ->
+  '$scope', '$state', '$window', '$timeout', 'Pet', 'Player', 'CredentialCache', 'TurnTaker'
+  ($scope, $state, $window, $timeout, Pet, Player, CredentialCache, TurnTaker) ->
 
     if not Player.getPlayer()
       CredentialCache.tryLogin().then (->
@@ -20,37 +20,12 @@ angular.module 'IdleLands'
     $scope.xpPercent = 0
     $scope._ = $window._
 
-    $scope.pets = []
-
     $window.scrollTo 0, document.body.scrollHeight
 
     $scope.calcXpPercent = ->
       $scope.xpPercent = ($scope.player.xp.__current / $scope.player.xp.maximum)*100
 
     initializing = yes
-
-    $scope.tryToBuyPet = (type) ->
-      $mdDialog.show
-        templateUrl: 'buy-pet'
-        controller: 'PetBuy'
-        locals:
-          petType: type
-      .then (res) ->
-        console.log res
-        $scope.refreshPets()
-
-    $scope.availablePets = ->
-      pets = []
-
-      _.each (_.keys $scope.player?.foundPets), (petKey) ->
-        pet = $scope.player.foundPets[petKey]
-        return if pet.purchaseDate
-        pet.type = petKey
-        pets.push pet
-
-      pets
-
-    $scope.refreshPets = ->
 
     # equipment page & overview page
     $scope.valueToColor = (value) ->
@@ -73,24 +48,4 @@ angular.module 'IdleLands'
       $timeout ->
         $scope.selectedIndex = newVal
       , 0
-
-    $scope.refreshPets()
-]
-
-angular.module 'IdleLands'
-.controller 'PetBuy', [
-  '$scope', '$mdDialog', 'petType'
-  ($scope, $mdDialog, petType) ->
-
-    $scope.newPet =
-      name: ""
-      attr1: "a monocle"
-      attr2: "a top hat"
-
-    $scope.petType = petType
-
-    $scope.cancel = $mdDialog.hide
-
-    $scope.purchase = ->
-      $mdDialog.hide $scope.newPet
 ]

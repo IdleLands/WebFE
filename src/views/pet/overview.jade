@@ -70,8 +70,8 @@ script(id="pet-overview", type="text/ng-template")
                div(ng-if="availablePets().length === 0") No unpurchased pets
 
                div.is-flex.top-margin-5(style="align-items:center",flex="100",ng-repeat="pet in availablePets()",layout="row")
-                  div.vertical-center.text-center.faa-parent.animated-hover(flex="10")
-                     span.fa.fa-fw.fa-lg.icon-money.faa-shake.animated-hover.hover-cursor(ng-click="tryToBuyPet(pet.type)")
+                  div.vertical-center.text-center.faa-parent(flex="10",ng-class="{'text-green hover-cursor animated-hover': canBuyPet(pet), 'text-red': !canBuyPet(pet)}")
+                     span.fa.fa-fw.fa-lg.icon-money.faa-shake(ng-click="tryToBuyPet(pet)")
                   div(flex="90") Unlock {{pet.type}} - {{pet.cost}} gold
 
             md-toolbar.md-theme-light-blue(ng-if="pets.length")
