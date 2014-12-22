@@ -73,7 +73,7 @@ script(id="player-overview", type="text/ng-template")
                div.md-toolbar-tools
                   h3 Adventure Log
             md-content.is-flex.auto-flex(style="flex-basis:80px",layout="vertical")
-               div.is-flex.top-margin-5(style="margin-top:70px;align-items:center",flex="100",ng-repeat="event in player.recentEvents | reverse",layout="horizontal")
+               div.is-flex.top-margin-5(style="align-items:center",flex="100",ng-repeat="event in player.recentEvents | reverse",layout="horizontal")
                   div.fa-stack.vertical-center(flex="10")
                      span.fa.fa-fw.fa-stack-2x(ng-repeat="item in $parent.eventTypeToIcon[event.type]",class="{{item}} {{event.extra.battleId ? 'hover-cursor' : ''}}", ng-click="clickOnEvent(event.extra)")
                   div(flex="90")
