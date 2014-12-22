@@ -68,6 +68,15 @@ angular.module 'IdleLands'
 
       , 6000
 
+    $scope.toPetView = ->
+      $state.go 'pet.overview'
+
+    $scope.boughtPets = ->
+      pets = 0
+      _.each (_.keys $scope.player?.foundPets), (petKey) ->
+        pets++ if $scope.player.foundPets[petKey].purchaseDate
+
+      pets
 
     # click on button
     $scope.clickOnEvent = (extraData) ->

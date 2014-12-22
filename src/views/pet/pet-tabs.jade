@@ -1,0 +1,18 @@
+script(id='pet', type='text/ng-template')
+   md-toolbar.md-theme-light
+      h1.md-toolbar-tools
+         span(ng-if="pet") {{pet.name}}, the level {{pet.level.__current}} {{pet.professionName}}
+         span(ng-if="!pet") No Pets Purchased
+
+   md-progress-linear.player-xp(mode="determinate",ng-value="xpPercent",md-theme="green", ng-if="pet")
+
+   div.auto-flex.md-whiteframe-z1.is-flex(id="pet-tabs")
+      md-tabs.is-flex.auto-flex(selected="selectedIndex",layout="vertical")
+         md-tab(ui-sref="pet.overview",label="Pet")
+            div.tab(ui-view="petoverview")
+
+         md-tab(ui-sref="pet.equipment",label="Equipment",ng-if="pet")
+            div.tab(ui-view="petequipment")
+
+         md-tab(ui-sref="pet.inventory",label="Inventory",ng-if="pet")
+            div.tab(ui-view="petinventory")

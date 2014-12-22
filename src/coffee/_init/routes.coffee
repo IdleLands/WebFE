@@ -8,20 +8,29 @@ angular.module 'IdleLands'
       $httpProvider.interceptors.push 'PlayerInterceptor'
       $httpProvider.interceptors.push 'ReloginInterceptor'
 
-      $urp.otherwise '/'
+      $urp.otherwise '/login'
 
       $urp.when '/player', '/player/overview'
 
       $sp
-        .state 'home',
-          url: '/'
-          templateUrl: 'home'
-          controller: 'Home'
-
         .state 'login',
           url: '/login'
           templateUrl: 'login'
           controller: 'Login'
+
+        .state 'pet',
+          url: '/pet'
+          templateUrl: 'pet'
+          controller: 'Pet'
+
+        .state 'pet.overview',
+          url: '/overview'
+          data:
+            selectedTab: 0
+          views:
+            'petoverview':
+              templateUrl: 'pet-overview'
+              controller: 'PetOverview'
 
         .state 'player',
           url: '/player'

@@ -1,0 +1,103 @@
+
+script(id="pet-overview", type="text/ng-template")
+   div.tab-containment.is-flex.auto-flex.wrap-container(layout="horizontal")
+      div(flex="33",layout="vertical")
+         md-card.inner-card(layout="vertical")
+            md-toolbar.md-theme-light-blue
+               div.md-toolbar-tools
+                  h3 Vitals
+            md-content.card-padding
+               div(ng-if="!pet")
+                  span No Pets Purchased
+               div(layout="horizontal",ng-if="pet")
+                  div.vital-stat(flex="25")
+                     span.fa.fa-fw.fa-heart.fa-lg.text-red.vertical-center
+                        md-tooltip Max HP
+                     span &nbsp;
+                     small {{player.hp.maximum}}
+                  div.vital-stat(flex="25")
+                     span.fa.fa-fw.fa-magic.fa-lg.text-blue.vertical-center
+                        md-tooltip Max MP
+                     span &nbsp;
+                     small {{player.mp.maximum}}
+                  div.vital-stat(flex="25")
+                     span.fa.fa-fw.fa-asterisk.fa-lg.text-yellow.vertical-center
+                        md-tooltip Special Stat
+                     span &nbsp;
+                     small {{player.special.name || 'None'}}
+                  div.vital-stat(flex="25")
+                     span.fa.fa-fw.icon-money.fa-lg.text-gold.vertical-center
+                        md-tooltip Gold
+                     span &nbsp;
+                     small {{player.gold.__current}}
+
+               div.wrap-container(layout="horizontal",ng-if="pet")
+                  div.vital-stat(ng-repeat="stat in equipmentStatArray",flex="25")
+                     span.fa.fa-fw.fa-lg.vertical-center(class="{{stat.fa}}")
+                        md-tooltip {{stat.name}}
+                     span &nbsp;
+                     small(class="{{valueToColor(player._statCache[stat.name])}}") {{player._statCache[stat.name] | number:0}}
+
+         md-card.inner-card(layout="vertical")
+            md-toolbar.md-theme-light-blue
+               div.md-toolbar-tools
+                  h3 Controls
+            md-content.card-padding
+               div(layout="vertical")
+                  div.vital-stat
+                     span.fa.fa-fw.fa-dashboard
+                     md-button.inline-button.md-raised.md-theme-purple(ng-click="toPlayerView()") Swap to Player View
+
+         md-card.inner-card(layout="vertical")
+            md-toolbar.md-theme-light-blue
+               div.md-toolbar-tools
+                  h3 Miscellaneous
+            md-content.card-padding
+               div(ng-if="!pet")
+                  span No Pets Purchased
+               div(layout="vertical",ng-if="pet")
+                  div
+                     span.fa.fa-fw.fa-clock-o
+                     span &nbsp;Bought&nbsp;
+                     span(am-time-ago="pet.createdAt")
+
+      div(flex="33",layout="vertical")
+         md-card.is-flex.auto-flex.inner-card(layout="vertical")
+            md-toolbar.md-theme-light-blue
+               div.md-toolbar-tools
+                  h3 Unpurchased Pets
+            md-content.is-flex.auto-flex(style="flex-basis:80px",layout="vertical")
+               div(ng-if="availablePets().length === 0") No unpurchased pets
+
+               div.is-flex.top-margin-5(style="align-items:center",flex="100",ng-repeat="pet in availablePets()",layout="horizontal")
+                  div.vertical-center.text-center.faa-parent.animated-hover(flex="10")
+                     span.fa.fa-fw.fa-lg.icon-money.faa-shake.animated-hover.hover-cursor(ng-click="tryToBuyPet(pet.type)")
+                  div(flex="90") Unlock {{pet.type}} - {{pet.cost}} gold
+
+            md-toolbar.md-theme-light-blue(ng-if="pets.length")
+               div.md-toolbar-tools
+                  h3 Your Pets
+            md-content.is-flex.auto-flex(style="flex-basis:80px",layout="vertical",ng-if="pets.length")
+               //div.is-flex.top-margin-5(style="margin-top:70px;align-items:center",flex="100",ng-repeat="event in player.recentEvents | reverse",layout="horizontal")
+               //   div.fa-stack.vertical-center(flex="10")
+               //      span.fa.fa-fw.fa-stack-2x(ng-repeat="item in $parent.eventTypeToIcon[event.type]",class="{{item}} {{event.extra.battleId ? 'hover-cursor' : ''}}", ng-click="clickOnEvent(event.extra)")
+               //   div(flex="90")
+               //      small(am-time-ago="event.createdAt")
+               //      div {{event.message}}
+
+      div(flex="33",layout="vertical")
+         md-card.is-flex.auto-flex.inner-card(layout="vertical")
+            md-toolbar.md-theme-light-blue
+               div.md-toolbar-tools
+                  h3 Upgrade Levels
+            md-content.is-flex.auto-flex(style="flex-basis:50px",layout="vertical")
+
+script(id="buy-pet",type="text/ng-template")
+   md-dialog
+      md-content
+         md-subheader.md-sticky-no-effect
+            h2 Procure a New Pet: {{petType}}
+         p test tadsf asdf asdf asdf asdf asdf asdf asdf dasf asdf asdf asdf asdf asdf asdf asd fsdf as fasd f
+      div.md-actions(layout="row")
+         md-button(ng-click="cancel()") Cancel
+         md-button.md-theme-green(ng-click="purchase()") Purchase
