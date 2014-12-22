@@ -13,24 +13,24 @@
     <md-toolbar ng-if="!player" class="md-theme-dark">
       <h1 class="md-toolbar-tools"><span>Idle Lands</span></h1>
     </md-toolbar>
-    <md-content scroll-y flex ui-view layout="vertical" layout-fill class="md-content-padding"></md-content>
+    <md-content scroll-y flex ui-view layout="column" layout-fill class="md-content-padding"></md-content>
   </body>
 </html><script>(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){(i[r].q=i[r].q || []).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)})(window,document,'script','//www.google-analytics.com/analytics.js','ga');ga('create', 'UA-56283183-1', 'auto');ga('send', 'pageview');</script>
 
 
 <script id="login-advlogin" type="text/ng-template">
-  <div flex="25" layout="vertical" class="tab-text">
+  <div flex="25" layout="column" class="tab-text">
     <form>
       <md-text-float label="Identifier" ng-model="advLogin.identifier"></md-text-float>
       <md-text-float label="Password" ng-model="advLogin.password" type="password"></md-text-float>
       <md-checkbox ng-model="advLogin.remember" class="no-margin-left">Remember Me</md-checkbox>
-      <md-button ng-disabled="isSubmitting" ng-click="doAdvancedLogin()" class="md-button-raised md-button-colored md-theme-green"><span ng-if="!isSubmitting">Log In</span><span ng-if="isSubmitting">Logging in...</span></md-button>
+      <md-button ng-disabled="isSubmitting" ng-click="doAdvancedLogin()" class="md-raised md-primary"><span ng-if="!isSubmitting">Log In</span><span ng-if="isSubmitting">Logging in...</span></md-button>
     </form>
   </div>
-  <div flex="50" offset="15" layout="vertical" layout-align="space-around center" class="tab-text box-text">
+  <div flex="50" offset="15" layout="column" layout-align="space-around center" class="tab-text box-text">
     <div>Welcome to Idle Lands!</div>
     <div class="text-center"><span>This area is for people who know their identifier and would like to log in from a different location. Identifiers are unique per location (ie, irc.esper.net#seiyria) so if you know your identifier, you can log in with a character created elsewhere!</span></div>
-    <div class="text-center md-theme-yellow">
+    <div class="text-center md-warn">
       <div ng-show="advLogin.remember">Note! This caches your credentials in localStorage, which is super insecure! Do not check this if this isn't your computer!</div>
     </div>
   </div>
@@ -38,39 +38,37 @@
 
 
 <script id="login" type="text/ng-template">
-  <div layout="vertical" layout-fill="layout-fill" flex="50" offset="25" id="login-tabs">
-    <div layout="vertical">
-      <section class="md-whiteframe-z1">
-        <md-tabs selected="selectedIndex">
-          <md-tab on-select="selectTab(0)" label="Login" ng-disabled="isSubmitting">
-            <div layout="horizontal" layout-fill="layout-fill" layout-align="left center" ng-include="'login-login'" class="tab"></div>
-          </md-tab>
-          <md-tab on-select="selectTab(1)" label="Register" ng-disabled="isSubmitting">
-            <div layout="horizontal" layout-fill="layout-fill" layout-align="left center" ng-include="'login-register'" class="tab"></div>
-          </md-tab>
-          <md-tab on-select="selectTab(2)" label="Advanced Login" ng-disabled="isSubmitting">
-            <div layout="horizontal" layout-fill="layout-fill" layout-align="left center" ng-include="'login-advlogin'" class="tab"></div>
-          </md-tab>
-        </md-tabs>
-      </section>
-    </div>
-  </div>
+  <md-content>
+    <md-card layout="row" flex="50" offset="25" layout-align="center" id="login-tabs">
+      <md-tabs md-selected="selectedIndex">
+        <md-tab on-select="selectTab(0)" label="Login" ng-disabled="isSubmitting">
+          <div layout="row" layout-fill="layout-fill" layout-align="left center" ng-include="'login-login'" class="tab"></div>
+        </md-tab>
+        <md-tab on-select="selectTab(1)" label="Register" ng-disabled="isSubmitting">
+          <div layout="row" layout-fill="layout-fill" layout-align="left center" ng-include="'login-register'" class="tab"></div>
+        </md-tab>
+        <md-tab on-select="selectTab(2)" label="Advanced Login" ng-disabled="isSubmitting">
+          <div layout="row" layout-fill="layout-fill" layout-align="left center" ng-include="'login-advlogin'" class="tab"></div>
+        </md-tab>
+      </md-tabs>
+    </md-card>
+  </md-content>
 </script>
 
 
 <script id="login-login" type="text/ng-template">
-  <div flex="25" layout="vertical" class="tab-text">
+  <div flex="25" layout="column" class="tab-text">
     <form>
       <md-text-float label="Character Name" ng-model="login.name"></md-text-float>
       <md-text-float label="Password" ng-model="login.password" type="password"></md-text-float>
       <md-checkbox ng-model="login.remember" class="no-margin-left">Remember Me</md-checkbox>
-      <md-button ng-disabled="isSubmitting" ng-click="doLogin()" class="md-button-raised md-button-colored md-theme-green"><span ng-if="!isSubmitting">Log In</span><span ng-if="isSubmitting">Logging in...</span></md-button>
+      <md-button ng-disabled="isSubmitting" ng-click="doLogin()" class="md-raised md-primary"><span ng-if="!isSubmitting">Log In</span><span ng-if="isSubmitting">Logging in...</span></md-button>
     </form>
   </div>
-  <div flex="50" offset="15" layout="vertical" layout-align="space-around center" class="tab-text box-text">
+  <div flex="50" offset="15" layout="column" layout-align="space-around center" class="tab-text box-text">
     <div>Welcome to Idle Lands!</div>
     <div class="text-center"><span>If you've previously registered a character, log in here. Otherwise, head over to&nbsp;</span><a ng-click="selectTab(1)" class="inline-link">the Register tab</a><span>&nbsp;to make a new character!</span></div>
-    <div class="text-center md-theme-yellow">
+    <div class="text-center md-background">
       <div ng-show="login.remember">Note! This caches your credentials in localStorage, which is super insecure! Do not check this if this isn't your computer!</div>
     </div>
   </div>
@@ -78,18 +76,18 @@
 
 
 <script id="login-register" type="text/ng-template">
-  <div flex="25" layout="vertical" class="tab-text">
+  <div flex="25" layout="column" class="tab-text">
     <form>
       <md-text-float label="Character Name" ng-model="register.name"></md-text-float>
       <md-text-float label="Password" ng-model="register.password" type="password"></md-text-float>
       <md-checkbox ng-model="register.remember" class="no-margin-left">Remember Me</md-checkbox>
-      <md-button ng-disabled="isSubmitting" ng-click="doRegister()" class="md-button-raised md-button-colored md-theme-green"><span ng-if="!isSubmitting">Register</span><span ng-if="isSubmitting">Registering...</span></md-button>
+      <md-button ng-disabled="isSubmitting" ng-click="doRegister()" class="md-raised md-primary"><span ng-if="!isSubmitting">Register</span><span ng-if="isSubmitting">Registering...</span></md-button>
     </form>
   </div>
-  <div flex="50" offset="15" layout="vertical" layout-align="space-around center" class="tab-text box-text">
+  <div flex="50" offset="15" layout="column" layout-align="space-around center" class="tab-text box-text">
     <div>Welcome to Idle Lands!</div>
     <div class="text-center"><span>Register your character here! Just put in a name and a password, and you're ready to go!</span></div>
-    <div class="text-center md-theme-yellow">
+    <div class="text-center md-warn">
       <div ng-show="register.remember">Note! This caches your credentials in localStorage, which is super insecure! Do not check this if this isn't your computer!</div>
     </div>
   </div>
@@ -97,7 +95,7 @@
 
 
 <script id="player-achievements" type="text/ng-template">
-  <md-list layout="horizontal" class="flex-scroll wrap-container">
+  <md-list layout="row" class="flex-scroll wrap-container">
     <md-item ng-repeat="achievement in player.achievements" flex="25" class="md-whiteframe-z1">
       <md-item-content>
         <div class="md-tile-left text-center"><span class="fa-stack"><span ng-repeat="item in $parent.achievementTypeToIcon[achievement.type]" class="fa fa-stack-2x {{item}}"></span></span></div>
@@ -113,19 +111,19 @@
 
 
 <script id="player-battle" type="text/ng-template">
-  <div layout="horizontal" class="tab-containment is-flex auto-flex wrap-container">
-    <div ng-if="!currentBattle" layout="vertical" style="align-items:center;justify-content:center" flex="100" class="text-center md-theme-yellow">
+  <div layout="row" class="tab-containment is-flex auto-flex wrap-container">
+    <div ng-if="!currentBattle" layout="column" style="align-items:center;justify-content:center" flex="100" class="text-center md-theme-yellow">
       <div>Nothing to see here. You have to select a battle from your Adventure Log to see it here.</div>
     </div>
-    <div flex="30" layout="vertical" ng-if="currentBattle">
-      <md-card layout="vertical" class="inner-card">
+    <div flex="30" layout="column" ng-if="currentBattle">
+      <md-card layout="column" class="inner-card">
         <md-toolbar class="md-theme-light-blue">
           <div class="md-toolbar-tools">
             <h3>Teams ({{currentBattle.name}})</h3>
           </div>
         </md-toolbar>
         <md-content class="card-padding">
-          <div layout="vertical">
+          <div layout="column">
             <div ng-repeat="team in currentBattle.teams">
               <h3>Team "{{team.name}}"</h3>
               <table>
@@ -140,15 +138,15 @@
         </md-content>
       </md-card>
     </div>
-    <div flex="70" layout="vertical" ng-if="currentBattle">
-      <md-card layout="vertical" class="is-flex auto-flex inner-card">
+    <div flex="70" layout="column" ng-if="currentBattle">
+      <md-card layout="column" class="is-flex auto-flex inner-card">
         <md-toolbar class="md-theme-light-blue">
           <div class="md-toolbar-tools">
             <h3>Combat Log ({{currentBattle.name}})</h3>
           </div>
         </md-toolbar>
-        <md-content style="flex-basis:40px" layout="vertical" class="is-flex auto-flex">
-          <div style="margin-top:40px;padding-left:10px;align-items:center" flex="100" ng-repeat="message in currentBattle.messages track by $index" layout="horizontal" class="is-flex top-margin-5">
+        <md-content style="flex-basis:40px" layout="column" class="is-flex auto-flex">
+          <div style="margin-top:40px;padding-left:10px;align-items:center" flex="100" ng-repeat="message in currentBattle.messages track by $index" layout="row" class="is-flex top-margin-5">
             <htmldiv content="filterMessage(message)"></htmldiv>
           </div>
         </md-content>
@@ -159,7 +157,7 @@
 
 
 <script id="player-collectibles" type="text/ng-template">
-  <md-list layout="horizontal" class="flex-scroll wrap-container">
+  <md-list layout="row" class="flex-scroll wrap-container">
     <md-item ng-repeat="collectible in player.collectibles" flex="25" class="md-whiteframe-z1">
       <md-item-content>
         <div class="md-tile-content">
@@ -195,7 +193,7 @@
         </div>
         <div class="md-tile-content item-line">
           <div><span class="super-bold">{{item.enchantLevel ? '+'+item.enchantLevel+' ' : ''}}</span><span class="super-bold">{{item.name}}</span><small ng-if="item.foundAt"><span>, found</span><span>&nbsp;</span><span am-time-ago="item.foundAt"></span><span>, with a Player Relativity of</span><span>&nbsp;{{playerItemScore(item)}}%&nbsp;</span><span>and an Item Relativity of</span><span>&nbsp;{{itemItemScore(item)}}%</span></small></div>
-          <div layout="horizontal" class="top-margin-5 wrap-container"><span ng-repeat="stat in equipmentStatArray" flex="8"><span class="fa fa-fw fa-lg {{stat.fa}}">
+          <div layout="row" class="top-margin-5 wrap-container"><span ng-repeat="stat in equipmentStatArray" flex="8"><span class="fa fa-fw fa-lg {{stat.fa}}">
                 <md-tooltip>{{stat.name}}</md-tooltip></span><span>&nbsp;</span><small class="{{valueToColor(item[stat.name])}}">{{item[stat.name]}}</small><small>&nbsp;/&nbsp;</small><small class="{{valueToColor(item[stat.name+'Percent'])}}">{{item[stat.name+'Percent']}}%</small></span></div>
           <div class="top-margin-5"><small>{{getExtraStats(item)}}</small></div>
         </div>
@@ -206,7 +204,7 @@
 
 
 <script id="player-map" type="text/ng-template">
-  <div layout="horizontal" class="tab-containment is-flex auto-flex wrap-container">
+  <div layout="row" class="tab-containment is-flex auto-flex wrap-container">
     <div>{{drawMap()}}</div>
     <div id="map"></div>
   </div>
@@ -214,9 +212,9 @@
 
 
 <script id="player-options" type="text/ng-template">
-  <div layout="horizontal" class="tab-containment is-flex auto-flex wrap-container">
-    <div flex="25" layout="vertical">
-      <md-card layout="vertical" class="inner-card">
+  <div layout="row" class="tab-containment is-flex auto-flex wrap-container">
+    <div flex="25" layout="column">
+      <md-card layout="column" class="inner-card">
         <md-toolbar class="md-theme-light-blue">
           <div class="md-toolbar-tools">
             <h3>Player Options</h3>
@@ -226,7 +224,7 @@
           <div class="vital-stat"><span class="fa fa-fw fa-sign-out fa-lg vertical-center"></span><span>&nbsp;</span><small><a ng-click="logout()" class="inline-link">Log Out</a></small></div>
         </md-content>
       </md-card>
-      <md-card layout="vertical" class="inner-card">
+      <md-card layout="column" class="inner-card">
         <md-toolbar class="md-theme-light-blue">
           <div class="md-toolbar-tools">
             <h3><a href="https://github.com/IdleLands/IdleLands/wiki/PushBullet-Integration" target="_blank" class="fa fa-question-circle">&nbsp;PushBullet</a></h3>
@@ -234,7 +232,7 @@
         </md-toolbar>
         <md-content class="card-padding"><a href="href" editable-text="player.pushbulletApiKey">{{player.pushbulletApiKey || 'No PushBullet API key set'}}</a></md-content>
       </md-card>
-      <md-card layout="vertical" class="inner-card">
+      <md-card layout="column" class="inner-card">
         <md-toolbar class="md-theme-light-blue">
           <div class="md-toolbar-tools">
             <h3><a href="https://github.com/IdleLands/IdleLands/wiki/Gender" target="_blank" class="fa fa-question-circle">&nbsp;Gender</a></h3>
@@ -252,20 +250,20 @@
         </md-content>
       </md-card>
     </div>
-    <div flex="60" layout="vertical">
-      <md-card layout="vertical" class="inner-card">
+    <div flex="60" layout="column">
+      <md-card layout="column" class="inner-card">
         <md-toolbar class="md-theme-light-blue">
           <div class="md-toolbar-tools">
             <h3><a href="https://github.com/IdleLands/IdleLands/wiki/Priority-Points" target="_blank" class="fa fa-question-circle">&nbsp;Priority Points</a></h3>
           </div>
         </md-toolbar>
         <md-content class="card-padding">
-          <div layout="horizontal" class="wrap-container">
+          <div layout="row" class="wrap-container">
             <md-text-float label="{{stat}}" type="number" ng-model="player.priorityPoints[stat]" flex="33" ng-repeat="(stat,val) in player.priorityPoints track by $index"></md-text-float>
           </div>
         </md-content>
       </md-card>
-      <md-card layout="vertical" class="inner-card">
+      <md-card layout="column" class="inner-card">
         <md-toolbar class="md-theme-light-blue">
           <div class="md-toolbar-tools">
             <h3><a href="https://github.com/IdleLands/IdleLands/wiki/Player-Strings" target="_blank" class="fa fa-question-circle">&nbsp;Custom Strings</a></h3>
@@ -282,8 +280,8 @@
         </md-content>
       </md-card>
     </div>
-    <div flex="15" layout="vertical">
-      <md-card layout="vertical" class="inner-card">
+    <div flex="15" layout="column">
+      <md-card layout="column" class="inner-card">
         <md-toolbar class="md-theme-light-blue">
           <div class="md-toolbar-tools">
             <h3>Scrollback.io</h3>
@@ -293,7 +291,7 @@
           <md-switch ng-model="options.scrollback" ng-true-value="'true'" ng-false-value="'false'">Use Chat</md-switch>
         </md-content>
       </md-card>
-      <md-card layout="vertical" class="inner-card">
+      <md-card layout="column" class="inner-card">
         <md-toolbar class="md-theme-light-blue">
           <div class="md-toolbar-tools">
             <h3>External Links</h3>
@@ -315,16 +313,16 @@
 
 
 <script id="player-overview" type="text/ng-template">
-  <div layout="horizontal" class="tab-containment is-flex auto-flex wrap-container">
-    <div flex="25" layout="vertical">
-      <md-card layout="vertical" class="inner-card">
+  <div layout="row" class="tab-containment is-flex auto-flex wrap-container">
+    <div flex="25" layout="column">
+      <md-card layout="column" class="inner-card">
         <md-toolbar class="md-theme-light-blue">
           <div class="md-toolbar-tools">
             <h3>Vitals</h3>
           </div>
         </md-toolbar>
         <md-content class="card-padding">
-          <div layout="horizontal">
+          <div layout="row">
             <div flex="25" class="vital-stat"><span class="fa fa-fw fa-heart fa-lg text-red vertical-center">
                 <md-tooltip>Max HP</md-tooltip></span><span>&nbsp;</span><small>{{player.hp.maximum}}</small></div>
             <div flex="25" class="vital-stat"><span class="fa fa-fw fa-magic fa-lg text-blue vertical-center">
@@ -334,22 +332,22 @@
             <div flex="25" class="vital-stat"><span class="fa fa-fw icon-money fa-lg text-gold vertical-center">
                 <md-tooltip>Gold</md-tooltip></span><span>&nbsp;</span><small>{{player.gold.__current}}</small></div>
           </div>
-          <div layout="horizontal" class="wrap-container">
+          <div layout="row" class="wrap-container">
             <div ng-repeat="stat in equipmentStatArray" flex="25" class="vital-stat"><span class="fa fa-fw fa-lg vertical-center {{stat.fa}}">
                 <md-tooltip>{{stat.name}}</md-tooltip></span><span>&nbsp;</span><small class="{{valueToColor(player._statCache[stat.name])}}">{{player._statCache[stat.name] | number:0}}</small></div>
           </div>
         </md-content>
       </md-card>
-      <md-card layout="vertical" class="inner-card">
+      <md-card layout="column" class="inner-card">
         <md-toolbar class="md-theme-light-blue">
           <div class="md-toolbar-tools">
             <h3>Miscellaneous</h3>
           </div>
         </md-toolbar>
         <md-content class="card-padding">
-          <div layout="vertical">
+          <div layout="column">
             <div class="vital-stat"><span class="fa fa-fw fa-institution"></span>
-              <md-button ng-disabled="praying" ng-click="pray()" class="inline-button md-raised md-theme-purple">{{prayText}}
+              <md-button ng-disabled="praying" ng-click="pray()" class="inline-button md-raised md-accent md-hue-2">{{prayText}}
                 <md-tooltip>Praying raises Superstition by 1</md-tooltip>
               </md-button>
             </div>
@@ -364,15 +362,15 @@
         </md-content>
       </md-card>
     </div>
-    <div flex="55" layout="vertical">
-      <md-card layout="vertical" class="is-flex auto-flex inner-card">
+    <div flex="55" layout="column">
+      <md-card layout="column" class="is-flex auto-flex inner-card">
         <md-toolbar class="md-theme-light-blue">
           <div class="md-toolbar-tools">
             <h3>Adventure Log</h3>
           </div>
         </md-toolbar>
-        <md-content style="flex-basis:80px" layout="vertical" class="is-flex auto-flex">
-          <div style="margin-top:70px;align-items:center" flex="100" ng-repeat="event in player.recentEvents | reverse" layout="horizontal" class="is-flex top-margin-5">
+        <md-content style="flex-basis:80px;height:80px" layout="column" class="is-flex auto-flex">
+          <div style="align-items:center" flex="100" ng-repeat="event in player.recentEvents | reverse" layout="row" class="is-flex top-margin-5">
             <div flex="10" class="fa-stack vertical-center"><span ng-repeat="item in $parent.eventTypeToIcon[event.type]" ng-click="clickOnEvent(event.extra)" class="fa fa-fw fa-stack-2x {{item}} {{event.extra.battleId ? 'hover-cursor' : ''}}"></span></div>
             <div flex="90"><small am-time-ago="event.createdAt"></small>
               <div>{{event.message}}</div>
@@ -381,17 +379,17 @@
         </md-content>
       </md-card>
     </div>
-    <div flex="20" layout="vertical">
-      <md-card layout="vertical" class="is-flex auto-flex inner-card">
+    <div flex="20" layout="column">
+      <md-card layout="column" class="is-flex auto-flex inner-card">
         <md-toolbar class="md-theme-light-blue">
           <div class="md-toolbar-tools">
             <h3><a href="http://idlelands.github.io/IdleLands/#!/Player/Personalities" target="_blank" class="fa fa-question-circle">&nbsp;Your Personalities</a></h3>
           </div>
         </md-toolbar>
-        <md-content style="flex-basis:50px" layout="vertical" class="is-flex auto-flex">
+        <md-content style="flex-basis:50px;height:50px" layout="column" class="is-flex auto-flex">
           <div ng-repeat="personality in player.achievements | filter:{type:'personality'}" class="is-flex auto-flex">
             <div flex="30">
-              <md-switch ng-model="personalityToggle[personality._personality]"></md-switch>
+              <md-switch ng-model="personalityToggle[personality._personality]" aria-label="{{personality._personality}}" class="personality-switch"></md-switch>
             </div>
             <div flex="70">
               <div style="margin-top:10px">{{personality._personality}}</div>
@@ -405,14 +403,14 @@
 
 
 <script id="player" type="text/ng-template">
-  <md-toolbar class="md-theme-light">
+  <md-toolbar>
     <h1 class="md-toolbar-tools">
-      <md-progress-circular mode="determinate" value="{{turnTimeValue}}" style="float:right" class="player-turn md-theme-yellow"></md-progress-circular><span>{{player.name}}, the level {{player.level.__current}} {{player.professionName}}</span>
+      <md-progress-circular mode="determinate" value="{{turnTimeValue}}" style="float:right" class="player-turn md-warn"></md-progress-circular><span>{{player.name}}, the level {{player.level.__current}} {{player.professionName}}</span>
     </h1>
   </md-toolbar>
   <md-progress-linear mode="determinate" ng-value="xpPercent" md-theme="green" class="player-xp"></md-progress-linear>
   <div id="player-tabs" class="auto-flex md-whiteframe-z1 is-flex">
-    <md-tabs selected="selectedIndex" layout="vertical" class="is-flex auto-flex">
+    <md-tabs md-selected="selectedIndex" layout="column" class="is-flex auto-flex">
       <md-tab ui-sref="player.overview" label="Player">
         <div ui-view="overview" class="tab"></div>
       </md-tab>
@@ -443,7 +441,7 @@
 
 
 <script id="player-statistics" type="text/ng-template">
-  <div layout="horizontal" class="flex-scroll">
+  <div layout="row" class="flex-scroll">
     <div flex="25">
       <md-card class="inner-card">
         <md-toolbar class="md-theme-light-blue">
@@ -508,7 +506,7 @@
   <table>
     <tr ng-repeat="stat in orderedData">
       <td class="text-{{stat.alignment}}">{{stat.name}}</td>
-      <td>{{stat.value}}</td>
+      <td class="text-center">{{stat.value}}</td>
     </tr>
   </table>
 </script>
