@@ -1,7 +1,7 @@
 script(id='login', type='text/ng-template')
-   div(layout="column", layout-fill, flex="50", offset="25", id="login-tabs")
-      md-card(layout,layout-fill,layout-align="center")
-         md-tabs(selected="selectedIndex")
+   md-content
+      md-card(layout="row", flex="50", offset="25", layout-align="center", id="login-tabs")
+         md-tabs(md-selected="selectedIndex")
             md-tab(on-select="selectTab(0)",label="Login",ng-disabled="isSubmitting")
                div.tab(layout="row",layout-fill,layout-align="left center", ng-include="'login-login'")
 
