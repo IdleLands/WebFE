@@ -1,13 +1,13 @@
 
 script(id="player-overview", type="text/ng-template")
-   div.tab-containment.is-flex.auto-flex.wrap-container(layout="horizontal")
-      div(flex="25",layout="vertical")
-         md-card.inner-card(layout="vertical")
+   div.tab-containment.is-flex.auto-flex.wrap-container(layout="row")
+      div(flex="25",layout="column")
+         md-card.inner-card(layout="column")
             md-toolbar.md-theme-light-blue
                div.md-toolbar-tools
                   h3 Vitals
             md-content.card-padding
-               div(layout="horizontal")
+               div(layout="row")
                   div.vital-stat(flex="25")
                      span.fa.fa-fw.fa-heart.fa-lg.text-red.vertical-center
                         md-tooltip Max HP
@@ -29,14 +29,14 @@ script(id="player-overview", type="text/ng-template")
                      span &nbsp;
                      small {{player.gold.__current}}
 
-               div.wrap-container(layout="horizontal")
+               div.wrap-container(layout="row")
                   div.vital-stat(ng-repeat="stat in equipmentStatArray",flex="25")
                      span.fa.fa-fw.fa-lg.vertical-center(class="{{stat.fa}}")
                         md-tooltip {{stat.name}}
                      span &nbsp;
                      small(class="{{valueToColor(player._statCache[stat.name])}}") {{player._statCache[stat.name] | number:0}}
 
-         md-card.inner-card(layout="vertical")
+         md-card.inner-card(layout="column")
             md-toolbar.md-theme-light-blue
                div.md-toolbar-tools
                   h3 Pet Information
@@ -54,10 +54,10 @@ script(id="player-overview", type="text/ng-template")
                div.md-toolbar-tools
                   h3 Miscellaneous
             md-content.card-padding
-               div(layout="vertical")
+               div(layout="column")
                   div.vital-stat
                      span.fa.fa-fw.fa-institution
-                     md-button.inline-button.md-raised.md-theme-purple(ng-disabled="praying", ng-click="pray()") {{prayText}}
+                     md-button.inline-button.md-raised.md-accent.md-hue-2(ng-disabled="praying", ng-click="pray()") {{prayText}}
                         md-tooltip Praying raises Superstition by 1
                   div.vital-stat
                      span.fa.fa-fw.fa-globe
@@ -80,28 +80,28 @@ script(id="player-overview", type="text/ng-template")
                      span(am-time-ago="player.registrationDate")
                         md-tooltip {{player.registrationDate}}
 
-      div(flex="55",layout="vertical")
-         md-card.is-flex.auto-flex.inner-card(layout="vertical")
+      div(flex="55",layout="column")
+         md-card.is-flex.auto-flex.inner-card(layout="column")
             md-toolbar.md-theme-light-blue
                div.md-toolbar-tools
                   h3 Adventure Log
-            md-content.is-flex.auto-flex(style="flex-basis:80px",layout="vertical")
-               div.is-flex.top-margin-5(style="margin-top:70px;align-items:center",flex="100",ng-repeat="event in player.recentEvents | reverse",layout="horizontal")
+            md-content.is-flex.auto-flex(style="flex-basis:80px;height:80px",layout="column")
+               div.is-flex.top-margin-5(style="align-items:center",flex="100",ng-repeat="event in player.recentEvents | reverse",layout="row")
                   div.fa-stack.vertical-center(flex="10")
                      span.fa.fa-fw.fa-stack-2x(ng-repeat="item in $parent.eventTypeToIcon[event.type]",class="{{item}} {{event.extra.battleId ? 'hover-cursor' : ''}}", ng-click="clickOnEvent(event.extra)")
                   div(flex="90")
                      small(am-time-ago="event.createdAt")
                      div {{event.message}}
 
-      div(flex="20",layout="vertical")
-         md-card.is-flex.auto-flex.inner-card(layout="vertical")
+      div(flex="20",layout="column")
+         md-card.is-flex.auto-flex.inner-card(layout="column")
             md-toolbar.md-theme-light-blue
                div.md-toolbar-tools
                   h3
                      a.fa.fa-question-circle(href="http://idlelands.github.io/IdleLands/#!/Player/Personalities",target="_blank") &nbsp;Your Personalities
-            md-content.is-flex.auto-flex(style="flex-basis:50px",layout="vertical")
+            md-content.is-flex.auto-flex(style="flex-basis:50px;height:50px",layout="column")
                div.is-flex.auto-flex(ng-repeat="personality in player.achievements | filter:{type:'personality'}")
                   div(flex="30")
-                     md-switch(ng-model="personalityToggle[personality._personality]")
+                     md-switch.personality-switch(ng-model="personalityToggle[personality._personality]",aria-label="{{personality._personality}}")
                   div(flex="70")
                      div(style="margin-top:10px") {{personality._personality}}

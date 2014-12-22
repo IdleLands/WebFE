@@ -1,5 +1,5 @@
 script(id="player-statistics", type="text/ng-template")
-    div.flex-scroll(layout="horizontal")
+    div.flex-scroll(layout="row")
         div(flex="25")
             md-card.inner-card
                 md-toolbar.md-theme-light-blue
@@ -39,4 +39,4 @@ script(id='statistics-template',type='text/ng-template')
     table
         tr(ng-repeat="stat in orderedData")
             td(class="text-{{stat.alignment}}") {{stat.name}}
-            td {{stat.value}}
+            td(class="text-center") {{stat.value}}

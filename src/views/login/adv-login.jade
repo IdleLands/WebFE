@@ -1,15 +1,15 @@
 script(id='login-advlogin', type='text/ng-template')
-    div.tab-text(flex="25", layout="vertical")
+    div.tab-text(flex="25", layout="column")
         form
             md-text-float(label="Identifier",ng-model="advLogin.identifier")
             md-text-float(label="Password",ng-model="advLogin.password",type="password")
             md-checkbox.no-margin-left(ng-model="advLogin.remember") Remember Me
-            md-button.md-button-raised.md-button-colored.md-theme-green(ng-disabled="isSubmitting",ng-click="doAdvancedLogin()")
+            md-button.md-raised.md-primary(ng-disabled="isSubmitting",ng-click="doAdvancedLogin()")
                 span(ng-if="!isSubmitting") Log In
                 span(ng-if="isSubmitting") Logging in...
-    div.tab-text.box-text(flex="50", offset="15", layout="vertical", layout-align="space-around center")
+    div.tab-text.box-text(flex="50", offset="15", layout="column", layout-align="space-around center")
         div Welcome to Idle Lands!
         div.text-center
             span This area is for people who know their identifier and would like to log in from a different location. Identifiers are unique per location (ie, irc.esper.net#seiyria) so if you know your identifier, you can log in with a character created elsewhere!
-        div.text-center.md-theme-yellow
+        div.text-center.md-warn
             div(ng-show="advLogin.remember") Note! This caches your credentials in localStorage, which is super insecure! Do not check this if this isn't your computer!

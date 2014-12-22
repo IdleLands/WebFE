@@ -1,17 +1,17 @@
 script(id='login-login', type='text/ng-template')
-   div.tab-text(flex="25", layout="vertical")
+   div.tab-text(flex="25", layout="column")
       form
          md-text-float(label="Character Name",ng-model="login.name")
          md-text-float(label="Password",ng-model="login.password",type="password")
          md-checkbox.no-margin-left(ng-model="login.remember") Remember Me
-         md-button.md-button-raised.md-button-colored.md-theme-green(ng-disabled="isSubmitting",ng-click="doLogin()")
+         md-button.md-raised.md-primary(ng-disabled="isSubmitting",ng-click="doLogin()")
             span(ng-if="!isSubmitting") Log In
             span(ng-if="isSubmitting") Logging in...
-   div.tab-text.box-text(flex="50", offset="15", layout="vertical", layout-align="space-around center")
+   div.tab-text.box-text(flex="50", offset="15", layout="column", layout-align="space-around center")
       div Welcome to Idle Lands!
       div.text-center
          span If you've previously registered a character, log in here. Otherwise, head over to&nbsp;
          a.inline-link(ng-click="selectTab(1)") the Register tab
          span &nbsp;to make a new character!
-      div.text-center.md-theme-yellow
+      div.text-center.md-background
          div(ng-show="login.remember") Note! This caches your credentials in localStorage, which is super insecure! Do not check this if this isn't your computer!
