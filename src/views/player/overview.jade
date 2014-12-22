@@ -41,15 +41,15 @@ script(id="player-overview", type="text/ng-template")
                div.md-toolbar-tools
                   h3 Pet Information
             md-content.card-padding
-               div(layout="vertical")
+               div(layout="column")
                   div.vital-stat
                      span.fa.fa-fw.fa-dashboard
-                     md-button.inline-button.md-raised.md-theme-purple(ng-click="toPetView()") Swap to Pet View
+                     md-button.inline-button.md-raised.md-accent(ng-click="toPetView()") Swap to Pet View
                   div.vital-stat
                      span.fa.fa-fw.fa-paw
                      span &nbsp;{{boughtPets()}}/{{_.size(player.foundPets)}} Pets
 
-         md-card.inner-card(layout="vertical")
+         md-card.inner-card(layout="column")
             md-toolbar.md-theme-light-blue
                div.md-toolbar-tools
                   h3 Miscellaneous
