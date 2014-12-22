@@ -39,4 +39,4 @@ script(id='statistics-template',type='text/ng-template')
     table
         tr(ng-repeat="stat in orderedData")
             td(class="text-{{stat.alignment}}") {{stat.name}}
-            td {{stat.value}}
+            td(class="text-center") {{stat.value}}
