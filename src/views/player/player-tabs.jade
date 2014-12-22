@@ -1,13 +1,13 @@
 script(id='player', type='text/ng-template')
-   md-toolbar.md-theme-light
+   md-toolbar
       h1.md-toolbar-tools
-         md-progress-circular.player-turn.md-theme-yellow(mode="determinate",value="{{turnTimeValue}}",style="float:right")
+         md-progress-circular.player-turn.md-warn(mode="determinate",value="{{turnTimeValue}}",style="float:right")
          span {{player.name}}, the level {{player.level.__current}} {{player.professionName}}
 
    md-progress-linear.player-xp(mode="determinate",ng-value="xpPercent",md-theme="green")
 
    div.auto-flex.md-whiteframe-z1.is-flex(id="player-tabs")
-      md-tabs.is-flex.auto-flex(selected="selectedIndex",layout="vertical")
+      md-tabs.is-flex.auto-flex(md-selected="selectedIndex",layout="column")
          md-tab(ui-sref="player.overview",label="Player")
             div.tab(ui-view="overview")
 

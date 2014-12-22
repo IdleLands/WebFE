@@ -1,15 +1,15 @@
 script(id='login-register', type='text/ng-template')
-    div.tab-text(flex="25", layout="vertical")
+    div.tab-text(flex="25", layout="column")
         form
             md-text-float(label="Character Name",ng-model="register.name")
             md-text-float(label="Password",ng-model="register.password",type="password")
             md-checkbox.no-margin-left(ng-model="register.remember") Remember Me
-            md-button.md-button-raised.md-button-colored.md-theme-green(ng-disabled="isSubmitting",ng-click="doRegister()")
+            md-button.md-raised.md-primary(ng-disabled="isSubmitting",ng-click="doRegister()")
                 span(ng-if="!isSubmitting") Register
                 span(ng-if="isSubmitting") Registering...
-    div.tab-text.box-text(flex="50", offset="15", layout="vertical", layout-align="space-around center")
+    div.tab-text.box-text(flex="50", offset="15", layout="column", layout-align="space-around center")
         div Welcome to Idle Lands!
         div.text-center
             span Register your character here! Just put in a name and a password, and you're ready to go!
-        div.text-center.md-theme-yellow
+        div.text-center.md-warn
             div(ng-show="register.remember") Note! This caches your credentials in localStorage, which is super insecure! Do not check this if this isn't your computer!

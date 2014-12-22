@@ -36,7 +36,7 @@ script(id="player-equipment", type="text/ng-template")
                             span &nbsp;{{playerItemScore(item)}}%&nbsp;
                             span and an Item Relativity of
                             span &nbsp;{{itemItemScore(item)}}%
-                    div.top-margin-5.wrap-container(layout="horizontal")
+                    div.top-margin-5.wrap-container(layout="row")
                         span(ng-repeat="stat in equipmentStatArray",flex="8")
                             span.fa.fa-fw.fa-lg(class="{{stat.fa}}")
                                 md-tooltip {{stat.name}}
