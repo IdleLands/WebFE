@@ -6,6 +6,8 @@ angular.module 'IdleLands'
       $httpProvider.interceptors.push 'TokenInterceptor'
       $httpProvider.interceptors.push 'ToastInterceptor'
       $httpProvider.interceptors.push 'PlayerInterceptor'
+      $httpProvider.interceptors.push 'PetInterceptor'
+      $httpProvider.interceptors.push 'PetsInterceptor'
       $httpProvider.interceptors.push 'ReloginInterceptor'
 
       $urp.otherwise '/login'

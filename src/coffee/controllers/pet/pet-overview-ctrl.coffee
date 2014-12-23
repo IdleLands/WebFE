@@ -1,7 +1,7 @@
 angular.module 'IdleLands'
 .controller 'PetOverview', [
-  '$scope', '$timeout', '$mdDialog', 'CurrentPet', 'CurrentPlayer', 'API', '$state',
-  ($scope, $timeout, $mdDialog, Pet, Player, API, $state) ->
+  '$scope', '$timeout', '$mdDialog', 'CurrentPet', 'CurrentPets', 'CurrentPlayer', 'API', '$state',
+  ($scope, $timeout, $mdDialog, Pet, Pets, Player, API, $state) ->
 
     initializing = yes
 
@@ -43,12 +43,6 @@ angular.module 'IdleLands'
 
       pets
 
-    $scope.refreshPets = ->
-      console.log API.pet
-      API.pet.allPets()
-      .then (res) ->
-        console.log res
-
     $scope.tryToBuyPet = (pet) ->
       return if not $scope.canBuyPet pet
       $mdDialog.show
@@ -58,9 +52,6 @@ angular.module 'IdleLands'
           petType: pet.type
       .then (res) ->
         console.log res
-        $scope.refreshPets()
-
-    $scope.refreshPets()
 
     $scope.canBuyPet = (pet) ->
       pet.cost <= $scope.player.gold.__current
@@ -80,6 +71,9 @@ angular.module 'IdleLands'
       return if newVal is oldVal
       $scope.player = newVal
 
+    $scope.$watch (-> Pets.getPets()), (newVal, oldVal) ->
+      return if newVal is oldVal
+      $scope.pets = newVal
 ]
 
 angular.module 'IdleLands'
@@ -88,9 +82,9 @@ angular.module 'IdleLands'
   ($scope, $mdDialog, petType) ->
 
     $scope.newPet =
-      name: ""
-      attr1: "a monocle"
-      attr2: "a top hat"
+      name: ''
+      attr1: 'a monocle'
+      attr2: 'a top hat'
 
     $scope.petType = petType
 
