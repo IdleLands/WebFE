@@ -1,7 +1,7 @@
 angular.module 'IdleLands'
 .controller 'PetOverview', [
-  '$scope', '$timeout', '$mdDialog', 'Pet', 'Player', '$state',
-  ($scope, $timeout, $mdDialog, Pet, Player, $state) ->
+  '$scope', '$timeout', '$mdDialog', 'CurrentPet', 'CurrentPlayer', 'API', '$state',
+  ($scope, $timeout, $mdDialog, Pet, Player, API, $state) ->
 
     initializing = yes
 
@@ -44,6 +44,10 @@ angular.module 'IdleLands'
       pets
 
     $scope.refreshPets = ->
+      console.log API.pet
+      API.pet.allPets()
+      .then (res) ->
+        console.log res
 
     $scope.tryToBuyPet = (pet) ->
       return if not $scope.canBuyPet pet

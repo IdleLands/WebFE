@@ -1,6 +1,6 @@
 angular.module 'IdleLands'
 .controller 'PlayerOverview', [
-  '$scope', '$timeout', '$interval', '$state', 'Player', 'API', 'CurrentBattle', 'FunMessages'
+  '$scope', '$timeout', '$interval', '$state', 'CurrentPlayer', 'API', 'CurrentBattle', 'FunMessages'
   ($scope, $timeout, $interval, $state, Player, API, CurrentBattle, FunMessages) ->
 
     initializing = yes

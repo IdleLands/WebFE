@@ -1,6 +1,6 @@
 angular.module 'IdleLands'
 .controller 'Player', [
-  '$scope', '$state', '$window', '$timeout', '$mdToast', 'API', 'Player', 'TurnTaker' ,'CredentialCache', 'OptionsCache'
+  '$scope', '$state', '$window', '$timeout', '$mdToast', 'API', 'CurrentPlayer', 'TurnTaker' ,'CredentialCache', 'OptionsCache'
   ($scope, $state, $window, $timeout, $mdToast, API, Player, TurnTaker, CredentialCache, OptionsCache) ->
 
     if not Player.getPlayer()

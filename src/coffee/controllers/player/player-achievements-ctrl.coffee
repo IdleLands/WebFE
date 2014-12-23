@@ -1,6 +1,6 @@
 angular.module 'IdleLands'
 .controller 'PlayerAchievements', [
-  '$scope', 'Player'
+  '$scope', 'CurrentPlayer'
   ($scope, Player) ->
 
     $scope.achievementTypeToIcon =

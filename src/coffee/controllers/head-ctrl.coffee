@@ -1,6 +1,6 @@
 angular.module 'IdleLands'
 .controller 'Head', [
-  '$scope', '$interval', 'TurnTaker', 'Player',
+  '$scope', '$interval', 'TurnTaker', 'CurrentPlayer',
   ($scope, $interval, TurnTaker, Player) ->
 
     $scope.player = null

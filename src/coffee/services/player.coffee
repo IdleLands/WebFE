@@ -1,5 +1,5 @@
 angular.module 'IdleLands'
-.factory 'Player', ->
+.factory 'CurrentPlayer', ->
   player = null
 
   getPlayer: -> player

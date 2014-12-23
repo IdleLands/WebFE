@@ -1,8 +1,8 @@
 angular.module 'IdleLands'
 .factory 'PetInterceptor', [
-  'Pet',
-  (Pet) ->
+  'CurrentPet',
+  (CurrentPet) ->
     response: (response) ->
-      Pet.setPet response.data.pet if response.data.pet
+      CurrentPet.setPet response.data.pet if response.data.pet
       response
 ]

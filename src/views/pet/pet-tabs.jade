@@ -1,14 +1,13 @@
 script(id='pet', type='text/ng-template')
-   md-toolbar.md-theme-light
+   md-toolbar.md-theme-light(ng-if="pet")
       h1.md-toolbar-tools
-         span(ng-if="pet") {{pet.name}}, the level {{pet.level.__current}} {{pet.professionName}}
-         span(ng-if="!pet") No Pets Purchased
+         span {{pet.name}}, the level {{pet.level.__current}} {{pet.professionName}}
 
    md-progress-linear.player-xp(mode="determinate",ng-value="xpPercent",md-theme="green", ng-if="pet")
 
    div.auto-flex.md-whiteframe-z1.is-flex(id="pet-tabs")
       md-tabs.is-flex.auto-flex(md-selected="selectedIndex",layout="column")
-         md-tab(ui-sref="pet.overview",label="Pet")
+         md-tab(ui-sref="pet.overview",label="{{pet ? 'Pet' : 'Buy a Pet'}}")
             div.tab(ui-view="petoverview")
 
          md-tab(ui-sref="pet.equipment",label="Equipment",ng-if="pet")

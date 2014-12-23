@@ -1,5 +1,5 @@
 angular.module 'IdleLands'
-.factory 'Pet', ->
+.factory 'CurrentPet', ->
   pet = null
 
   getPet: -> pet

@@ -1,6 +1,6 @@
 angular.module 'IdleLands'
 .factory 'CurrentMap', [
-  '$rootScope', 'Player', '$http', 'BaseURL'
+  '$rootScope', 'CurrentPlayer', '$http', 'BaseURL'
   ($root, Player, $http, baseURL) ->
 
     map = null

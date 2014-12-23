@@ -1,6 +1,6 @@
 angular.module 'IdleLands'
 .controller 'PlayerOptions', [
-  '$scope', '$timeout', 'Player', 'OptionsCache', 'API'
+  '$scope', '$timeout', 'CurrentPlayer', 'OptionsCache', 'API'
   ($scope, $timeout, Player, OptionsCache, API) ->
 
     initializing = yes

@@ -1,14 +1,14 @@
 angular.module 'IdleLands'
 .factory 'PlayerInterceptor', [
-  'Player',
-  (Player) ->
+  'CurrentPlayer',
+  (CurrentPlayer) ->
     request: (request) ->
       request.data = {} if not request.data
-      player = Player.getPlayer()
+      player = CurrentPlayer.getPlayer()
       request.data.identifier = player.identifier if request.data?.token and player
       request
 
     response: (response) ->
-      Player.setPlayer response.data.player if response.data.player
+      CurrentPlayer.setPlayer response.data.player if response.data.player
       response
 ]

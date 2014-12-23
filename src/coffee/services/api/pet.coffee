@@ -5,7 +5,7 @@ angular.module 'IdleLands'
 
     url = "#{baseURL}/pet"
 
-    allPets:    (data) -> $http.get   "#{url}", params: data
+    allPets:    (data) -> $http.post  "#{url}", data
     buyPet:     (data) -> $http.put   "#{url}/buy", data
     upgradePet: (data) -> $http.post  "#{url}/upgrade", data
     feedPet:    (data) -> $http.put   "#{url}/feed", data

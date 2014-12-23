@@ -1,6 +1,6 @@
 angular.module 'IdleLands'
 .controller 'PlayerMap', [
-  '$scope', '$timeout', 'Player', 'CurrentMap', 'BaseURL'
+  '$scope', '$timeout', 'CurrentPlayer', 'CurrentMap', 'BaseURL'
   ($scope, $timeout, Player, CurrentMap, BaseURL) ->
 
     $scope.currentMap = {}

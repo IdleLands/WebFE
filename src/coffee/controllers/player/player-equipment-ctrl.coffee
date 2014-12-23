@@ -1,6 +1,6 @@
 angular.module 'IdleLands'
 .controller 'PlayerEquipment', [
-  '$scope', 'Player', 'API'
+  '$scope', 'CurrentPlayer', 'API'
   ($scope, Player, API) ->
 
     $scope.equipmentStatArray = [

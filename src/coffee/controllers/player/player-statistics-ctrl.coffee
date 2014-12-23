@@ -1,6 +1,6 @@
 angular.module 'IdleLands'
 .controller 'PlayerStatistics', [
-  '$scope', 'Player'
+  '$scope', 'CurrentPlayer'
   ($scope, Player) ->
 
     $scope.getAllStatisticsInFamily = (family) ->
