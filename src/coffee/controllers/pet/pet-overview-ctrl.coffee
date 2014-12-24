@@ -50,8 +50,6 @@ angular.module 'IdleLands'
         controller: 'PetBuy'
         locals:
           petType: pet.type
-      .then (res) ->
-        console.log res
 
     $scope.canBuyPet = (pet) ->
       pet.cost <= $scope.player.gold.__current
@@ -78,8 +76,8 @@ angular.module 'IdleLands'
 
 angular.module 'IdleLands'
 .controller 'PetBuy', [
-  '$scope', '$mdDialog', 'petType'
-  ($scope, $mdDialog, petType) ->
+  '$scope', '$mdDialog', 'petType', 'API'
+  ($scope, $mdDialog, petType, API) ->
 
     $scope.newPet =
       name: ''
@@ -91,5 +89,15 @@ angular.module 'IdleLands'
     $scope.cancel = $mdDialog.hide
 
     $scope.purchase = ->
-      $mdDialog.hide $scope.newPet
+      petAttrs =
+        type: petType
+        attrs: [$scope.newPet.attr1, $scope.newPet.attr2]
+        name: $scope.newPet.name
+
+      API.pet.buyPet petAttrs
+      .then (res) ->
+        console.log res
+        return if not res.isSuccess
+
+        $mdDialog.hide()
 ]
