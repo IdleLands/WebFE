@@ -1,7 +1,7 @@
 script(id='pet', type='text/ng-template')
    md-toolbar.md-theme-light(ng-if="pet")
       h1.md-toolbar-tools
-         span {{pet.name}}, the level {{pet.level.__current}} {{pet.professionName}}
+         span {{pet.name}}, the level {{pet.level.__current}} {{pet.professionName}} with {{pet.attrs[0]}} and {{pet.attrs[1]}}
 
    md-progress-linear.player-xp(mode="determinate",ng-value="xpPercent",md-theme="green", ng-if="pet")
 
@@ -13,5 +13,5 @@ script(id='pet', type='text/ng-template')
          md-tab(ui-sref="pet.equipment",label="Equipment",ng-if="pet")
             div.tab(ui-view="petequipment")
 
-         md-tab(ui-sref="pet.inventory",label="Inventory",ng-if="pet")
+         md-tab(ui-sref="pet.inventory",label="Inventory ({{pet.inventory.length}}/{{pet._configCache.scale.inventory[pet.scaleLevel.inventory]}})",ng-if="pet")
             div.tab(ui-view="petinventory")

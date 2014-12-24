@@ -34,6 +34,15 @@ angular.module 'IdleLands'
               templateUrl: 'pet-overview'
               controller: 'PetOverview'
 
+        .state 'pet.inventory',
+          url: '/inventory'
+          data:
+            selectedTab: 2
+          views:
+            'petinventory':
+              templateUrl: 'pet-inventory'
+              controller: 'PetInventory'
+
         .state 'player',
           url: '/player'
           templateUrl: 'player'

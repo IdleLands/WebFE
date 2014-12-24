@@ -1,0 +1,39 @@
+script(id="pet-inventory", type="text/ng-template")
+    md-list.flex-scroll
+        md-item(ng-repeat="item in petItems track by $index")
+            md-item-content
+                div.md-tile-left.class-badge.text-center.align-left-list-item
+                    div(class="{{classToColor(item.itemClass)}}") {{item.type}}
+                        md-tooltip {{item.itemClass}}
+                    div(ng-if="item.extraItemClass",class="{{classToColor(item.extraItemClass)}}") {{item.extraText}}
+
+                    div.text-center
+                        span.hover-cursor.fa.fa-fw.icon-money(ng-click="sellItem(item)")
+                            md-tooltip Sell
+                        span.hover-cursor.fa.fa-fw.fa-shield(ng-click="swapItem(item)")
+                            md-tooltip Equip
+                        span.hover-cursor.fa.fa-fw.fa-exchange(ng-click="swapItem(item)")
+                            md-tooltip Take
+
+                div.md-tile-content.item-line
+                    div
+                        span.super-bold {{item.enchantLevel ? '+'+item.enchantLevel+' ' : ''}}
+                        span.super-bold {{item.name}}
+                        small(ng-if="item.foundAt")
+                            span , found
+                            span &nbsp;
+                            span(am-time-ago="item.foundAt")
+                            span , with a Player Relativity of
+                            span &nbsp;{{petItemScore(item)}}%&nbsp;
+                            span and an Item Relativity of
+                            span &nbsp;{{itemItemScore(item)}}%
+                    div.top-margin-5.wrap-container(layout="row")
+                        span(ng-repeat="stat in equipmentStatArray",flex="8")
+                            span.fa.fa-fw.fa-lg(class="{{stat.fa}}")
+                                md-tooltip {{stat.name}}
+                            span &nbsp;
+                            small(class="{{valueToColor(item[stat.name])}}") {{item[stat.name]}}
+                            small &nbsp;/&nbsp;
+                            small(class="{{valueToColor(item[stat.name+'Percent'])}}") {{item[stat.name+'Percent']}}%
+                    div.top-margin-5
+                        small {{getExtraStats(item)}}

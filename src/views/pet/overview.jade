@@ -1,7 +1,7 @@
 
 script(id="pet-overview", type="text/ng-template")
    div.tab-containment.is-flex.auto-flex.wrap-container(layout="row")
-      div(flex="33",layout="column")
+      div(flex="30",layout="column")
          md-card.inner-card(layout="column")
             md-toolbar.md-theme-light-blue
                div.md-toolbar-tools
@@ -14,29 +14,29 @@ script(id="pet-overview", type="text/ng-template")
                      span.fa.fa-fw.fa-heart.fa-lg.text-red.vertical-center
                         md-tooltip Max HP
                      span &nbsp;
-                     small {{player.hp.maximum}}
+                     small {{pet.hp.maximum}}
                   div.vital-stat(flex="25")
                      span.fa.fa-fw.fa-magic.fa-lg.text-blue.vertical-center
                         md-tooltip Max MP
                      span &nbsp;
-                     small {{player.mp.maximum}}
+                     small {{pet.mp.maximum}}
                   div.vital-stat(flex="25")
                      span.fa.fa-fw.fa-asterisk.fa-lg.text-yellow.vertical-center
                         md-tooltip Special Stat
                      span &nbsp;
-                     small {{player.special.name || 'None'}}
+                     small {{pet.special.name || 'None'}}
                   div.vital-stat(flex="25")
                      span.fa.fa-fw.icon-money.fa-lg.text-gold.vertical-center
                         md-tooltip Gold
                      span &nbsp;
-                     small {{player.gold.__current}}
+                     small {{pet.gold.__current}}
 
                div.wrap-container(layout="row",ng-if="pet")
                   div.vital-stat(ng-repeat="stat in equipmentStatArray",flex="25")
                      span.fa.fa-fw.fa-lg.vertical-center(class="{{stat.fa}}")
                         md-tooltip {{stat.name}}
                      span &nbsp;
-                     small(class="{{valueToColor(pet._statCache[stat.name])}}") {{pet._statCache[stat.name] | number:0}}
+                     small(class="{{valueToColor(pet._statCache[stat.name])}}") {{pet._statCache[stat.name] || 0 | number:0}}
 
          md-card.inner-card(layout="column")
             md-toolbar.md-theme-light-blue
@@ -47,6 +47,21 @@ script(id="pet-overview", type="text/ng-template")
                   div.vital-stat
                      span.fa.fa-fw.fa-dashboard
                      md-button.inline-button.md-raised.md-accent(ng-click="toPlayerView()") Swap to Player View
+                  div.vital-stat
+                     span.fa.fa-fw(class="fa-{{getSmartIcon('Sell')}}")
+                     md-button.inline-button.md-primary(ng-click="toggleSmart('Sell')") Smart Sell
+                  div.vital-stat
+                     span.fa.fa-fw(class="fa-{{getSmartIcon('Equip')}}")
+                     md-button.inline-button.md-primary(ng-click="toggleSmart('Equip')") Smart Equip
+                  div.vital-stat
+                     span.fa.fa-fw(class="fa-{{getSmartIcon('Self')}}")
+                     md-button.inline-button.md-primary(ng-click="toggleSmart('Self')") Smart Self
+                  div.vital-stat
+                     span.fa.fa-fw.icon-money
+                     md-button.inline-button.md-primary(ng-click="takeGold()") Take Pet Gold
+                  div.vital-stat
+                     span.fa.fa-fw.fa-cutlery
+                     md-button.inline-button.md-primary(ng-click="feedPet()") Feed Pet
 
          md-card.inner-card(layout="column")
             md-toolbar.md-theme-light-blue
@@ -58,41 +73,66 @@ script(id="pet-overview", type="text/ng-template")
                div(layout="column",ng-if="pet")
                   div
                      span.fa.fa-fw.fa-clock-o
-                     span &nbsp;Bought&nbsp;
-                     span(am-time-ago="pet.createdAt")
+                     span &nbsp;{{pet.creator.name}} originally found this pet <span am-time-ago='pet.createdAt'></span>
+                  div
+                     span.fa.fa-fw(class="fa-{{getTypeIcon(pet)}}")
+                     span &nbsp;{{pet._configCache.category}}
+                  div
+                     span.fa.fa-fw(class="fa-{{getGenderFor(pet)}}")
+                     span &nbsp;{{pet.gender}}
+                  div
+                     span.fa.fa-fw.fa-link
+                     span &nbsp;Max Item Score: {{pet._baseStats.itemFindRange | number:0}}
+                  div(ng-if="pet.nextItemFind")
+                     span.fa.fa-fw.fa-refresh
+                     span &nbsp;Next item find <span am-time-ago='pet.nextItemFind'></span>
 
-      div(flex="33",layout="column")
+      div(flex="30",layout="column")
          md-card.is-flex.auto-flex.inner-card(layout="column")
-            md-toolbar.md-theme-light-blue
+            md-toolbar.md-theme-light-blue(ng-if="availablePets().length !== 0")
                div.md-toolbar-tools
                   h3 Unpurchased Pets
-            md-content.is-flex.auto-flex.card-padding(style="flex-basis:60px;height:60px",layout="column")
-               div(ng-if="availablePets().length === 0") No unpurchased pets
+            md-content.is-flex.auto-flex.card-padding(style="flex-basis:60px;height:60px",layout="column",ng-if="availablePets().length !== 0")
 
                div.is-flex.top-margin-5(style="align-items:center",flex="100",ng-repeat="pet in availablePets()",layout="row")
                   div.vertical-center.text-center.faa-parent(flex="10",ng-class="{'text-green hover-cursor animated-hover': canBuyPet(pet), 'text-red': !canBuyPet(pet)}")
                      span.fa.fa-fw.fa-lg.icon-money.faa-shake(ng-click="tryToBuyPet(pet)")
-                  div(flex="90") Unlock {{pet.type}} - {{pet.cost}} gold
+                  div(flex="90") Unlock {{pet.type}} - {{pet.cost | number:0}} gold
 
             md-toolbar.md-theme-light-blue(ng-if="pets.length")
                div.md-toolbar-tools
                   h3 Your Pets
-            md-content.is-flex.auto-flex(style="flex-basis:80px",layout="column",ng-if="pets.length")
-               //div.is-flex.top-margin-5(style="margin-top:70px;align-items:center",flex="100",ng-repeat="event in player.recentEvents | reverse",layout="row")
-               //   div.fa-stack.vertical-center(flex="10")
-               //      span.fa.fa-fw.fa-stack-2x(ng-repeat="item in $parent.eventTypeToIcon[event.type]",class="{{item}} {{event.extra.battleId ? 'hover-cursor' : ''}}", ng-click="clickOnEvent(event.extra)")
-               //   div(flex="90")
-               //      small(am-time-ago="event.createdAt")
-               //      div {{event.message}}
+            md-content.is-flex.auto-flex(style="flex-basis:60px;height:60px",layout="column",ng-if="pets.length")
+               div.is-flex.top-margin-5(style="align-items:center",flex="100",ng-repeat="pet in getPetsInOrder()",layout="row")
+                  div.vertical-center.text-center.faa-parent.animated-hover.hover-cursor(flex="10")
+                     span.fa.fa-fw.fa-lg.fa-certificate.faa-spin(ng-class="{'text-green': pet.isActive, 'text-gray': !pet.isActive}",ng-click="doPetSwap(pet.createdAt)")
+                  div(flex="90")
+                     div {{pet.name}}, the {{pet.type}}
+                     div Level {{pet.level.__current}} {{pet.professionName}}
+                     div Inventory {{pet.inventory.length}}/{{pet._configCache.scale.inventory[pet.scaleLevel.inventory]}}
 
-      div(flex="33",layout="column")
+      div(flex="40",layout="column")
          md-card.is-flex.auto-flex.inner-card(layout="column")
             md-toolbar.md-theme-light-blue
                div.md-toolbar-tools
                   h3 Upgrade Levels
-            md-content.is-flex.auto-flex.card-padding(style="flex-basis:50px",layout="column")
-               div(ng-if="!pet")
-                  span No Pets Purchased
+            md-content.is-flex.auto-flex.card-padding(style="flex-basis:20px;height:20px",layout="column")
+               div(ng-if="!pet") No Pets Purchased
+               table(ng-if="pet")
+                  tr
+                     th Stat
+                     th Level
+                     th Gift
+                     th
+                  tr(ng-repeat="(stat, level) in pet.scaleLevel")
+                     td {{petUpgradeData[stat].stat}}
+                     td
+                        span {{pet.scaleLevel[stat]+1}}/{{pet._configCache.scale[stat].length}}
+                     td
+                        span {{petUpgradeData[stat].gift.split('%gift').join(formatGift(stat, pet._configCache.scale[stat][pet.scaleLevel[stat]]))}}
+                     td
+                        md-button.inline-button.md-accent(ng-disabled="pet.scaleLevel[stat]+1 === pet._configCache.scale[stat].length",ng-click="upgradeStat(stat)") Upgrade
+                           md-tooltip Next Level Cost: {{pet._configCache.scaleCost[stat][pet.scaleLevel[stat]+1] | number:0}} gold
 
 script(id="buy-pet",type="text/ng-template")
    md-dialog

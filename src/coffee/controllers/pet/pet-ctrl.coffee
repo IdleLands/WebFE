@@ -23,7 +23,7 @@ angular.module 'IdleLands'
     $window.scrollTo 0, document.body.scrollHeight
 
     $scope.calcXpPercent = ->
-      $scope.xpPercent = ($scope.player.xp.__current / $scope.player.xp.maximum)*100
+      $scope.xpPercent = ($scope.pet.xp.__current / $scope.pet.xp.maximum)*100
 
     initializing = yes
 
