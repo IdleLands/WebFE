@@ -1,2 +1,2 @@
 angular.module 'IdleLands'
-  .factory 'BaseURL', -> 'https://api.idle.land'
+  .factory 'BaseURL', -> "#{window.location.protocol}//api.idle.land"
