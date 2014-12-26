@@ -17,7 +17,7 @@ angular.module 'IdleLands'
       parseInt (item._calcScore / $scope.player._baseStats.itemFindRange) * 100
 
     $scope.sellItem = (item) ->
-      #API.pet.sell {invSlot: item.overflowSlot}
+      API.pet.sellItem {itemslot: item.overflowSlot}
 
     $scope.swapItem = (item) ->
       #API.pet.swap {invSlot: item.overflowSlot}

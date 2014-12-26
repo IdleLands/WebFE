@@ -8,12 +8,12 @@ script(id="pet-inventory", type="text/ng-template")
                     div(ng-if="item.extraItemClass",class="{{itemUtilities.classToColor(item.extraItemClass)}}") {{item.extraText}}
 
                     div.text-center
-                        span.hover-cursor.fa.fa-fw.icon-money(ng-click="sellItem(item)")
+                        span.hover-cursor.fa.fa-fw.icon-money(ng-click="sellItem($index)")
                             md-tooltip Sell
-                        span.hover-cursor.fa.fa-fw.fa-shield(ng-click="equipItem(item)")
+                        span.hover-cursor.fa.fa-fw.fa-exchange(ng-click="equipItem($index)")
                             md-tooltip Equip
-                        span.hover-cursor.fa.fa-fw.fa-exchange(ng-click="swapItem(item)")
-                            md-tooltip Take
+                        span.hover-cursor.fa.fa-fw.fa-child(ng-click="swapItem($index)")
+                            md-tooltip Take from pet
 
                 div.md-tile-content.item-line
                     div

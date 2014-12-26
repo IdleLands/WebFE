@@ -16,14 +16,14 @@ angular.module 'IdleLands'
       return 0 if not item._calcScore or not $scope.pet._baseStats.itemFindRange
       parseInt (item._calcScore / $scope.pet._baseStats.itemFindRange) * 100
 
-    $scope.sellItem = (item) ->
-      #API.pet.sell {invSlot: item.overflowSlot}
+    $scope.sellItem = (itemSlot) ->
+      API.pet.sellItem {itemSlot: itemSlot}
 
-    $scope.swapItem = (item) ->
-      #API.pet.swap {invSlot: item.overflowSlot}
+    $scope.swapItem = (itemSlot) ->
+      API.pet.takeItem {itemSlot: itemSlot}
 
-    $scope.equipItem =  (item) ->
-      #API.pet.add {itemSlot: item.type}
+    $scope.equipItem =  (itemSlot) ->
+      API.pet.equipItem {itemSlot: itemSlot}
 
     $scope.$watch (-> Pet.getPet()), (newVal, oldVal) ->
       return if newVal is oldVal and (not newVal or not oldVal)
