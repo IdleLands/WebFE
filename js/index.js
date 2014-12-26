@@ -1272,9 +1272,10 @@
           return initializing = false;
         }, 0);
       };
-      return Player.observe().then(null, null, function() {
+      Player.observe().then(null, null, function() {
         return $scope.initialize();
       });
+      return $scope.initialize();
     }
   ]);
 

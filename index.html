@@ -160,14 +160,16 @@
         <md-content class="card-padding">
           <div ng-if="!pet"><span>No Pets Purchased</span></div>
           <div layout="row" ng-if="pet">
-            <div flex="25" class="vital-stat"><span class="fa fa-fw fa-heart fa-lg text-red vertical-center">
-                <md-tooltip>Max HP</md-tooltip></span><span>&nbsp;</span><small>{{pet.hp.maximum}}</small></div>
-            <div flex="25" class="vital-stat"><span class="fa fa-fw fa-magic fa-lg text-blue vertical-center">
-                <md-tooltip>Max MP</md-tooltip></span><span>&nbsp;</span><small>{{pet.mp.maximum}}</small></div>
-            <div flex="25" class="vital-stat"><span class="fa fa-fw fa-asterisk fa-lg text-yellow vertical-center">
+            <div flex="33" class="vital-stat"><span class="fa fa-fw fa-heart fa-lg text-red vertical-center">
+                <md-tooltip>Max HP</md-tooltip></span><span>&nbsp;</span><small>{{pet.hp.maximum | number:0 }}</small></div>
+            <div flex="33" class="vital-stat"><span class="fa fa-fw fa-magic fa-lg text-blue vertical-center">
+                <md-tooltip>Max MP</md-tooltip></span><span>&nbsp;</span><small>{{pet.mp.maximum | number:0}}</small></div>
+            <div flex="33" class="vital-stat"><span class="fa fa-fw fa-asterisk fa-lg text-yellow vertical-center">
                 <md-tooltip>Special Stat</md-tooltip></span><span>&nbsp;</span><small>{{pet.special.name || 'None'}}</small></div>
+          </div>
+          <div layout="row" ng-if="pet">
             <div flex="25" class="vital-stat"><span class="fa fa-fw icon-money fa-lg text-gold vertical-center">
-                <md-tooltip>Gold</md-tooltip></span><span>&nbsp;</span><small>{{pet.gold.__current}}</small></div>
+                <md-tooltip>Gold</md-tooltip></span><span>&nbsp;</span><small>{{pet.gold.__current | number:0}}</small></div>
           </div>
           <div layout="row" ng-if="pet" class="wrap-container">
             <div ng-repeat="stat in equipmentStatArray" flex="25" class="vital-stat"><span class="fa fa-fw fa-lg vertical-center {{stat.fa}}">
@@ -196,7 +198,7 @@
               <md-button ng-click="toggleSmart('Self')" class="inline-button md-primary">Smart Self</md-button>
             </div>
             <div class="vital-stat"><span class="fa fa-fw icon-money"></span>
-              <md-button ng-click="takeGold()" class="inline-button md-primary">Take Pet Gold</md-button>
+              <md-button ng-click="takePetGold()" class="inline-button md-primary">Take Pet Gold</md-button>
             </div>
             <div class="vital-stat"><span class="fa fa-fw fa-cutlery"></span>
               <md-button ng-click="feedPet()" class="inline-button md-primary">Feed Pet</md-button>
@@ -556,14 +558,16 @@
         </md-toolbar>
         <md-content class="card-padding">
           <div layout="row">
-            <div flex="25" class="vital-stat"><span class="fa fa-fw fa-heart fa-lg text-red vertical-center">
-                <md-tooltip>Max HP</md-tooltip></span><span>&nbsp;</span><small>{{player.hp.maximum}}</small></div>
-            <div flex="25" class="vital-stat"><span class="fa fa-fw fa-magic fa-lg text-blue vertical-center">
-                <md-tooltip>Max MP</md-tooltip></span><span>&nbsp;</span><small>{{player.mp.maximum}}</small></div>
-            <div flex="25" class="vital-stat"><span class="fa fa-fw fa-asterisk fa-lg text-yellow vertical-center">
+            <div flex="33" class="vital-stat"><span class="fa fa-fw fa-heart fa-lg text-red vertical-center">
+                <md-tooltip>Max HP</md-tooltip></span><span>&nbsp;</span><small>{{player.hp.maximum | number:0}}</small></div>
+            <div flex="33" class="vital-stat"><span class="fa fa-fw fa-magic fa-lg text-blue vertical-center">
+                <md-tooltip>Max MP</md-tooltip></span><span>&nbsp;</span><small>{{player.mp.maximum | number:0}}</small></div>
+            <div flex="33" class="vital-stat"><span class="fa fa-fw fa-asterisk fa-lg text-yellow vertical-center">
                 <md-tooltip>Special Stat</md-tooltip></span><span>&nbsp;</span><small>{{player.special.name || 'None'}}</small></div>
-            <div flex="25" class="vital-stat"><span class="fa fa-fw icon-money fa-lg text-gold vertical-center">
-                <md-tooltip>Gold</md-tooltip></span><span>&nbsp;</span><small>{{player.gold.__current}}</small></div>
+          </div>
+          <div layout="row">
+            <div flex="100" class="vital-stat"><span class="fa fa-fw icon-money fa-lg text-gold vertical-center">
+                <md-tooltip>Gold</md-tooltip></span><span>&nbsp;</span><small>{{player.gold.__current | number:0}}</small></div>
           </div>
           <div layout="row" class="wrap-container">
             <div ng-repeat="stat in equipmentStatArray" flex="25" class="vital-stat"><span class="fa fa-fw fa-lg vertical-center {{stat.fa}}">
