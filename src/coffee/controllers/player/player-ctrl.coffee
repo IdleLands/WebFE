@@ -74,8 +74,5 @@ angular.module 'IdleLands'
         initializing = no
       , 0
 
-    $scope.$watch (->$state.current.data.selectedTab), (newVal) ->
-      $timeout ->
-        $scope.selectedIndex = newVal
-      , 0
+    $scope.selectedIndex = $state.current.data.selectedTab
 ]
