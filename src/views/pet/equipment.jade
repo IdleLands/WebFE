@@ -1,38 +1,40 @@
 script(id="pet-equipment", type="text/ng-template")
     md-list.flex-scroll
-        md-item(ng-repeat="item in petItems track by $index")
-            md-item-content
-                div.md-tile-left.class-badge.text-center.align-left-list-item
-                    div(class="{{classToColor(item.itemClass)}}") {{item.type}}
-                        md-tooltip {{item.itemClass}}
-                    div(ng-if="item.extraItemClass",class="{{classToColor(item.extraItemClass)}}") {{item.extraText}}
+        md-item(ng-repeat="item in petSoulEtc track by $index")
+            md-item-content(ng-include="'pet-equipment-item'")
+        md-item(ng-repeat="item in sortedPetEquipment track by $index")
+            md-item-content(ng-include="'pet-equipment-item'")
 
-                    div.text-center
-                        span.hover-cursor.fa.fa-fw.icon-money(ng-click="sellItem(item)")
-                            md-tooltip Sell
-                        span.hover-cursor.fa.fa-fw.fa-shield(ng-click="equipItem(item)")
-                            md-tooltip Equip
-                        span.hover-cursor.fa.fa-fw.fa-exchange(ng-click="swapItem(item)")
-                            md-tooltip Take
+script(id="pet-equipment-item", type="text/ng-template")
+    div.md-tile-left.class-badge.text-center.align-left-list-item
+        div(class="{{itemUtilities.classToColor(item.itemClass)}}") {{item.type}}
+            md-tooltip {{item.itemClass}}
+        div(ng-if="item.extraItemClass",class="{{itemUtilities.classToColor(item.extraItemClass)}}") {{item.extraText}}
 
-                div.md-tile-content.item-line
-                    div
-                        span.super-bold {{item.enchantLevel ? '+'+item.enchantLevel+' ' : ''}} {{item.name}}
-                        small(ng-if="item.foundAt")
-                            span , found
-                            span &nbsp;
-                            span(am-time-ago="item.foundAt")
-                            span , with a Player Relativity of
-                            span &nbsp;{{petItemScore(item)}}%&nbsp;
-                            span and an Item Relativity of
-                            span &nbsp;{{itemItemScore(item)}}%
-                    div.top-margin-5.wrap-container(layout="row")
-                        span(ng-repeat="stat in equipmentStatArray",flex="8")
-                            span.fa.fa-fw.fa-lg(class="{{stat.fa}}")
-                                md-tooltip {{stat.name}}
-                            span &nbsp;
-                            small(class="{{valueToColor(item[stat.name])}}") {{item[stat.name]}}
-                            small &nbsp;/&nbsp;
-                            small(class="{{valueToColor(item[stat.name+'Percent'])}}") {{item[stat.name+'Percent']}}%
-                    div.top-margin-5
-                        small {{getExtraStats(item)}}
+        div.text-center(ng-if="!item.hideButtons")
+            span.hover-cursor.fa.fa-fw.fa-exchange(ng-click="unequipItem(item)")
+                md-tooltip Unequip
+
+    div.md-tile-content.item-line
+        div
+            span.super-bold {{item.enchantLevel ? '+'+item.enchantLevel+' ' : ''}} {{item.name}}
+            small(ng-if="item.foundAt && !item.hideButtons")
+                span , found
+                span &nbsp;
+                span(am-time-ago="item.foundAt")
+                span , with a Player Relativity of
+                span &nbsp;{{petItemScore(item)}}%&nbsp;
+                span and an Item Relativity of
+                span &nbsp;{{itemItemScore(item)}}%
+
+        div.top-margin-5.wrap-container(layout="row")
+            span(ng-repeat="stat in itemUtilities.equipmentStatArray",flex="8")
+                span.fa.fa-fw.fa-lg(class="{{stat.fa}}")
+                    md-tooltip {{stat.name}}
+                span &nbsp;
+                small(class="{{valueToColor(item[stat.name])}}") {{item[stat.name]}}
+                small &nbsp;/&nbsp;
+                small(class="{{valueToColor(item[stat.name+'Percent'])}}") {{item[stat.name+'Percent']}}%
+
+        div.top-margin-5
+            small {{getExtraStats(item)}}
