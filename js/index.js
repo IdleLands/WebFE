@@ -170,11 +170,7 @@
   angular.module('IdleLands').controller('Head', [
     '$scope', '$interval', 'TurnTaker', 'CurrentPlayer', function($scope, $interval, TurnTaker, Player) {
       $scope.player = null;
-      $scope._player = Player;
-      return $scope.$watch('_player.getPlayer()', function(newVal, oldVal) {
-        if (newVal === oldVal) {
-          return;
-        }
+      return Player.observe().then(null, null, function(newVal) {
         $scope.player = newVal;
         return TurnTaker.beginTakingTurns($scope.player);
       });
@@ -233,14 +229,19 @@
         });
       };
       return $scope.sendLogin = function(data) {
+        var failure, success;
         $scope.isSubmitting = true;
-        return API.auth.login(data).then(function(res) {
+        success = function(res) {
           if (res.data.isSuccess) {
             CredentialCache.setCreds(data);
             goToPlayerView();
           }
           return $scope.isSubmitting = false;
-        });
+        };
+        failure = function(res) {
+          return $scope.isSubmitting = false;
+        };
+        return API.auth.login(data).then(success, failure);
       };
     }
   ]);
@@ -250,7 +251,6 @@
 (function() {
   angular.module('IdleLands').controller('Pet', [
     '$scope', '$state', '$window', '$timeout', 'CurrentPet', 'CurrentPlayer', 'CredentialCache', 'TurnTaker', function($scope, $state, $window, $timeout, Pet, Player, CredentialCache, TurnTaker) {
-      var initializing;
       if (!Player.getPlayer()) {
         CredentialCache.tryLogin().then((function() {
           if (!Player.getPlayer()) {
@@ -274,7 +274,6 @@
       $scope.calcXpPercent = function() {
         return $scope.xpPercent = ($scope.pet.xp.__current / $scope.pet.xp.maximum) * 100;
       };
-      initializing = true;
       $scope.valueToColor = function(value) {
         if (value < 0) {
           return 'text-red';
@@ -283,18 +282,12 @@
           return 'text-green';
         }
       };
-      $scope.$watch((function() {
-        return Pet.getPet();
-      }), function(newVal, oldVal) {
-        if (newVal === oldVal) {
-          return;
-        }
-        initializing = true;
+      $scope.initialize = function() {
+        return $scope.calcXpPercent();
+      };
+      Pet.observe().then(null, null, function(newVal) {
         $scope.pet = newVal;
-        $scope.calcXpPercent();
-        return $timeout(function() {
-          return initializing = false;
-        }, 0);
+        return $scope.initialize();
       });
       return $scope.selectedIndex = $state.current.data.selectedTab;
     }
@@ -365,15 +358,10 @@
           itemUid: item.uid
         });
       };
-      return $scope.$watch((function() {
-        return Pet.getPet();
-      }), function(newVal, oldVal) {
-        if (newVal === oldVal && (!newVal || !oldVal)) {
-          return;
-        }
-        $scope.pet = newVal;
+      Pet.observe().then(null, null, function() {
         return $scope.sortPetItems();
       });
+      return $scope.sortPetItems();
     }
   ]);
 
@@ -425,17 +413,15 @@
           itemSlot: itemSlot
         });
       };
-      return $scope.$watch((function() {
-        return Pet.getPet();
-      }), function(newVal, oldVal) {
-        if (newVal === oldVal && (!newVal || !oldVal)) {
-          return;
-        }
-        $scope.pet = newVal;
+      $scope.initialize = function() {
         $scope.petSlots = _.keys($scope.pet._configCache.slots);
         $scope.slotsTaken = _.countBy($scope.pet.equipment, 'type');
         return $scope.sortPetItems();
+      };
+      Pet.observe().then(null, null, function() {
+        return $scope.initialize();
       });
+      return $scope.initialize();
     }
   ]);
 
@@ -444,8 +430,6 @@
 (function() {
   angular.module('IdleLands').controller('PetOverview', [
     '$scope', '$timeout', '$mdDialog', 'CurrentPet', 'CurrentPets', 'CurrentPlayer', 'API', '$state', function($scope, $timeout, $mdDialog, Pet, Pets, Player, API, $state) {
-      var initializing;
-      initializing = true;
       $scope.equipmentStatArray = [
         {
           name: 'str',
@@ -643,34 +627,17 @@
           return !pet.isActive;
         });
       };
-      $scope.$watch((function() {
-        return Pet.getPet();
-      }), function(newVal, oldVal) {
-        if (newVal === oldVal && (!newVal || !oldVal)) {
-          return;
-        }
-        initializing = true;
-        $scope.pet = newVal;
-        return $timeout(function() {
-          return initializing = false;
-        }, 0);
+      $scope.initialize = function() {
+        $scope.pets = Pets.getPets();
+        return $scope.player = Player.getPlayer();
+      };
+      Pets.observe().then(null, null, function() {
+        return $scope.pets = Pets.getPets();
       });
-      $scope.$watch((function() {
-        return Player.getPlayer();
-      }), function(newVal, oldVal) {
-        if (newVal === oldVal) {
-          return;
-        }
-        return $scope.player = newVal;
+      Player.observe().then(null, null, function() {
+        return $scope.player = Player.getPlayer();
       });
-      return $scope.$watch((function() {
-        return Pets.getPets();
-      }), function(newVal, oldVal) {
-        if (newVal === oldVal) {
-          return;
-        }
-        return $scope.pets = newVal;
-      });
+      return $scope.initialize();
     }
   ]);
 
@@ -704,8 +671,8 @@
 
 (function() {
   angular.module('IdleLands').controller('PlayerAchievements', [
-    '$scope', 'CurrentPlayer', function($scope, Player) {
-      $scope.achievementTypeToIcon = {
+    '$scope', function($scope) {
+      return $scope.achievementTypeToIcon = {
         'class': ['fa-child'],
         'event': ['fa-info'],
         'combat': ['fa-legal', 'fa-magic fa-rotate-90'],
@@ -714,14 +681,6 @@
         'exploration': ['fa-compass'],
         'progress': ['fa-signal']
       };
-      return $scope.$watch((function() {
-        return Player.getPlayer();
-      }), function(newVal, oldVal) {
-        if (newVal === oldVal && (!newVal || !oldVal)) {
-          return;
-        }
-        return $scope.player = newVal;
-      });
     }
   ]);
 
@@ -741,36 +700,20 @@
         }
         return message;
       };
-      return $scope.$watch((function() {
-        return CurrentBattle.getBattle();
-      }), function(newVal) {
-        return $scope.currentBattle = newVal;
-      });
+      return $scope.currentBattle = CurrentBattle.getBattle();
     }
   ]);
 
 }).call(this);
 
 (function() {
-  angular.module('IdleLands').controller('PlayerCollectibles', [
-    '$scope', 'CurrentPlayer', function($scope, Player) {
-      return $scope.$watch((function() {
-        return Player.getPlayer();
-      }), function(newVal, oldVal) {
-        if (newVal === oldVal && (!newVal || !oldVal)) {
-          return;
-        }
-        return $scope.player = newVal;
-      });
-    }
-  ]);
+  angular.module('IdleLands').controller('PlayerCollectibles', ['$scope', function() {}]);
 
 }).call(this);
 
 (function() {
   angular.module('IdleLands').controller('Player', [
     '$scope', '$state', '$window', '$timeout', '$mdToast', 'API', 'CurrentPlayer', 'TurnTaker', 'CredentialCache', 'OptionsCache', function($scope, $state, $window, $timeout, $mdToast, API, Player, TurnTaker, CredentialCache, OptionsCache) {
-      var initializing;
       if (!Player.getPlayer()) {
         CredentialCache.tryLogin().then((function() {
           if (!Player.getPlayer()) {
@@ -790,15 +733,14 @@
       }
       OptionsCache.load(['scrollback']);
       $scope.options = OptionsCache.getOpts();
-      $scope._player = Player;
       $scope.xpPercent = 0;
       $scope.statisticsKeys = {};
       $scope._ = $window._;
       $window.scrollTo(0, document.body.scrollHeight);
       $scope.calcXpPercent = function() {
-        return $scope.xpPercent = ($scope.player.xp.__current / $scope.player.xp.maximum) * 100;
+        var _ref, _ref1;
+        return $scope.xpPercent = (((_ref = $scope.player) != null ? _ref.xp.__current : void 0) / ((_ref1 = $scope.player) != null ? _ref1.xp.maximum : void 0)) * 100;
       };
-      initializing = true;
       $scope.logout = function() {
         Player.setPlayer(null);
         CredentialCache.doLogout();
@@ -819,14 +761,20 @@
         return scrollback = (angular.element('.scrollback-toast'))[classFunc]('hidden');
       };
       $timeout($scope.handleScrollback, 3000);
-      $scope.$watch((function() {
-        return TurnTaker.getSeconds();
-      }), function(newVal, oldVal) {
-        if (newVal === oldVal) {
-          return;
-        }
+      $scope.turnTimeValue = 0;
+      TurnTaker.observe().then(null, null, function(newVal) {
         return $scope.turnTimeValue = newVal * 10;
       });
+      $scope.initialize = function() {
+        var _ref;
+        $scope.player = Player.getPlayer();
+        $window.scrollback.nick = (_ref = $scope.player) != null ? _ref.name : void 0;
+        return $scope.calcXpPercent();
+      };
+      Player.observe().then(null, null, function() {
+        return $scope.initialize();
+      });
+      $scope.initialize();
       $scope.$watch('options', function(newVal, oldVal) {
         if (newVal === oldVal) {
           return;
@@ -834,18 +782,6 @@
         OptionsCache.saveAll();
         return $scope.handleScrollback();
       }, true);
-      $scope.$watch('_player.getPlayer()', function(newVal, oldVal) {
-        if (newVal === oldVal) {
-          return;
-        }
-        initializing = true;
-        $scope.player = newVal;
-        $window.scrollback.nick = newVal.name;
-        $scope.calcXpPercent();
-        return $timeout(function() {
-          return initializing = false;
-        }, 0);
-      });
       return $scope.selectedIndex = $state.current.data.selectedTab;
     }
   ]);
@@ -951,15 +887,10 @@
           itemSlot: item.overflowSlot
         });
       };
-      return $scope.$watch((function() {
-        return Player.getPlayer();
-      }), function(newVal, oldVal) {
-        if (newVal === oldVal && (!newVal || !oldVal)) {
-          return;
-        }
-        $scope.player = newVal;
+      Player.observe().then(null, null, function() {
         return $scope.sortPlayerItems();
       });
+      return $scope.sortPlayerItems();
     }
   ]);
 
@@ -1040,24 +971,18 @@
         }, 0);
         return null;
       };
-      $scope.$watch((function() {
-        return CurrentMap.getMap();
-      }), function(newVal, oldVal) {
-        if (newVal === oldVal) {
-          return;
-        }
-        $scope.currentMap = newVal;
+      $scope.initializeMap = function() {
+        $scope.currentMap = CurrentMap.getMap();
         return game != null ? game.state.restart() : void 0;
+      };
+      CurrentMap.observe().then(null, null, function() {
+        return $scope.initializeMap();
       });
-      return $scope.$watch((function() {
-        return Player.getPlayer();
-      }), function(newVal, oldVal) {
-        if (newVal === oldVal && (!newVal || !oldVal)) {
-          return;
-        }
-        $scope.player = newVal;
+      $scope.initializeMap();
+      Player.observe().then(null, null, function() {
         return $scope.drawMap();
       });
+      return $scope.drawMap();
     }
   ]);
 
@@ -1074,8 +999,9 @@
         values: []
       };
       $scope.buildStringList = function() {
-        $scope.strings.keys = _.keys($scope.player.messages);
-        $scope.strings.values = _.values($scope.player.messages);
+        var _ref, _ref1;
+        $scope.strings.keys = _.keys((_ref = $scope.player) != null ? _ref.messages : void 0);
+        $scope.strings.values = _.values((_ref1 = $scope.player) != null ? _ref1.messages : void 0);
         return $scope.strings.keys.push('');
       };
       $scope.updateStrings = function() {
@@ -1177,19 +1103,18 @@
           });
         });
       }, true);
-      return $scope.$watch((function() {
-        return Player.getPlayer();
-      }), function(newVal, oldVal) {
-        if (newVal === oldVal && (!newVal || !oldVal)) {
-          return;
-        }
+      $scope.initialize = function() {
         initializing = true;
-        $scope.player = newVal;
+        $scope.player = Player.getPlayer();
         $scope.buildStringList();
         return $timeout(function() {
           return initializing = false;
         }, 0);
+      };
+      Player.observe().then(null, null, function() {
+        return $scope.initialize();
       });
+      return $scope.initialize();
     }
   ]);
 
@@ -1303,14 +1228,19 @@
         return API.battle.get({
           battleId: id
         }).then(function(res) {
-          CurrentBattle.setBattle(res.data.battle);
-          if (res.data.battle) {
-            return $state.go('player.battle');
+          if (!res.data.battle) {
+            return;
           }
+          CurrentBattle.setBattle(res.data.battle);
+          $scope.$parent.$parent.selectedIndex = 3;
+          return $timeout(function() {
+            return $state.go('player.battle');
+          }, 0);
         });
       };
       $scope.loadPersonalities = function() {
-        return _.each($scope.player.personalityStrings, function(personality) {
+        var _ref;
+        return _.each((_ref = $scope.player) != null ? _ref.personalityStrings : void 0, function(personality) {
           return $scope.personalityToggle[personality] = true;
         });
       };
@@ -1334,18 +1264,16 @@
           return $scope.setPersonality(pers, propDiff[pers]);
         });
       });
-      return $scope.$watch((function() {
-        return Player.getPlayer();
-      }), function(newVal, oldVal) {
-        if (newVal === oldVal && (!newVal || !oldVal)) {
-          return;
-        }
+      $scope.initialize = function() {
         initializing = true;
-        $scope.player = newVal;
+        $scope.player = Player.getPlayer();
         $scope.loadPersonalities();
         return $timeout(function() {
           return initializing = false;
         }, 0);
+      };
+      return Player.observe().then(null, null, function() {
+        return $scope.initialize();
       });
     }
   ]);
@@ -1365,15 +1293,13 @@
         });
         return $scope.statisticsKeys[family] = _.keys(base);
       };
-      return $scope.$watch((function() {
-        return Player.getPlayer();
-      }), function(newVal, oldVal) {
-        if (newVal === oldVal && (!newVal || !oldVal)) {
-          return;
-        }
-        $scope.player = newVal;
+      $scope.initialize = function() {
         return _.each(['calculated', 'combat self', 'event', 'explore', 'player'], $scope.getAllStatisticsInFamily);
+      };
+      Player.observe().then(null, null, function() {
+        return $scope.initialize();
       });
+      return $scope.initialize();
     }
   ]);
 
@@ -2111,33 +2037,32 @@
 
 (function() {
   angular.module('IdleLands').factory('CurrentMap', [
-    '$rootScope', 'CurrentPlayer', '$http', 'BaseURL', function($root, Player, $http, baseURL) {
-      var map, player;
+    'CurrentPlayer', '$q', '$http', 'BaseURL', function(Player, $q, $http, baseURL) {
+      var defer, map, mapName, setMap;
       map = null;
-      player = null;
-      $root.$watch((function() {
-        return Player.getPlayer();
-      }), function(newVal, oldVal) {
-        if (newVal === oldVal) {
+      mapName = null;
+      defer = $q.defer();
+      setMap = function(newMap) {
+        map = newMap;
+        return defer.notify(map);
+      };
+      Player.observe().then(null, null, function(player) {
+        if (player.map === mapName) {
           return;
         }
-        return player = newVal;
-      });
-      $root.$watch((function() {
-        return player != null ? player.map : void 0;
-      }), function(newVal, oldVal) {
-        if (newVal === oldVal) {
-          return;
-        }
+        mapName = player.map;
         return $http.post("" + baseURL + "/game/map", {
-          map: newVal
+          map: player.map
         }).then(function(res) {
-          return map = res.data.map;
+          return setMap(res.data.map);
         });
       });
       return {
         getMap: function() {
           return map;
+        },
+        observe: function() {
+          return defer.promise;
         }
       };
     }
@@ -2179,50 +2104,71 @@
 }).call(this);
 
 (function() {
-  angular.module('IdleLands').factory('CurrentPet', function() {
-    var pet;
-    pet = null;
-    return {
-      getPet: function() {
-        return pet;
-      },
-      setPet: function(newPet) {
-        return pet = newPet;
-      }
-    };
-  });
+  angular.module('IdleLands').factory('CurrentPet', [
+    '$q', function($q) {
+      var defer, pet;
+      pet = null;
+      defer = $q.defer();
+      return {
+        observe: function() {
+          return defer.promise;
+        },
+        getPet: function() {
+          return pet;
+        },
+        setPet: function(newPet) {
+          pet = newPet;
+          return defer.notify(pet);
+        }
+      };
+    }
+  ]);
 
 }).call(this);
 
 (function() {
-  angular.module('IdleLands').factory('CurrentPets', function() {
-    var pets;
-    pets = null;
-    return {
-      getPets: function() {
-        return pets;
-      },
-      setPets: function(newPets) {
-        return pets = newPets;
-      }
-    };
-  });
+  angular.module('IdleLands').factory('CurrentPets', [
+    '$q', function($q) {
+      var defer, pets;
+      pets = null;
+      defer = $q.defer();
+      return {
+        observe: function() {
+          return defer.promise;
+        },
+        getPets: function() {
+          return pets;
+        },
+        setPets: function(newPets) {
+          pets = newPets;
+          return defer.notify(pets);
+        }
+      };
+    }
+  ]);
 
 }).call(this);
 
 (function() {
-  angular.module('IdleLands').factory('CurrentPlayer', function() {
-    var player;
-    player = null;
-    return {
-      getPlayer: function() {
-        return player;
-      },
-      setPlayer: function(newPlayer) {
-        return player = newPlayer;
-      }
-    };
-  });
+  angular.module('IdleLands').factory('CurrentPlayer', [
+    '$q', function($q) {
+      var defer, player;
+      player = null;
+      defer = $q.defer();
+      return {
+        observe: function() {
+          return defer.promise;
+        },
+        getPlayer: function() {
+          return player;
+        },
+        setPlayer: function(newPlayer) {
+          player = newPlayer;
+          return defer.notify(player);
+        }
+      };
+    }
+  ]);
 
 }).call(this);
 
@@ -2253,11 +2199,16 @@
 
 (function() {
   angular.module('IdleLands').factory('TurnTaker', [
-    '$interval', 'API', function($interval, API) {
-      var seconds, timeInterval, turnInterval;
+    '$interval', '$q', 'API', function($interval, $q, API) {
+      var defer, seconds, setSeconds, timeInterval, turnInterval;
       seconds = 0;
       turnInterval = null;
       timeInterval = null;
+      defer = $q.defer();
+      setSeconds = function(newVal) {
+        seconds = newVal;
+        return defer.notify(seconds);
+      };
       return {
         beginTakingTurns: function(player) {
           if (!player) {
@@ -2271,12 +2222,12 @@
           API.action.turn({
             identifier: player.identifier
           });
-          seconds = 0;
+          setSeconds(0);
           timeInterval = $interval(function() {
-            return seconds++;
+            return setSeconds(seconds + 1);
           }, 1000);
           return turnInterval = $interval(function() {
-            seconds = 0;
+            setSeconds(0);
             return API.action.turn({
               identifier: player.identifier
             });
@@ -2284,6 +2235,9 @@
         },
         getSeconds: function() {
           return seconds;
+        },
+        observe: function() {
+          return defer.promise;
         }
       };
     }
