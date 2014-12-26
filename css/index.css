@@ -229,29 +229,38 @@ body {
   background-color: #fff;
 }
 
-#player-tabs {
+#player-tabs,
+#pet-tabs {
   display: flex;
 }
 #player-tabs .md-tabs-content,
+#pet-tabs .md-tabs-content,
 #player-tabs .md-tab-content,
-#player-tabs .tab {
+#pet-tabs .md-tab-content,
+#player-tabs .tab,
+#pet-tabs .tab {
   display: flex;
   flex-direction: column;
   flex: 1 1 auto;
 }
-#player-tabs .item-line {
+#player-tabs .item-line,
+#pet-tabs .item-line {
   margin-left: 10px;
 }
-#player-tabs .vital-stat {
+#player-tabs .vital-stat,
+#pet-tabs .vital-stat {
   padding-bottom: 8px;
 }
-#player-tabs md-list {
+#player-tabs md-list,
+#pet-tabs md-list {
   padding: 0;
 }
-#player-tabs .xeditable-form-button {
+#player-tabs .xeditable-form-button,
+#pet-tabs .xeditable-form-button {
   margin-left: 5px;
 }
-#player-tabs .adventure-log-entry {
+#player-tabs .adventure-log-entry,
+#pet-tabs .adventure-log-entry {
   min-height: 70px;
 }
 .player-xp .md-container {

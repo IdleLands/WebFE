@@ -22,17 +22,52 @@
       $httpProvider.interceptors.push('TokenInterceptor');
       $httpProvider.interceptors.push('ToastInterceptor');
       $httpProvider.interceptors.push('PlayerInterceptor');
+      $httpProvider.interceptors.push('PetInterceptor');
+      $httpProvider.interceptors.push('PetsInterceptor');
       $httpProvider.interceptors.push('ReloginInterceptor');
-      $urp.otherwise('/');
+      $urp.otherwise('/login');
       $urp.when('/player', '/player/overview');
-      return $sp.state('home', {
-        url: '/',
-        templateUrl: 'home',
-        controller: 'Home'
-      }).state('login', {
+      return $sp.state('login', {
         url: '/login',
         templateUrl: 'login',
         controller: 'Login'
+      }).state('pet', {
+        url: '/pet',
+        templateUrl: 'pet',
+        controller: 'Pet'
+      }).state('pet.overview', {
+        url: '/overview',
+        data: {
+          selectedTab: 0
+        },
+        views: {
+          'petoverview': {
+            templateUrl: 'pet-overview',
+            controller: 'PetOverview'
+          }
+        }
+      }).state('pet.equipment', {
+        url: '/equipment',
+        data: {
+          selectedTab: 1
+        },
+        views: {
+          'petequipment': {
+            templateUrl: 'pet-equipment',
+            controller: 'PetEquipment'
+          }
+        }
+      }).state('pet.inventory', {
+        url: '/inventory',
+        data: {
+          selectedTab: 2
+        },
+        views: {
+          'petinventory': {
+            templateUrl: 'pet-inventory',
+            controller: 'PetInventory'
+          }
+        }
       }).state('player', {
         url: '/player',
         templateUrl: 'player',
@@ -133,7 +168,7 @@
 
 (function() {
   angular.module('IdleLands').controller('Head', [
-    '$scope', '$interval', 'TurnTaker', 'Player', function($scope, $interval, TurnTaker, Player) {
+    '$scope', '$interval', 'TurnTaker', 'CurrentPlayer', function($scope, $interval, TurnTaker, Player) {
       $scope.player = null;
       $scope._player = Player;
       return $scope.$watch('_player.getPlayer()', function(newVal, oldVal) {
@@ -213,8 +248,463 @@
 }).call(this);
 
 (function() {
+  angular.module('IdleLands').controller('Pet', [
+    '$scope', '$state', '$window', '$timeout', 'CurrentPet', 'CurrentPlayer', 'CredentialCache', 'TurnTaker', function($scope, $state, $window, $timeout, Pet, Player, CredentialCache, TurnTaker) {
+      var initializing;
+      if (!Player.getPlayer()) {
+        CredentialCache.tryLogin().then((function() {
+          if (!Player.getPlayer()) {
+            $mdToast.show({
+              template: "<md-toast>You don't appear to be logged in! Redirecting you to the login page...</md-toast>"
+            });
+            return $state.go('login');
+          } else {
+            return TurnTaker.beginTakingTurns(Player.getPlayer());
+          }
+        }), (function() {
+          $mdToast.show({
+            template: "<md-toast>You don't appear to be logged in! Redirecting you to the login page...</md-toast>"
+          });
+          return $state.go('login');
+        }));
+      }
+      $scope.xpPercent = 0;
+      $scope._ = $window._;
+      $window.scrollTo(0, document.body.scrollHeight);
+      $scope.calcXpPercent = function() {
+        return $scope.xpPercent = ($scope.pet.xp.__current / $scope.pet.xp.maximum) * 100;
+      };
+      initializing = true;
+      $scope.valueToColor = function(value) {
+        if (value < 0) {
+          return 'text-red';
+        }
+        if (value > 0) {
+          return 'text-green';
+        }
+      };
+      $scope.$watch((function() {
+        return Pet.getPet();
+      }), function(newVal, oldVal) {
+        if (newVal === oldVal) {
+          return;
+        }
+        initializing = true;
+        $scope.pet = newVal;
+        $scope.calcXpPercent();
+        return $timeout(function() {
+          return initializing = false;
+        }, 0);
+      });
+      return $scope.selectedIndex = $state.current.data.selectedTab;
+    }
+  ]);
+
+}).call(this);
+
+(function() {
+  angular.module('IdleLands').controller('PetEquipment', [
+    '$scope', 'CurrentPet', 'ItemUtilities', 'API', function($scope, Pet, ItemUtilities, API) {
+      $scope.itemUtilities = ItemUtilities;
+      $scope.organizePetItems = function() {
+        return $scope.sortedPetEquipment = _($scope.pet.equipment).reject(function(item) {
+          return item.type === 'pet soul';
+        }).sortBy(function(item) {
+          return item.type;
+        }).value();
+      };
+      $scope.getPetSoulAndTotals = function() {
+        var items, oldItems, petSoul, test;
+        oldItems = $scope.petItems;
+        items = [];
+        test = _.reduce(oldItems, function(prev, cur) {
+          var key, val;
+          for (key in cur) {
+            val = cur[key];
+            if (!(key in prev) && _.isNumber(val)) {
+              prev[key] = 0;
+            }
+            if (_.isNumber(val)) {
+              prev[key] += val;
+            }
+          }
+          return prev;
+        }, {
+          name: 'Equipment Stat Totals',
+          type: 'TOTAL',
+          itemClass: 'total',
+          hideButtons: true
+        });
+        items.push(test);
+        petSoul = _.findWhere(oldItems, {
+          type: 'pet soul'
+        });
+        petSoul.hideButtons = true;
+        items.push(petSoul);
+        return items;
+      };
+      $scope.sortPetItems = function() {
+        $scope.petItems = $scope.pet.equipment;
+        $scope.petSoulEtc = $scope.getPetSoulAndTotals();
+        return $scope.organizePetItems();
+      };
+      $scope.itemItemScore = function(item) {
+        if (!item._baseScore || !item._calcScore) {
+          return 0;
+        }
+        return parseInt((item._calcScore / item._baseScore) * 100);
+      };
+      $scope.petItemScore = function(item) {
+        if (!item._calcScore || !$scope.player._baseStats.itemFindRange) {
+          return 0;
+        }
+        return parseInt((item._calcScore / $scope.player._baseStats.itemFindRange) * 100);
+      };
+      $scope.unequipItem = function(item) {
+        return API.pet.unequipItem({
+          itemUid: item.uid
+        });
+      };
+      return $scope.$watch((function() {
+        return Pet.getPet();
+      }), function(newVal, oldVal) {
+        if (newVal === oldVal && (!newVal || !oldVal)) {
+          return;
+        }
+        $scope.pet = newVal;
+        return $scope.sortPetItems();
+      });
+    }
+  ]);
+
+}).call(this);
+
+(function() {
+  angular.module('IdleLands').controller('PetInventory', [
+    '$scope', 'CurrentPet', 'ItemUtilities', 'API', function($scope, Pet, ItemUtilities, API) {
+      $scope.itemUtilities = ItemUtilities;
+      $scope.canEquipItem = function(item) {
+        if (!_.contains($scope.petSlots, item.type)) {
+          return false;
+        }
+        if ($scope.slotsTaken[item.type] === $scope.pet._configCache.slots[item.type]) {
+          return false;
+        }
+        return true;
+      };
+      $scope.sortPetItems = function() {
+        return $scope.petItems = $scope.pet.inventory;
+      };
+      $scope.itemItemScore = function(item) {
+        if (!item._baseScore || !item._calcScore) {
+          return 0;
+        }
+        return parseInt((item._calcScore / item._baseScore) * 100);
+      };
+      $scope.petItemScore = function(item) {
+        if (!item._calcScore || !$scope.pet._baseStats.itemFindRange) {
+          return 0;
+        }
+        return parseInt((item._calcScore / $scope.pet._baseStats.itemFindRange) * 100);
+      };
+      $scope.sellItem = function(itemSlot) {
+        return API.pet.sellItem({
+          itemSlot: itemSlot
+        });
+      };
+      $scope.swapItem = function(itemSlot) {
+        return API.pet.takeItem({
+          itemSlot: itemSlot
+        });
+      };
+      $scope.equipItem = function(item, itemSlot) {
+        if (!$scope.canEquipItem(item)) {
+          return;
+        }
+        return API.pet.equipItem({
+          itemSlot: itemSlot
+        });
+      };
+      return $scope.$watch((function() {
+        return Pet.getPet();
+      }), function(newVal, oldVal) {
+        if (newVal === oldVal && (!newVal || !oldVal)) {
+          return;
+        }
+        $scope.pet = newVal;
+        $scope.petSlots = _.keys($scope.pet._configCache.slots);
+        $scope.slotsTaken = _.countBy($scope.pet.equipment, 'type');
+        return $scope.sortPetItems();
+      });
+    }
+  ]);
+
+}).call(this);
+
+(function() {
+  angular.module('IdleLands').controller('PetOverview', [
+    '$scope', '$timeout', '$mdDialog', 'CurrentPet', 'CurrentPets', 'CurrentPlayer', 'API', '$state', function($scope, $timeout, $mdDialog, Pet, Pets, Player, API, $state) {
+      var initializing;
+      initializing = true;
+      $scope.equipmentStatArray = [
+        {
+          name: 'str',
+          fa: 'fa-legal fa-rotate-90'
+        }, {
+          name: 'dex',
+          fa: 'fa-crosshairs'
+        }, {
+          name: 'agi',
+          fa: 'fa-bicycle'
+        }, {
+          name: 'con',
+          fa: 'fa-heart'
+        }, {
+          name: 'int',
+          fa: 'fa-mortar-board'
+        }, {
+          name: 'wis',
+          fa: 'fa-book'
+        }, {
+          name: 'luck',
+          fa: 'fa-moon-o'
+        }, {
+          name: 'fire',
+          fa: 'fa-fire'
+        }, {
+          name: 'water',
+          fa: 'icon-water'
+        }, {
+          name: 'thunder',
+          fa: 'fa-bolt'
+        }, {
+          name: 'earth',
+          fa: 'fa-leaf'
+        }, {
+          name: 'ice',
+          fa: 'icon-snow'
+        }
+      ];
+      $scope.getGenderFor = function(player) {
+        switch (player.gender) {
+          case 'male':
+            return 'male';
+          case 'female':
+            return 'female';
+          default:
+            return 'question';
+        }
+      };
+      $scope.getTypeIcon = function(pet) {
+        switch (pet._configCache.category) {
+          case 'Non-Combat':
+            return 'book';
+          case 'Combat':
+            return 'bomb';
+          default:
+            return 'adjust';
+        }
+      };
+      $scope.pets = [];
+      $scope.toPlayerView = function() {
+        return $state.go('player.overview');
+      };
+      $scope.boughtPets = function() {
+        var pets;
+        pets = 0;
+        _.each(_.keys($scope.player.foundPets), function(petKey) {
+          if ($scope.player.foundPets[petKey].purchaseDate) {
+            return pets++;
+          }
+        });
+        return pets;
+      };
+      $scope.availablePets = function() {
+        var pets, _ref;
+        pets = [];
+        _.each(_.keys((_ref = $scope.player) != null ? _ref.foundPets : void 0), function(petKey) {
+          var pet;
+          pet = $scope.player.foundPets[petKey];
+          if (pet.purchaseDate) {
+            return;
+          }
+          pet.type = petKey;
+          return pets.push(pet);
+        });
+        return pets;
+      };
+      $scope.tryToBuyPet = function(pet) {
+        if (!$scope.canBuyPet(pet)) {
+          return;
+        }
+        return $mdDialog.show({
+          templateUrl: 'buy-pet',
+          controller: 'PetBuy',
+          locals: {
+            petType: pet.type
+          }
+        });
+      };
+      $scope.canBuyPet = function(pet) {
+        return pet.cost <= $scope.player.gold.__current;
+      };
+      $scope.getSmartIcon = function(type) {
+        if (!$scope.pet) {
+          return;
+        }
+        if ($scope.pet["smart" + type]) {
+          return 'check';
+        } else {
+          return 'remove';
+        }
+      };
+      $scope.toggleSmart = function(type) {
+        type = "smart" + type;
+        return API.pet.setSmart({
+          option: type,
+          value: !$scope.pet[type]
+        });
+      };
+      $scope.doPetSwap = function(newPetUid) {
+        return API.pet.swapToPet({
+          petId: newPetUid
+        });
+      };
+      $scope.feedPet = function() {
+        return API.pet.feedPet();
+      };
+      $scope.takePetGold = function() {
+        return API.pet.takeGold();
+      };
+      $scope.upgradeStat = function(stat) {
+        return API.pet.upgradePet({
+          stat: stat
+        });
+      };
+      $scope.petUpgradeData = {
+        inventory: {
+          stat: 'Inventory Size',
+          gift: 'Inventory size is %gift'
+        },
+        maxLevel: {
+          stat: 'Max Level',
+          gift: 'Max level is %gift'
+        },
+        goldStorage: {
+          stat: 'Gold Storage',
+          gift: 'Gold storage is %gift'
+        },
+        battleJoinPercent: {
+          stat: 'Combat Aid Chance',
+          gift: 'Battle join chance is %gift'
+        },
+        itemFindBonus: {
+          stat: 'Item Find Bonus',
+          gift: 'Bonus to found items is %gift'
+        },
+        itemFindTimeDuration: {
+          stat: 'Item Find Time',
+          gift: 'New item every %gifts'
+        },
+        itemSellMultiplier: {
+          stat: 'Item Sell Bonus',
+          gift: 'Sell bonus is %gift'
+        },
+        itemFindRangeMultiplier: {
+          stat: 'Item Equip Bonus',
+          gift: 'Bonus to equipping is %gift'
+        },
+        maxItemScore: {
+          stat: 'Max Item Score',
+          gift: 'Highest findable score is %gift'
+        },
+        xpPerGold: {
+          stat: 'XP / gold',
+          gift: 'Gain %gift xp per gold fed to pet'
+        }
+      };
+      $scope.formatGift = function(key, gift) {
+        switch (key) {
+          case 'battleJoinPercent':
+            return "" + gift + "%";
+          case 'goldStorage':
+            return _.str.numberFormat(gift);
+          case 'itemFindBonus':
+            return "+" + gift;
+          case 'itemFindRangeMultiplier':
+          case 'itemSellMultiplier':
+            return "" + (Math.round(gift * 100)) + "%";
+          default:
+            return gift;
+        }
+      };
+      $scope.getPetsInOrder = function() {
+        return _.sortBy($scope.pets, function(pet) {
+          return !pet.isActive;
+        });
+      };
+      $scope.$watch((function() {
+        return Pet.getPet();
+      }), function(newVal, oldVal) {
+        if (newVal === oldVal && (!newVal || !oldVal)) {
+          return;
+        }
+        initializing = true;
+        $scope.pet = newVal;
+        return $timeout(function() {
+          return initializing = false;
+        }, 0);
+      });
+      $scope.$watch((function() {
+        return Player.getPlayer();
+      }), function(newVal, oldVal) {
+        if (newVal === oldVal) {
+          return;
+        }
+        return $scope.player = newVal;
+      });
+      return $scope.$watch((function() {
+        return Pets.getPets();
+      }), function(newVal, oldVal) {
+        if (newVal === oldVal) {
+          return;
+        }
+        return $scope.pets = newVal;
+      });
+    }
+  ]);
+
+  angular.module('IdleLands').controller('PetBuy', [
+    '$scope', '$mdDialog', 'petType', 'API', function($scope, $mdDialog, petType, API) {
+      $scope.newPet = {
+        name: '',
+        attr1: 'a monocle',
+        attr2: 'a top hat'
+      };
+      $scope.petType = petType;
+      $scope.cancel = $mdDialog.hide;
+      return $scope.purchase = function() {
+        var petAttrs;
+        petAttrs = {
+          type: petType,
+          attrs: [$scope.newPet.attr1, $scope.newPet.attr2],
+          name: $scope.newPet.name
+        };
+        return API.pet.buyPet(petAttrs).then(function(res) {
+          if (!res.data.isSuccess) {
+            return;
+          }
+          return $mdDialog.hide();
+        });
+      };
+    }
+  ]);
+
+}).call(this);
+
+(function() {
   angular.module('IdleLands').controller('PlayerAchievements', [
-    '$scope', 'Player', function($scope, Player) {
+    '$scope', 'CurrentPlayer', function($scope, Player) {
       $scope.achievementTypeToIcon = {
         'class': ['fa-child'],
         'event': ['fa-info'],
@@ -263,7 +753,7 @@
 
 (function() {
   angular.module('IdleLands').controller('PlayerCollectibles', [
-    '$scope', 'Player', function($scope, Player) {
+    '$scope', 'CurrentPlayer', function($scope, Player) {
       return $scope.$watch((function() {
         return Player.getPlayer();
       }), function(newVal, oldVal) {
@@ -279,7 +769,7 @@
 
 (function() {
   angular.module('IdleLands').controller('Player', [
-    '$scope', '$state', '$window', '$timeout', '$mdToast', 'API', 'Player', 'TurnTaker', 'CredentialCache', 'OptionsCache', function($scope, $state, $window, $timeout, $mdToast, API, Player, TurnTaker, CredentialCache, OptionsCache) {
+    '$scope', '$state', '$window', '$timeout', '$mdToast', 'API', 'CurrentPlayer', 'TurnTaker', 'CredentialCache', 'OptionsCache', function($scope, $state, $window, $timeout, $mdToast, API, Player, TurnTaker, CredentialCache, OptionsCache) {
       var initializing;
       if (!Player.getPlayer()) {
         CredentialCache.tryLogin().then((function() {
@@ -356,13 +846,7 @@
           return initializing = false;
         }, 0);
       });
-      return $scope.$watch((function() {
-        return $state.current.data.selectedTab;
-      }), function(newVal) {
-        return $timeout(function() {
-          return $scope.selectedIndex = newVal;
-        }, 0);
-      });
+      return $scope.selectedIndex = $state.current.data.selectedTab;
     }
   ]);
 
@@ -370,101 +854,8 @@
 
 (function() {
   angular.module('IdleLands').controller('PlayerEquipment', [
-    '$scope', 'Player', 'API', function($scope, Player, API) {
-      $scope.equipmentStatArray = [
-        {
-          name: 'str',
-          fa: 'fa-legal fa-rotate-90'
-        }, {
-          name: 'dex',
-          fa: 'fa-crosshairs'
-        }, {
-          name: 'agi',
-          fa: 'fa-bicycle'
-        }, {
-          name: 'con',
-          fa: 'fa-heart'
-        }, {
-          name: 'int',
-          fa: 'fa-mortar-board'
-        }, {
-          name: 'wis',
-          fa: 'fa-book'
-        }, {
-          name: 'luck',
-          fa: 'fa-moon-o'
-        }, {
-          name: 'fire',
-          fa: 'fa-fire'
-        }, {
-          name: 'water',
-          fa: 'icon-water'
-        }, {
-          name: 'thunder',
-          fa: 'fa-bolt'
-        }, {
-          name: 'earth',
-          fa: 'fa-leaf'
-        }, {
-          name: 'ice',
-          fa: 'icon-snow'
-        }
-      ];
-      $scope.extendedEquipmentStatArray = $scope.equipmentStatArray.concat({
-        name: 'sentimentality'
-      }, {
-        name: 'piety'
-      }, {
-        name: 'enchantLevel'
-      }, {
-        name: 'shopSlot'
-      }, {
-        name: 'overflowSlot'
-      }, {
-        name: '_calcScore'
-      }, {
-        name: '_baseScore'
-      });
-      $scope.classToColor = function(itemClass) {
-        switch (itemClass) {
-          case 'newbie':
-            return 'bg-maroon';
-          case 'basic':
-            return 'bg-gray';
-          case 'pro':
-            return 'bg-purple';
-          case 'idle':
-            return 'bg-rainbow';
-          case 'godly':
-            return 'bg-black';
-          case 'custom':
-            return 'bg-blue';
-          case 'guardian':
-            return 'bg-cyan';
-          case 'extra':
-            return 'bg-orange';
-          case 'total':
-            return 'bg-teal';
-          case 'shop':
-            return 'bg-darkblue';
-        }
-      };
-      $scope.getExtraStats = function(item) {
-        var keys;
-        keys = _.filter(_.compact(_.keys(item)), function(key) {
-          return _.isNumber(item[key]);
-        });
-        _.each($scope.extendedEquipmentStatArray, function(stat) {
-          keys = _.without(keys, stat.name);
-          return keys = _.without(keys, "" + stat.name + "Percent");
-        });
-        keys = _.reject(keys, function(key) {
-          return item[key] === 0;
-        });
-        return _.map(keys, function(key) {
-          return "" + key + " (" + item[key] + ")";
-        }).join(', ');
-      };
+    '$scope', 'CurrentPlayer', 'ItemUtilities', 'API', function($scope, Player, ItemUtilities, API) {
+      $scope.itemUtilities = ItemUtilities;
       $scope.getEquipmentAndTotals = function(oldItems) {
         var items, test;
         items = _.clone(oldItems);
@@ -555,6 +946,11 @@
           shopSlot: item.shopSlot
         });
       };
+      $scope.sendToPet = function(item) {
+        return API.pet.giveItem({
+          itemSlot: item.overflowSlot
+        });
+      };
       return $scope.$watch((function() {
         return Player.getPlayer();
       }), function(newVal, oldVal) {
@@ -571,7 +967,7 @@
 
 (function() {
   angular.module('IdleLands').controller('PlayerMap', [
-    '$scope', '$timeout', 'Player', 'CurrentMap', 'BaseURL', function($scope, $timeout, Player, CurrentMap, BaseURL) {
+    '$scope', '$timeout', 'CurrentPlayer', 'CurrentMap', 'BaseURL', function($scope, $timeout, Player, CurrentMap, BaseURL) {
       var game, mapName, newMapName, sprite, text, textForPlayer;
       $scope.currentMap = {};
       sprite = null;
@@ -669,7 +1065,7 @@
 
 (function() {
   angular.module('IdleLands').controller('PlayerOptions', [
-    '$scope', '$timeout', 'Player', 'OptionsCache', 'API', function($scope, $timeout, Player, OptionsCache, API) {
+    '$scope', '$timeout', 'CurrentPlayer', 'OptionsCache', 'API', function($scope, $timeout, Player, OptionsCache, API) {
       var initializing, isChanging;
       initializing = true;
       $scope.options = OptionsCache.getOpts();
@@ -801,7 +1197,7 @@
 
 (function() {
   angular.module('IdleLands').controller('PlayerOverview', [
-    '$scope', '$timeout', '$interval', '$state', 'Player', 'API', 'CurrentBattle', 'FunMessages', function($scope, $timeout, $interval, $state, Player, API, CurrentBattle, FunMessages) {
+    '$scope', '$timeout', '$interval', '$state', 'CurrentPlayer', 'API', 'CurrentBattle', 'FunMessages', function($scope, $timeout, $interval, $state, Player, API, CurrentBattle, FunMessages) {
       var initializing;
       initializing = true;
       $scope.personalityToggle = {};
@@ -885,6 +1281,19 @@
           }
         }, 6000);
       };
+      $scope.toPetView = function() {
+        return $state.go('pet.overview');
+      };
+      $scope.boughtPets = function() {
+        var pets, _ref;
+        pets = 0;
+        _.each(_.keys((_ref = $scope.player) != null ? _ref.foundPets : void 0), function(petKey) {
+          if ($scope.player.foundPets[petKey].purchaseDate) {
+            return pets++;
+          }
+        });
+        return pets;
+      };
       $scope.clickOnEvent = function(extraData) {
         if (extraData.battleId) {
           return $scope.retrieveBattle(extraData.battleId);
@@ -945,7 +1354,7 @@
 
 (function() {
   angular.module('IdleLands').controller('PlayerStatistics', [
-    '$scope', 'Player', function($scope, Player) {
+    '$scope', 'CurrentPlayer', function($scope, Player) {
       $scope.getAllStatisticsInFamily = function(family) {
         var base;
         if (!$scope.player) {
@@ -1053,15 +1462,47 @@
 }).call(this);
 
 (function() {
+  angular.module('IdleLands').factory('PetInterceptor', [
+    'CurrentPet', function(CurrentPet) {
+      return {
+        response: function(response) {
+          if (response.data.pet) {
+            CurrentPet.setPet(response.data.pet);
+          }
+          return response;
+        }
+      };
+    }
+  ]);
+
+}).call(this);
+
+(function() {
+  angular.module('IdleLands').factory('PetsInterceptor', [
+    'CurrentPets', function(CurrentPets) {
+      return {
+        response: function(response) {
+          if (response.data.pets) {
+            CurrentPets.setPets(response.data.pets);
+          }
+          return response;
+        }
+      };
+    }
+  ]);
+
+}).call(this);
+
+(function() {
   angular.module('IdleLands').factory('PlayerInterceptor', [
-    'Player', function(Player) {
+    'CurrentPlayer', function(CurrentPlayer) {
       return {
         request: function(request) {
           var player, _ref;
           if (!request.data) {
             request.data = {};
           }
-          player = Player.getPlayer();
+          player = CurrentPlayer.getPlayer();
           if (((_ref = request.data) != null ? _ref.token : void 0) && player) {
             request.data.identifier = player.identifier;
           }
@@ -1069,7 +1510,7 @@
         },
         response: function(response) {
           if (response.data.player) {
-            Player.setPlayer(response.data.player);
+            CurrentPlayer.setPlayer(response.data.player);
           }
           return response;
         }
@@ -1170,7 +1611,7 @@
 
 (function() {
   angular.module('IdleLands').factory('API', [
-    'Authentication', 'Action', 'Battle', 'Personality', 'Pushbullet', 'Strings', 'Gender', 'Inventory', 'Shop', 'Priority', function(Authentication, Action, Battle, Personality, Pushbullet, Strings, Gender, Inventory, Shop, Priority) {
+    'Authentication', 'Action', 'Battle', 'Personality', 'Pushbullet', 'Strings', 'Gender', 'Inventory', 'Shop', 'Priority', 'Pet', function(Authentication, Action, Battle, Personality, Pushbullet, Strings, Gender, Inventory, Shop, Priority, Pet) {
       return {
         auth: Authentication,
         action: Action,
@@ -1181,7 +1622,8 @@
         strings: Strings,
         gender: Gender,
         inventory: Inventory,
-        shop: Shop
+        shop: Shop,
+        pet: Pet
       };
     }
   ]);
@@ -1277,6 +1719,54 @@
         },
         remove: function(data) {
           return $http.post("" + url + "/remove", data);
+        }
+      };
+    }
+  ]);
+
+}).call(this);
+
+(function() {
+  angular.module('IdleLands').factory('Pet', [
+    '$http', 'BaseURL', function($http, baseURL) {
+      var url;
+      url = "" + baseURL + "/pet";
+      return {
+        buyPet: function(data) {
+          return $http.put("" + url + "/buy", data);
+        },
+        upgradePet: function(data) {
+          return $http.post("" + url + "/upgrade", data);
+        },
+        feedPet: function(data) {
+          return $http.put("" + url + "/feed", data);
+        },
+        takeGold: function(data) {
+          return $http.post("" + url + "/takeGold", data);
+        },
+        changeClass: function(data) {
+          return $http.patch("" + url + "/class", data);
+        },
+        setSmart: function(data) {
+          return $http.put("" + url + "/smart", data);
+        },
+        swapToPet: function(data) {
+          return $http.patch("" + url + "/swap", data);
+        },
+        giveItem: function(data) {
+          return $http.put("" + url + "/inventory/give", data);
+        },
+        takeItem: function(data) {
+          return $http.post("" + url + "/inventory/take", data);
+        },
+        sellItem: function(data) {
+          return $http.patch("" + url + "/inventory/sell", data);
+        },
+        equipItem: function(data) {
+          return $http.put("" + url + "/inventory/equip", data);
+        },
+        unequipItem: function(data) {
+          return $http.post("" + url + "/inventory/unequip", data);
         }
       };
     }
@@ -1513,8 +2003,115 @@
 }).call(this);
 
 (function() {
+  angular.module('IdleLands').factory('ItemUtilities', function() {
+    var equipmentStatArray, extendedEquipmentStatArray;
+    equipmentStatArray = [
+      {
+        name: 'str',
+        fa: 'fa-legal fa-rotate-90'
+      }, {
+        name: 'dex',
+        fa: 'fa-crosshairs'
+      }, {
+        name: 'agi',
+        fa: 'fa-bicycle'
+      }, {
+        name: 'con',
+        fa: 'fa-heart'
+      }, {
+        name: 'int',
+        fa: 'fa-mortar-board'
+      }, {
+        name: 'wis',
+        fa: 'fa-book'
+      }, {
+        name: 'luck',
+        fa: 'fa-moon-o'
+      }, {
+        name: 'fire',
+        fa: 'fa-fire'
+      }, {
+        name: 'water',
+        fa: 'icon-water'
+      }, {
+        name: 'thunder',
+        fa: 'fa-bolt'
+      }, {
+        name: 'earth',
+        fa: 'fa-leaf'
+      }, {
+        name: 'ice',
+        fa: 'icon-snow'
+      }
+    ];
+    extendedEquipmentStatArray = equipmentStatArray.concat({
+      name: 'sentimentality'
+    }, {
+      name: 'piety'
+    }, {
+      name: 'enchantLevel'
+    }, {
+      name: 'shopSlot'
+    }, {
+      name: 'overflowSlot'
+    }, {
+      name: 'uid'
+    }, {
+      name: '_calcScore'
+    }, {
+      name: '_baseScore'
+    });
+    return {
+      equipmentStatArray: equipmentStatArray,
+      extendedEquipmentStatArray: extendedEquipmentStatArray,
+      classToColor: function(itemClass) {
+        switch (itemClass) {
+          case 'newbie':
+            return 'bg-maroon';
+          case 'basic':
+            return 'bg-gray';
+          case 'pro':
+            return 'bg-purple';
+          case 'idle':
+            return 'bg-rainbow';
+          case 'godly':
+            return 'bg-black';
+          case 'custom':
+            return 'bg-blue';
+          case 'guardian':
+            return 'bg-cyan';
+          case 'extra':
+            return 'bg-orange';
+          case 'total':
+            return 'bg-teal';
+          case 'shop':
+            return 'bg-darkblue';
+        }
+      },
+      getExtraStats: function(item) {
+        var keys;
+        keys = _.filter(_.compact(_.keys(item)), function(key) {
+          return _.isNumber(item[key]);
+        });
+        _.each(extendedEquipmentStatArray, function(stat) {
+          keys = _.without(keys, stat.name);
+          return keys = _.without(keys, "" + stat.name + "Percent");
+        });
+        keys = _.reject(keys, function(key) {
+          return item[key] === 0;
+        });
+        return _.map(keys, function(key) {
+          return "" + key + " (" + item[key] + ")";
+        }).join(', ');
+      }
+    };
+  });
+
+}).call(this);
+
+(function() {
   angular.module('IdleLands').factory('CurrentMap', [
-    '$rootScope', 'Player', '$http', 'BaseURL', function($root, Player, $http, baseURL) {
+    '$rootScope', 'CurrentPlayer', '$http', 'BaseURL', function($root, Player, $http, baseURL) {
       var map, player;
       map = null;
       player = null;
@@ -1582,7 +2179,39 @@
 }).call(this);
 
 (function() {
-  angular.module('IdleLands').factory('Player', function() {
+  angular.module('IdleLands').factory('CurrentPet', function() {
+    var pet;
+    pet = null;
+    return {
+      getPet: function() {
+        return pet;
+      },
+      setPet: function(newPet) {
+        return pet = newPet;
+      }
+    };
+  });
+
+}).call(this);
+
+(function() {
+  angular.module('IdleLands').factory('CurrentPets', function() {
+    var pets;
+    pets = null;
+    return {
+      getPets: function() {
+        return pets;
+      },
+      setPets: function(newPets) {
+        return pets = newPets;
+      }
+    };
+  });
+
+}).call(this);
+
+(function() {
+  angular.module('IdleLands').factory('CurrentPlayer', function() {
     var player;
     player = null;
     return {
