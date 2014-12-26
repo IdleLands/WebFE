@@ -232,7 +232,7 @@
           </div>
         </md-toolbar>
         <md-content style="flex-basis:60px;height:60px" layout="column" ng-if="availablePets().length !== 0" class="is-flex auto-flex card-padding">
-          <div style="align-items:center" flex="100" ng-repeat="pet in availablePets()" layout="row" class="is-flex top-margin-5">
+          <div style="align-items:center" flex="100" ng-repeat="pet in availablePets()" layout="row" class="is-flex auto-flex adventure-log-item">
             <div flex="10" ng-class="{'text-green hover-cursor animated-hover': canBuyPet(pet), 'text-red': !canBuyPet(pet)}" class="vertical-center text-center faa-parent"><span ng-click="tryToBuyPet(pet)" class="fa fa-fw fa-lg icon-money faa-shake"></span></div>
             <div flex="90">Unlock {{pet.type}} - {{pet.cost | number:0}} gold</div>
           </div>
@@ -243,7 +243,7 @@
           </div>
         </md-toolbar>
         <md-content style="flex-basis:60px;height:60px" layout="column" ng-if="pets.length" class="is-flex auto-flex">
-          <div style="align-items:center" flex="100" ng-repeat="pet in getPetsInOrder()" layout="row" class="is-flex top-margin-5">
+          <div style="align-items:center" flex="100" ng-repeat="pet in getPetsInOrder()" layout="row" class="is-flex auto-flex adventure-log-item">
             <div flex="10" class="vertical-center text-center faa-parent animated-hover hover-cursor"><span ng-class="{'text-green': pet.isActive, 'text-gray': !pet.isActive}" ng-click="doPetSwap(pet.createdAt)" class="fa fa-fw fa-lg fa-certificate faa-spin"></span></div>
             <div flex="90">
               <div>{{pet.name}}, the {{pet.type}}</div>
@@ -622,7 +622,7 @@
           </div>
         </md-toolbar>
         <md-content style="flex-basis:80px;height:80px" layout="column" class="is-flex auto-flex">
-          <div style="align-items:center" flex="100" ng-repeat="event in player.recentEvents | reverse" layout="row" class="is-flex top-margin-5">
+          <div flex="100" ng-repeat="event in player.recentEvents | reverse" layout="row" class="is-flex auto-flex adventure-log-item">
             <div flex="10" class="fa-stack vertical-center"><span ng-repeat="item in $parent.eventTypeToIcon[event.type]" ng-click="clickOnEvent(event.extra)" class="fa fa-fw fa-stack-2x {{item}} {{event.extra.battleId ? 'hover-cursor' : ''}}"></span></div>
             <div flex="90"><small am-time-ago="event.createdAt"></small>
               <div>{{event.message}}</div>
@@ -639,7 +639,7 @@
           </div>
         </md-toolbar>
         <md-content style="flex-basis:50px;height:50px" layout="column" class="is-flex auto-flex">
-          <div ng-repeat="personality in player.achievements | filter:{type:'personality'}" class="is-flex auto-flex">
+          <div ng-repeat="personality in player.achievements | filter:{type:'personality'}" class="is-flex auto-flex adventure-log-item">
             <div flex="30">
               <md-switch ng-model="personalityToggle[personality._personality]" aria-label="{{personality._personality}}" class="personality-switch"></md-switch>
             </div>
