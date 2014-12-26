@@ -4,7 +4,7 @@ script(id='login-register', type='text/ng-template')
             md-text-float(label="Character Name",ng-model="register.name")
             md-text-float(label="Password",ng-model="register.password",type="password")
             md-checkbox.no-margin-left(ng-model="register.remember") Remember Me
-            md-button.md-raised.md-primary(ng-disabled="isSubmitting",ng-click="doRegister()")
+            md-button.md-raised.md-primary(ng-disabled="isSubmitting",ng-click="doRegister()",aria-label="Register button")
                 span(ng-if="!isSubmitting") Register
                 span(ng-if="isSubmitting") Registering...
     div.tab-text.box-text(flex="50", offset="15", layout="column", layout-align="space-around center")

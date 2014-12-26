@@ -4,7 +4,7 @@ script(id='login-advlogin', type='text/ng-template')
             md-text-float(label="Identifier",ng-model="advLogin.identifier")
             md-text-float(label="Password",ng-model="advLogin.password",type="password")
             md-checkbox.no-margin-left(ng-model="advLogin.remember") Remember Me
-            md-button.md-raised.md-primary(ng-disabled="isSubmitting",ng-click="doAdvancedLogin()")
+            md-button.md-raised.md-primary(ng-disabled="isSubmitting",ng-click="doAdvancedLogin()",aria-label="Login button")
                 span(ng-if="!isSubmitting") Log In
                 span(ng-if="isSubmitting") Logging in...
     div.tab-text.box-text(flex="50", offset="15", layout="column", layout-align="space-around center")
