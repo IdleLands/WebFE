@@ -71,6 +71,7 @@ module.exports = (grunt) ->
           {expand: yes, cwd: 'src/assets/img/', src: '*', dest: 'dist/img'}
           {expand: yes, cwd: 'bower_components/font-awesome/fonts/', src: '*', dest: 'dist/fonts'}
           {expand: yes, cwd: 'src/assets/', src: 'favicon.ico', dest: 'dist'}
+          {expand: yes, cwd: 'src/', src: 'CNAME', dest: 'dist'}
         ]
 
 
