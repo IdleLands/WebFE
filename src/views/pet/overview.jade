@@ -10,26 +10,27 @@ script(id="pet-overview", type="text/ng-template")
                div(ng-if="!pet")
                   span No Pets Purchased
                div(layout="row",ng-if="pet")
-                  div.vital-stat(flex="25")
+                  div.vital-stat(flex="33")
                      span.fa.fa-fw.fa-heart.fa-lg.text-red.vertical-center
                         md-tooltip Max HP
                      span &nbsp;
-                     small {{pet.hp.maximum}}
-                  div.vital-stat(flex="25")
+                     small {{pet.hp.maximum | number:0 }}
+                  div.vital-stat(flex="33")
                      span.fa.fa-fw.fa-magic.fa-lg.text-blue.vertical-center
                         md-tooltip Max MP
                      span &nbsp;
-                     small {{pet.mp.maximum}}
-                  div.vital-stat(flex="25")
+                     small {{pet.mp.maximum | number:0}}
+                  div.vital-stat(flex="33")
                      span.fa.fa-fw.fa-asterisk.fa-lg.text-yellow.vertical-center
                         md-tooltip Special Stat
                      span &nbsp;
                      small {{pet.special.name || 'None'}}
+               div(layout="row",ng-if="pet")
                   div.vital-stat(flex="25")
                      span.fa.fa-fw.icon-money.fa-lg.text-gold.vertical-center
                         md-tooltip Gold
                      span &nbsp;
-                     small {{pet.gold.__current}}
+                     small {{pet.gold.__current | number:0}}
 
                div.wrap-container(layout="row",ng-if="pet")
                   div.vital-stat(ng-repeat="stat in equipmentStatArray",flex="25")

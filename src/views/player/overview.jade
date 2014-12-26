@@ -8,26 +8,27 @@ script(id="player-overview", type="text/ng-template")
                   h3 Vitals
             md-content.card-padding
                div(layout="row")
-                  div.vital-stat(flex="25")
+                  div.vital-stat(flex="33")
                      span.fa.fa-fw.fa-heart.fa-lg.text-red.vertical-center
                         md-tooltip Max HP
                      span &nbsp;
-                     small {{player.hp.maximum}}
-                  div.vital-stat(flex="25")
+                     small {{player.hp.maximum | number:0}}
+                  div.vital-stat(flex="33")
                      span.fa.fa-fw.fa-magic.fa-lg.text-blue.vertical-center
                         md-tooltip Max MP
                      span &nbsp;
-                     small {{player.mp.maximum}}
-                  div.vital-stat(flex="25")
+                     small {{player.mp.maximum | number:0}}
+                  div.vital-stat(flex="33")
                      span.fa.fa-fw.fa-asterisk.fa-lg.text-yellow.vertical-center
                         md-tooltip Special Stat
                      span &nbsp;
                      small {{player.special.name || 'None'}}
-                  div.vital-stat(flex="25")
+               div(layout="row")
+                  div.vital-stat(flex="100")
                      span.fa.fa-fw.icon-money.fa-lg.text-gold.vertical-center
                         md-tooltip Gold
                      span &nbsp;
-                     small {{player.gold.__current}}
+                     small {{player.gold.__current | number:0}}
 
                div.wrap-container(layout="row")
                   div.vital-stat(ng-repeat="stat in equipmentStatArray",flex="25")
