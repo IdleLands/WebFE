@@ -11,5 +11,5 @@ angular.module 'IdleLands'
     #$loc.html5Mode yes if window.history?.pushState
   ]
 
-window.location = 'http://webfe.idle.land' if window.location.host isnt 'webfe.idle.land'
+window.location = 'http://webfe.idle.land' if window.location.host is 'idlelands.github.io'
 #window.location.protocol = 'https:' if window.location.host in ['idlelands.github.io', 'webfe.idle.land'] and window.location.protocol isnt 'https:'

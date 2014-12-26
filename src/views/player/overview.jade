@@ -86,8 +86,9 @@ script(id="player-overview", type="text/ng-template")
             md-toolbar.md-theme-light-blue
                div.md-toolbar-tools
                   h3 Adventure Log
+
             md-content.is-flex.auto-flex(style="flex-basis:80px;height:80px",layout="column")
-               div.is-flex.top-margin-5(style="align-items:center",flex="100",ng-repeat="event in player.recentEvents | reverse",layout="row")
+               div.is-flex.auto-flex.adventure-log-item(flex="100",ng-repeat="event in player.recentEvents | reverse",layout="row")
                   div.fa-stack.vertical-center(flex="10")
                      span.fa.fa-fw.fa-stack-2x(ng-repeat="item in $parent.eventTypeToIcon[event.type]",class="{{item}} {{event.extra.battleId ? 'hover-cursor' : ''}}", ng-click="clickOnEvent(event.extra)")
                   div(flex="90")
@@ -100,8 +101,9 @@ script(id="player-overview", type="text/ng-template")
                div.md-toolbar-tools
                   h3
                      a.fa.fa-question-circle(href="http://idlelands.github.io/IdleLands/#!/Player/Personalities",target="_blank") &nbsp;Your Personalities
+
             md-content.is-flex.auto-flex(style="flex-basis:50px;height:50px",layout="column")
-               div.is-flex.auto-flex(ng-repeat="personality in player.achievements | filter:{type:'personality'}")
+               div.is-flex.auto-flex.adventure-log-item(ng-repeat="personality in player.achievements | filter:{type:'personality'}")
                   div(flex="30")
                      md-switch.personality-switch(ng-model="personalityToggle[personality._personality]",aria-label="{{personality._personality}}")
                   div(flex="70")
