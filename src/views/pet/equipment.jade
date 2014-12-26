@@ -1,11 +1,11 @@
-script(id="pet-inventory", type="text/ng-template")
+script(id="pet-equipment", type="text/ng-template")
     md-list.flex-scroll
         md-item(ng-repeat="item in petItems track by $index")
             md-item-content
                 div.md-tile-left.class-badge.text-center.align-left-list-item
-                    div(class="{{itemUtilities.classToColor(item.itemClass)}}") {{item.type}}
+                    div(class="{{classToColor(item.itemClass)}}") {{item.type}}
                         md-tooltip {{item.itemClass}}
-                    div(ng-if="item.extraItemClass",class="{{itemUtilities.classToColor(item.extraItemClass)}}") {{item.extraText}}
+                    div(ng-if="item.extraItemClass",class="{{classToColor(item.extraItemClass)}}") {{item.extraText}}
 
                     div.text-center
                         span.hover-cursor.fa.fa-fw.icon-money(ng-click="sellItem(item)")
@@ -27,7 +27,7 @@ script(id="pet-inventory", type="text/ng-template")
                             span and an Item Relativity of
                             span &nbsp;{{itemItemScore(item)}}%
                     div.top-margin-5.wrap-container(layout="row")
-                        span(ng-repeat="stat in itemUtilities.equipmentStatArray",flex="8")
+                        span(ng-repeat="stat in equipmentStatArray",flex="8")
                             span.fa.fa-fw.fa-lg(class="{{stat.fa}}")
                                 md-tooltip {{stat.name}}
                             span &nbsp;
@@ -35,4 +35,4 @@ script(id="pet-inventory", type="text/ng-template")
                             small &nbsp;/&nbsp;
                             small(class="{{valueToColor(item[stat.name+'Percent'])}}") {{item[stat.name+'Percent']}}%
                     div.top-margin-5
-                        small {{itemUtilities.getExtraStats(item)}}
+                        small {{getExtraStats(item)}}

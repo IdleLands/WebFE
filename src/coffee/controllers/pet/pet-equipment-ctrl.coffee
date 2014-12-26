@@ -1,5 +1,5 @@
 angular.module 'IdleLands'
-.controller 'PetInventory', [
+.controller 'PetEquipment', [
   '$scope', 'CurrentPet', 'ItemUtilities', 'API'
   ($scope, Pet, ItemUtilities, API) ->
 
@@ -13,8 +13,8 @@ angular.module 'IdleLands'
       parseInt (item._calcScore / item._baseScore) * 100
 
     $scope.petItemScore = (item) ->
-      return 0 if not item._calcScore or not $scope.pet._baseStats.itemFindRange
-      parseInt (item._calcScore / $scope.pet._baseStats.itemFindRange) * 100
+      return 0 if not item._calcScore or not $scope.player._baseStats.itemFindRange
+      parseInt (item._calcScore / $scope.player._baseStats.itemFindRange) * 100
 
     $scope.sellItem = (item) ->
       #API.pet.sell {invSlot: item.overflowSlot}
