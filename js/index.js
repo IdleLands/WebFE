@@ -1,6 +1,4 @@
 (function() {
-  var _ref;
-
   angular.module('IdleLands', ['ngMaterial', 'ngSanitize', 'angularMoment', 'ui.router', 'LocalStorageModule', 'xeditable']);
 
   angular.module('IdleLands').run([
@@ -13,11 +11,7 @@
   angular.module('IdleLands').config(['$locationProvider', function($loc) {}]);
 
   if (window.location.host !== 'webfe.idle.land') {
-    window.location = 'https://webfe.idle.land';
-  }
-
-  if (((_ref = window.location.host) === 'idlelands.github.io' || _ref === 'webfe.idle.land') && window.location.protocol !== 'https:') {
-    window.location.protocol = 'https:';
+    window.location = 'http://webfe.idle.land';
   }
 
 }).call(this);
