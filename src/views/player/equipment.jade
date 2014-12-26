@@ -18,6 +18,8 @@ script(id="player-equipment", type="text/ng-template")
                             md-tooltip Sell
                         span.hover-cursor.fa.fa-fw.fa-exchange(ng-if="item.extraItemClass",ng-click="swapItem(item)")
                             md-tooltip Swap
+                        span.hover-cursor.fa.fa-fw.fa-paw(ng-if="item.extraItemClass",ng-click="sendToPet(item)")
+                            md-tooltip Send to pet
 
                     //in shop
                     div.text-center(ng-if="_.isNumber(item.shopSlot)")
