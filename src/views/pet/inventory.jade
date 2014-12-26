@@ -10,7 +10,7 @@ script(id="pet-inventory", type="text/ng-template")
                     div.text-center
                         span.hover-cursor.fa.fa-fw.icon-money(ng-click="sellItem($index)")
                             md-tooltip Sell
-                        span.hover-cursor.fa.fa-fw.fa-exchange(ng-click="equipItem($index)")
+                        span.hover-cursor.fa.fa-fw.fa-exchange(ng-click="equipItem(item, $index)",ng-class="{'text-red': !canEquipItem(item)}")
                             md-tooltip Equip
                         span.hover-cursor.fa.fa-fw.fa-child(ng-click="swapItem($index)")
                             md-tooltip Take from pet

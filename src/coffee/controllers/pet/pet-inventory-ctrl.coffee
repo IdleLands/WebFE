@@ -5,6 +5,12 @@ angular.module 'IdleLands'
 
     $scope.itemUtilities = ItemUtilities
 
+    $scope.canEquipItem = (item) ->
+      return no if not _.contains $scope.petSlots, item.type
+      return no if $scope.slotsTaken[item.type] is $scope.pet._configCache.slots[item.type]
+
+      yes
+
     $scope.sortPetItems = ->
       $scope.petItems = $scope.pet.inventory
 
@@ -22,12 +28,15 @@ angular.module 'IdleLands'
     $scope.swapItem = (itemSlot) ->
       API.pet.takeItem {itemSlot: itemSlot}
 
-    $scope.equipItem =  (itemSlot) ->
+    $scope.equipItem =  (item, itemSlot) ->
+      return if not $scope.canEquipItem item
       API.pet.equipItem {itemSlot: itemSlot}
 
     $scope.$watch (-> Pet.getPet()), (newVal, oldVal) ->
       return if newVal is oldVal and (not newVal or not oldVal)
       $scope.pet = newVal
+      $scope.petSlots = _.keys $scope.pet._configCache.slots
+      $scope.slotsTaken = _.countBy $scope.pet.equipment, 'type'
       $scope.sortPetItems()
 
 ]
