@@ -127,4 +127,6 @@ angular.module 'IdleLands'
     Player.observe().then null, null, ->
       $scope.initialize()
 
+    $scope.initialize()
+
 ]
