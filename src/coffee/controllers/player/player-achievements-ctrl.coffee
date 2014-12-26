@@ -1,7 +1,7 @@
 angular.module 'IdleLands'
 .controller 'PlayerAchievements', [
-  '$scope', 'CurrentPlayer'
-  ($scope, Player) ->
+  '$scope',
+  ($scope) ->
 
     $scope.achievementTypeToIcon =
       'class': ['fa-child']
@@ -11,9 +11,4 @@ angular.module 'IdleLands'
       'personality': ['fa-group']
       'exploration': ['fa-compass']
       'progress': ['fa-signal']
-
-    $scope.$watch (-> Player.getPlayer()), (newVal, oldVal) ->
-      return if newVal is oldVal and (not newVal or not oldVal)
-      $scope.player = newVal
-
 ]

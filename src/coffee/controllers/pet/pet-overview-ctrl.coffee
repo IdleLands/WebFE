@@ -3,8 +3,6 @@ angular.module 'IdleLands'
   '$scope', '$timeout', '$mdDialog', 'CurrentPet', 'CurrentPets', 'CurrentPlayer', 'API', '$state',
   ($scope, $timeout, $mdDialog, Pet, Pets, Player, API, $state) ->
 
-    initializing = yes
-
     $scope.equipmentStatArray = [
       {name: 'str', fa: 'fa-legal fa-rotate-90'}
       {name: 'dex', fa: 'fa-crosshairs'}
@@ -140,24 +138,14 @@ angular.module 'IdleLands'
     $scope.getPetsInOrder = ->
       _.sortBy $scope.pets, (pet) -> not pet.isActive
 
-    $scope.$watch (-> Pet.getPet()), (newVal, oldVal) ->
-      return if newVal is oldVal and (not newVal or not oldVal)
+    $scope.initialize = ->
+      $scope.pets = Pets.getPets()
+      $scope.player = Player.getPlayer()
 
-      initializing = yes
+    Pets.observe().then null, null, -> $scope.pets = Pets.getPets()
+    Player.observe().then null, null, -> $scope.player = Player.getPlayer()
 
-      $scope.pet = newVal
-
-      $timeout ->
-        initializing = no
-      , 0
-
-    $scope.$watch (-> Player.getPlayer()), (newVal, oldVal) ->
-      return if newVal is oldVal
-      $scope.player = newVal
-
-    $scope.$watch (-> Pets.getPets()), (newVal, oldVal) ->
-      return if newVal is oldVal
-      $scope.pets = newVal
+    $scope.initialize()
 ]
 
 angular.module 'IdleLands'

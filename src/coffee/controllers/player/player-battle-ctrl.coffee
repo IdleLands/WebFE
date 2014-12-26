@@ -11,7 +11,6 @@ angular.module 'IdleLands'
 
       message
 
-    $scope.$watch (-> CurrentBattle.getBattle()), (newVal) ->
-      $scope.currentBattle = newVal
+    $scope.currentBattle = CurrentBattle.getBattle()
 
 ]

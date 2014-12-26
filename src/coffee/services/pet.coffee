@@ -1,6 +1,13 @@
 angular.module 'IdleLands'
-.factory 'CurrentPet', ->
-  pet = null
+.factory 'CurrentPet', [
+  '$q'
+  ($q) ->
+    pet = null
+    defer = $q.defer()
 
-  getPet: -> pet
-  setPet: (newPet) -> pet = newPet
+    observe: -> defer.promise
+    getPet: -> pet
+    setPet: (newPet) ->
+      pet = newPet
+      defer.notify pet
+]

@@ -1,20 +1,25 @@
 angular.module 'IdleLands'
 .factory 'CurrentMap', [
-  '$rootScope', 'CurrentPlayer', '$http', 'BaseURL'
-  ($root, Player, $http, baseURL) ->
+  'CurrentPlayer', '$q', '$http', 'BaseURL'
+  (Player, $q, $http, baseURL) ->
 
     map = null
-    player = null
+    mapName = null
+    defer = $q.defer()
 
-    $root.$watch (->Player.getPlayer()), (newVal, oldVal) ->
-      return if newVal is oldVal
-      player = newVal
+    setMap = (newMap) ->
+      map = newMap
+      defer.notify map
 
-    $root.$watch (->player?.map), (newVal, oldVal) ->
-      return if newVal is oldVal
-      $http.post "#{baseURL}/game/map", {map: newVal}
+    Player.observe().then null, null, (player) ->
+
+      return if player.map is mapName
+      mapName = player.map
+
+      $http.post "#{baseURL}/game/map", {map: player.map}
       .then (res) ->
-        map = res.data.map
+        setMap res.data.map
 
     getMap: -> map
+    observe: -> defer.promise
 ]

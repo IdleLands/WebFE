@@ -48,9 +48,9 @@ angular.module 'IdleLands'
     $scope.unequipItem = (item) ->
       API.pet.unequipItem {itemUid: item.uid}
 
-    $scope.$watch (-> Pet.getPet()), (newVal, oldVal) ->
-      return if newVal is oldVal and (not newVal or not oldVal)
-      $scope.pet = newVal
+    Pet.observe().then null, null, ->
       $scope.sortPetItems()
+
+    $scope.sortPetItems()
 
 ]

@@ -73,9 +73,9 @@ angular.module 'IdleLands'
     $scope.sendToPet =(item) ->
       API.pet.giveItem {itemSlot: item.overflowSlot}
 
-    $scope.$watch (-> Player.getPlayer()), (newVal, oldVal) ->
-      return if newVal is oldVal and (not newVal or not oldVal)
-      $scope.player = newVal
+    Player.observe().then null, null, ->
       $scope.sortPlayerItems()
+
+    $scope.sortPlayerItems()
 
 ]

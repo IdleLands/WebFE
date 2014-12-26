@@ -19,7 +19,6 @@ angular.module 'IdleLands'
 
     OptionsCache.load ['scrollback']
     $scope.options = OptionsCache.getOpts()
-    $scope._player = Player
     $scope.xpPercent = 0
     $scope.statisticsKeys = {}
 
@@ -28,9 +27,7 @@ angular.module 'IdleLands'
     $window.scrollTo 0, document.body.scrollHeight
 
     $scope.calcXpPercent = ->
-      $scope.xpPercent = ($scope.player.xp.__current / $scope.player.xp.maximum)*100
-
-    initializing = yes
+      $scope.xpPercent = ($scope.player?.xp.__current / $scope.player?.xp.maximum)*100
 
     $scope.logout = ->
       Player.setPlayer null
@@ -50,29 +47,27 @@ angular.module 'IdleLands'
 
     $timeout $scope.handleScrollback, 3000
 
-    # watches
-    $scope.$watch (-> TurnTaker.getSeconds()), (newVal, oldVal) ->
-      return if newVal is oldVal
+    $scope.turnTimeValue = 0
+
+    TurnTaker.observe().then null, null, (newVal) ->
       $scope.turnTimeValue = newVal * 10
 
+    $scope.initialize = ->
+      $scope.player = Player.getPlayer()
+      $window.scrollback.nick = $scope.player?.name
+      $scope.calcXpPercent()
+
+    Player.observe().then null, null, ->
+      $scope.initialize()
+
+    $scope.initialize()
+
+    # watches
     $scope.$watch 'options', (newVal, oldVal) ->
       return if newVal is oldVal
       OptionsCache.saveAll()
       $scope.handleScrollback()
     , yes
-
-    $scope.$watch '_player.getPlayer()', (newVal, oldVal) ->
-      return if newVal is oldVal
-
-      initializing = yes
-
-      $scope.player = newVal
-      $window.scrollback.nick = newVal.name
-      $scope.calcXpPercent()
-
-      $timeout ->
-        initializing = no
-      , 0
 
     $scope.selectedIndex = $state.current.data.selectedTab
 ]

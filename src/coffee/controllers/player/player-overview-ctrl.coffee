@@ -86,11 +86,15 @@ angular.module 'IdleLands'
     $scope.retrieveBattle = (id) ->
       API.battle.get {battleId: id}
       .then (res) ->
+        return if not res.data.battle
         CurrentBattle.setBattle res.data.battle
-        $state.go 'player.battle' if res.data.battle
+        $scope.$parent.$parent.selectedIndex = 3 #wut
+        $timeout ->
+          $state.go 'player.battle'
+        , 0
 
     $scope.loadPersonalities = ->
-      _.each $scope.player.personalityStrings, (personality) ->
+      _.each $scope.player?.personalityStrings, (personality) ->
         $scope.personalityToggle[personality] = yes
 
     $scope.setPersonality = (personality, to) ->
@@ -110,16 +114,17 @@ angular.module 'IdleLands'
       _.each (_.keys propDiff), (pers) ->
         $scope.setPersonality pers, propDiff[pers]
 
-    $scope.$watch (-> Player.getPlayer()), (newVal, oldVal) ->
-      return if newVal is oldVal and (not newVal or not oldVal)
-
+    $scope.initialize = ->
       initializing = yes
 
-      $scope.player = newVal
+      $scope.player = Player.getPlayer()
       $scope.loadPersonalities()
 
       $timeout ->
         initializing = no
       , 0
+
+    Player.observe().then null, null, ->
+      $scope.initialize()
 
 ]

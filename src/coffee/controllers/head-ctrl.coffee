@@ -4,10 +4,8 @@ angular.module 'IdleLands'
   ($scope, $interval, TurnTaker, Player) ->
 
     $scope.player = null
-    $scope._player = Player
 
-    $scope.$watch '_player.getPlayer()', (newVal, oldVal) ->
-      return if newVal is oldVal
+    Player.observe().then null, null, (newVal) ->
       $scope.player = newVal
       TurnTaker.beginTakingTurns $scope.player
 ]

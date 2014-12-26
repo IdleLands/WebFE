@@ -10,10 +10,11 @@ angular.module 'IdleLands'
 
       $scope.statisticsKeys[family] = _.keys base
 
-    $scope.$watch (-> Player.getPlayer()), (newVal, oldVal) ->
-      return if newVal is oldVal and (not newVal or not oldVal)
-      $scope.player = newVal
-
+    $scope.initialize = ->
       _.each ['calculated', 'combat self', 'event', 'explore', 'player'], $scope.getAllStatisticsInFamily
+
+    Player.observe().then null, null, -> $scope.initialize()
+
+    $scope.initialize()
 
 ]

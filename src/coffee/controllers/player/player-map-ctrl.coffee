@@ -62,14 +62,18 @@ angular.module 'IdleLands'
       , 0
       null
 
-    $scope.$watch (-> CurrentMap.getMap()), (newVal, oldVal) ->
-      return if newVal is oldVal
-      $scope.currentMap = newVal
+    $scope.initializeMap = ->
+      $scope.currentMap = CurrentMap.getMap()
       game?.state.restart()
 
-    $scope.$watch (-> Player.getPlayer()), (newVal, oldVal) ->
-      return if newVal is oldVal and (not newVal or not oldVal)
-      $scope.player = newVal
+    CurrentMap.observe().then null, null, ->
+      $scope.initializeMap()
+
+    $scope.initializeMap()
+
+    Player.observe().then null, null, ->
       $scope.drawMap()
+
+    $scope.drawMap()
 
 ]

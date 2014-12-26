@@ -32,11 +32,14 @@ angular.module 'IdleLands'
       return if not $scope.canEquipItem item
       API.pet.equipItem {itemSlot: itemSlot}
 
-    $scope.$watch (-> Pet.getPet()), (newVal, oldVal) ->
-      return if newVal is oldVal and (not newVal or not oldVal)
-      $scope.pet = newVal
+    $scope.initialize = ->
       $scope.petSlots = _.keys $scope.pet._configCache.slots
       $scope.slotsTaken = _.countBy $scope.pet.equipment, 'type'
       $scope.sortPetItems()
+
+    Pet.observe().then null, null, ->
+      $scope.initialize()
+
+    $scope.initialize()
 
 ]

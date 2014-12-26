@@ -1,11 +1,16 @@
 angular.module 'IdleLands'
 .factory 'TurnTaker', [
-  '$interval', 'API',
-  ($interval, API) ->
+  '$interval', '$q', 'API',
+  ($interval, $q, API) ->
 
     seconds = 0
     turnInterval = null
     timeInterval = null
+    defer = $q.defer()
+
+    setSeconds = (newVal) ->
+      seconds = newVal
+      defer.notify seconds
 
     beginTakingTurns: (player) ->
       if not player
@@ -16,17 +21,18 @@ angular.module 'IdleLands'
       return if turnInterval
       API.action.turn identifier: player.identifier
 
-      seconds = 0
+      setSeconds 0
 
       timeInterval = $interval ->
-        seconds++
+        setSeconds seconds+1
       , 1000
 
       turnInterval = $interval ->
-        seconds = 0
+        setSeconds 0
 
         API.action.turn identifier: player.identifier
       , 10100
 
     getSeconds: -> seconds
+    observe: -> defer.promise
 ]

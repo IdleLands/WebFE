@@ -13,8 +13,8 @@ angular.module 'IdleLands'
 
     # custom strings
     $scope.buildStringList = ->
-      $scope.strings.keys = _.keys $scope.player.messages
-      $scope.strings.values = _.values $scope.player.messages
+      $scope.strings.keys = _.keys $scope.player?.messages
+      $scope.strings.values = _.values $scope.player?.messages
       $scope.strings.keys.push ''
 
     $scope.updateStrings = ->
@@ -89,16 +89,19 @@ angular.module 'IdleLands'
           , 0
     , yes
 
-    $scope.$watch (-> Player.getPlayer()), (newVal, oldVal) ->
-      return if newVal is oldVal and (not newVal or not oldVal)
-
+    $scope.initialize = ->
       initializing = yes
 
-      $scope.player = newVal
+      $scope.player = Player.getPlayer()
       $scope.buildStringList()
 
       $timeout ->
         initializing = no
       , 0
+
+    Player.observe().then null, null, ->
+      $scope.initialize()
+
+    $scope.initialize()
 
 ]

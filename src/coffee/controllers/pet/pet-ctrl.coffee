@@ -25,24 +25,17 @@ angular.module 'IdleLands'
     $scope.calcXpPercent = ->
       $scope.xpPercent = ($scope.pet.xp.__current / $scope.pet.xp.maximum)*100
 
-    initializing = yes
-
     # equipment page & overview page
     $scope.valueToColor = (value) ->
       return 'text-red' if value < 0
       return 'text-green' if value > 0
 
-    $scope.$watch (->Pet.getPet()), (newVal, oldVal) ->
-      return if newVal is oldVal
-
-      initializing = yes
-
-      $scope.pet = newVal
+    $scope.initialize = ->
       $scope.calcXpPercent()
 
-      $timeout ->
-        initializing = no
-      , 0
+    Pet.observe().then null, null, (newVal) ->
+      $scope.pet = newVal
+      $scope.initialize()
 
     $scope.selectedIndex = $state.current.data.selectedTab
 ]
