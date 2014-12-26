@@ -1772,7 +1772,7 @@
 
 (function() {
   angular.module('IdleLands').factory('BaseURL', function() {
-    return 'https://api.idle.land';
+    return "" + window.location.protocol + "//api.idle.land";
   });
 
 }).call(this);
