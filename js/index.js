@@ -10,10 +10,6 @@
 
   angular.module('IdleLands').config(['$locationProvider', function($loc) {}]);
 
-  if (window.location.host === 'idlelands.github.io') {
-    window.location = 'http://webfe.idle.land';
-  }
-
 }).call(this);
 
 (function() {
