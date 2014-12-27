@@ -623,7 +623,7 @@
         </md-toolbar>
         <md-content style="flex-basis:80px;height:80px" layout="column" class="is-flex auto-flex">
           <div flex="100" ng-repeat="event in player.recentEvents | reverse" layout="row" class="is-flex auto-flex adventure-log-item">
-            <div flex="10" class="fa-stack vertical-center"><span ng-repeat="item in $parent.eventTypeToIcon[event.type]" ng-click="clickOnEvent(event.extra)" class="fa fa-fw fa-stack-2x {{item}} {{event.extra.battleId ? 'hover-cursor' : ''}}"></span></div>
+            <div flex="10" class="fa-stack vertical-center"><span ng-repeat="item in $parent.eventTypeToIcon[event.type]" ng-click="clickOnEvent(event.extra)" ng-class="{'hover-cursor': event.extra.battleId}" class="fa fa-fw fa-stack-2x {{item}}"></span></div>
             <div flex="90"><small am-time-ago="event.createdAt"></small>
               <div>{{event.message}}</div>
             </div>
