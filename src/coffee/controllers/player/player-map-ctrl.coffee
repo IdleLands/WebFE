@@ -64,6 +64,7 @@ angular.module 'IdleLands'
 
     $scope.initializeMap = ->
       $scope.currentMap = CurrentMap.getMap()
+      _.each $scope.currentMap?.map.layers[2].objects, (object) -> object.properties = {}
       game?.state.restart()
 
     CurrentMap.observe().then null, null, ->
