@@ -968,7 +968,11 @@
         return null;
       };
       $scope.initializeMap = function() {
+        var _ref;
         $scope.currentMap = CurrentMap.getMap();
+        _.each((_ref = $scope.currentMap) != null ? _ref.map.layers[2].objects : void 0, function(object) {
+          return object.properties = {};
+        });
         return game != null ? game.state.restart() : void 0;
       };
       CurrentMap.observe().then(null, null, function() {
