@@ -90,7 +90,7 @@ script(id="player-overview", type="text/ng-template")
             md-content.is-flex.auto-flex(style="flex-basis:80px;height:80px",layout="column")
                div.is-flex.auto-flex.adventure-log-item(flex="100",ng-repeat="event in player.recentEvents | reverse",layout="row")
                   div.fa-stack.vertical-center(flex="10")
-                     span.fa.fa-fw.fa-stack-2x(ng-repeat="item in $parent.eventTypeToIcon[event.type]",class="{{item}} {{event.extra.battleId ? 'hover-cursor' : ''}}", ng-click="clickOnEvent(event.extra)")
+                     span.fa.fa-fw.fa-stack-2x(ng-repeat="item in $parent.eventTypeToIcon[event.type]",class="{{item}}", ng-click="clickOnEvent(event.extra)", ng-class="{'hover-cursor': event.extra.battleId}")
                   div(flex="90")
                      small(am-time-ago="event.createdAt")
                      div {{event.message}}
