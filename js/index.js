@@ -1451,13 +1451,13 @@
   angular.module('IdleLands').factory('ReloginInterceptor', [
     'CredentialCache', '$injector', function(CredentialCache, $injector) {
       var shouldRelog;
-      shouldRelog = function(responseData) {
-        return responseData.message === 'Token validation failed.';
+      shouldRelog = function(response) {
+        return !response.data || response.data.message === 'Token validation failed.';
       };
       return {
         response: function(response) {
           var creds;
-          if (shouldRelog(response.data)) {
+          if (shouldRelog(response)) {
             creds = CredentialCache.getCreds();
             if (creds.identifier && creds.password) {
               ($injector.get('API')).auth.login(creds);
