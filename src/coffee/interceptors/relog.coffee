@@ -3,11 +3,11 @@ angular.module 'IdleLands'
   'CredentialCache', '$injector',
   (CredentialCache, $injector) ->
 
-    shouldRelog = (responseData) ->
-      responseData.message is 'Token validation failed.'
+    shouldRelog = (response) ->
+      not response.data or response.data.message is 'Token validation failed.'
 
     response: (response) ->
-      if shouldRelog response.data
+      if shouldRelog response
         creds = CredentialCache.getCreds()
         ($injector.get 'API').auth.login creds if creds.identifier and creds.password
       response
