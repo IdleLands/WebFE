@@ -4,7 +4,7 @@ angular.module 'IdleLands'
   (CredentialCache, $injector) ->
 
     shouldRelog = (response) ->
-      not response.data or response.data.message is 'Token validation failed.'
+      not response.data or response.data.message in ['Token validation failed.', "You aren't logged in!"]
 
     response: (response) ->
       if shouldRelog response
