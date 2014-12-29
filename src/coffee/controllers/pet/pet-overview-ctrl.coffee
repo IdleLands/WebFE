@@ -86,6 +86,14 @@ angular.module 'IdleLands'
     $scope.upgradeStat = (stat) ->
       API.pet.upgradePet stat: stat
 
+    $scope.availablePetClasses = ->
+      base = _.keys $scope.player?.statistics['calculated class changes'] or []
+      base.unshift 'Monster'
+      base
+
+    $scope.changePetClass = ->
+      API.pet.changeClass petClass: $scope.pet.professionName
+
     $scope.petUpgradeData =
       inventory:
         stat: 'Inventory Size'

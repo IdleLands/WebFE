@@ -66,9 +66,9 @@ script(id="pet-overview", type="text/ng-template")
                   div.vital-stat
                      span.fa.fa-fw.fa-cutlery
                      md-button.inline-button.md-primary(ng-click="feedPet()") Feed Pet
-                  //div.vital-stat
+                  div.vital-stat
                      span.fa.fa-fw.fa-shield
-                     select(ng-model="test",ng-options="val for val in ['Test', 'test2']")
+                     select(ng-model="pet.professionName",ng-options="val for val in availablePetClasses()",ng-change="changePetClass()")
 
          md-card.inner-card(layout="column")
             md-toolbar.md-theme-light-blue
