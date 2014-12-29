@@ -15,6 +15,12 @@ script(id="player-statistics", type="text/ng-template")
                 md-content.card-padding
                     statistics-tree(root="player.statistics",stats="statisticsKeys['combat self']",family="'combat self'")
         div(flex="25")
+            md-card.inner-card(ng-if="showPermStats")
+                md-toolbar.md-theme-light-blue
+                    div.md-toolbar-tools
+                        h3 Special Statistics
+                md-content.card-padding
+                    statistics-tree(root="player.permanentAchievements",stats="permanentStatisticsKeys",family="''")
             md-card.inner-card
                 md-toolbar.md-theme-light-blue
                     div.md-toolbar-tools
