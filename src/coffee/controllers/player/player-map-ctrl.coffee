@@ -11,8 +11,39 @@ angular.module 'IdleLands'
     mapName = null
     newMapName = null
     text = null
+    objectGroup = null
+    itemText = ''
 
-    textForPlayer = (player) -> "#{player.map} (#{player.mapRegion})\n#{player.x}, #{player.y}"
+    handleObjects = ->
+      _.each objectGroup.children, (child) ->
+
+        child.inputEnabled = yes
+
+        child.events.onInputOver.add ->
+          itemText = ''
+          itemText = "#{child.realtype}: #{child.name}" if child.realtype and child.realtype isnt 'Door'
+
+          itemText += "\n\"#{child.flavorText}\"" if child.flavorText
+
+          requires = no
+          requirementText = '\nRequirements\n-------------------'
+          if child.requireAchievement then requirementText += "\nAchievement: #{child.requireAchievement}";requires=yes
+          if child.requireBoss        then requirementText += "\nBoss Kill: #{child.requireBoss}";requires=yes
+          if child.requireClass       then requirementText += "\nClass: #{child.requireClass}";requires=yes
+          if child.requireCollectible then requirementText += "\nCollectible: #{child.requireCollectible}";requires=yes
+          if child.requireHoliday     then requirementText += "\nHoliday: #{child.requireHoliday}";requires=yes
+
+          itemText = "#{itemText}\n#{requirementText}" if requires
+
+        child.events.onInputOut.add ->
+          itemText = ''
+
+    hoverText = ->
+      coordinates = ((game.camera.x+game.input.x)//16) + ', ' + ((game.camera.y+game.input.y)//16)
+      "Hovering (#{coordinates})\n#{itemText}"
+
+    textForPlayer = (player) ->
+      "#{player.map} (#{player.mapRegion})\n#{player.x}, #{player.y}\n\n#{hoverText()}"
 
     $scope.drawMap = ->
       return if _.isEmpty $scope.currentMap
@@ -46,8 +77,12 @@ angular.module 'IdleLands'
           terrain.resizeWorld()
           map.createLayer 'Blocking'
 
+          objectGroup = @game.add.group()
+
           for i in [1, 2, 12, 13, 14, 15, 18, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 35]
-            map.createFromObjects 'Interactables', i, 'interactables', i-1
+            map.createFromObjects 'Interactables', i, 'interactables', i-1, yes, no, objectGroup
+
+          handleObjects()
 
           sprite = @game.add.sprite player.x*16, player.y*16, 'interactables', 12
           @game.camera.follow sprite
@@ -64,7 +99,21 @@ angular.module 'IdleLands'
 
     $scope.initializeMap = ->
       $scope.currentMap = CurrentMap.getMap()
-      _.each $scope.currentMap?.map.layers[2].objects, (object) -> object.properties = {}
+      _.each $scope.currentMap?.map?.layers[2].objects, (object) ->
+
+        object.properties =
+          realtype: object.type
+          teleportX: parseInt object.properties.destx
+          teleportY: parseInt object.properties.desty
+          teleportMap:        object.properties.map
+          teleportLocation:   object.properties.toLoc
+          requireBoss:        object.properties.requireBoss
+          requireCollectible: object.properties.requireCollectible
+          requireAchievement: object.properties.requireAchievement
+          requireClass:       object.properties.requireClass
+          flavorText:         object.properties.flavorText
+          requireHoliday:     object.properties.holiday
+
       game?.state.restart()
 
     CurrentMap.observe().then null, null, ->
