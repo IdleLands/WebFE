@@ -561,6 +561,17 @@
           stat: stat
         });
       };
+      $scope.availablePetClasses = function() {
+        var base, _ref;
+        base = _.keys(((_ref = $scope.player) != null ? _ref.statistics['calculated class changes'] : void 0) || []);
+        base.unshift('Monster');
+        return base;
+      };
+      $scope.changePetClass = function() {
+        return API.pet.changeClass({
+          petClass: $scope.pet.professionName
+        });
+      };
       $scope.petUpgradeData = {
         inventory: {
           stat: 'Inventory Size',

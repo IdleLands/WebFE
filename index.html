@@ -209,11 +209,9 @@
             <div class="vital-stat"><span class="fa fa-fw fa-cutlery"></span>
               <md-button ng-click="feedPet()" class="inline-button md-primary">Feed Pet</md-button>
             </div>
-            <!--div.vital-stat
-            span.fa.fa-fw.fa-shield
-            select(ng-model="test",ng-options="val for val in ['Test', 'test2']")
-            
-            -->
+            <div class="vital-stat"><span class="fa fa-fw fa-shield"></span>
+              <select ng-model="pet.professionName" ng-options="val for val in availablePetClasses()" ng-change="changePetClass()"></select>
+            </div>
           </div>
         </md-content>
       </md-card>
