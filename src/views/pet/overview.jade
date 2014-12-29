@@ -51,12 +51,15 @@ script(id="pet-overview", type="text/ng-template")
                   div.vital-stat
                      span.fa.fa-fw(class="fa-{{getSmartIcon('Sell')}}")
                      md-button.inline-button.md-primary(ng-click="toggleSmart('Sell')") Smart Sell
+                        md-tooltip Low-quality items are sold first.
                   div.vital-stat
                      span.fa.fa-fw(class="fa-{{getSmartIcon('Equip')}}")
                      md-button.inline-button.md-primary(ng-click="toggleSmart('Equip')") Smart Equip
+                        md-tooltip High-quality gear is auto-equipped.
                   div.vital-stat
                      span.fa.fa-fw(class="fa-{{getSmartIcon('Self')}}")
                      md-button.inline-button.md-primary(ng-click="toggleSmart('Self')") Smart Self
+                        md-tooltip Pet upgrades itself.
                   div.vital-stat
                      span.fa.fa-fw.icon-money
                      md-button.inline-button.md-primary(ng-click="takePetGold()") Take Pet Gold
