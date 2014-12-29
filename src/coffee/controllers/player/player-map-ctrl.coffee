@@ -32,6 +32,8 @@ angular.module 'IdleLands'
           if child.requireClass       then requirementText += "\nClass: #{child.requireClass}";requires=yes
           if child.requireCollectible then requirementText += "\nCollectible: #{child.requireCollectible}";requires=yes
           if child.requireHoliday     then requirementText += "\nHoliday: #{child.requireHoliday}";requires=yes
+          if child.requireRegion      then requirementText += "\nRegion Visited: #{child.requireHoliday}";requires=yes
+          if child.requireMap         then requirementText += "\Map Visited: #{child.requireHoliday}";requires=yes
 
           itemText = "#{itemText}\n#{requirementText}" if requires
 
@@ -111,6 +113,8 @@ angular.module 'IdleLands'
           requireCollectible: object.properties.requireCollectible
           requireAchievement: object.properties.requireAchievement
           requireClass:       object.properties.requireClass
+          requireRegion:      object.properties.requireRegion
+          requireMap:         object.properties.requireMap
           flavorText:         object.properties.flavorText
           requireHoliday:     object.properties.holiday
 
