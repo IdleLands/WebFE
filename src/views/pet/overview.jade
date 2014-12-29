@@ -75,6 +75,7 @@ script(id="pet-overview", type="text/ng-template")
                   div
                      span.fa.fa-fw.fa-clock-o
                      span &nbsp;{{pet.creator.name}} originally found this pet <span am-time-ago='pet.createdAt'></span>
+                        md-tooltip {{pet.createdAt | amDateFormat:'dddd, MMMM Do YYYY, h:mm:ss a'}}
                   div
                      span.fa.fa-fw(class="fa-{{getTypeIcon(pet)}}")
                      span &nbsp;{{pet._configCache.category}}

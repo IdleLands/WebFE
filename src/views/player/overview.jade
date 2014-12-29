@@ -79,7 +79,7 @@ script(id="player-overview", type="text/ng-template")
                      span.fa.fa-fw.fa-clock-o
                      span &nbsp;Started&nbsp;
                      span(am-time-ago="player.registrationDate")
-                        md-tooltip {{player.registrationDate}}
+                        md-tooltip {{player.registrationDate | amDateFormat:'dddd, MMMM Do YYYY, h:mm:ss a'}}
 
       div(flex="55",layout="column")
          md-card.is-flex.auto-flex.inner-card(layout="column")
