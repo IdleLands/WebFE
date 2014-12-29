@@ -189,13 +189,19 @@
               <md-button ng-click="toPlayerView()" class="inline-button md-raised md-accent">Swap to Player View</md-button>
             </div>
             <div class="vital-stat"><span class="fa fa-fw fa-{{getSmartIcon('Sell')}}"></span>
-              <md-button ng-click="toggleSmart('Sell')" class="inline-button md-primary">Smart Sell</md-button>
+              <md-button ng-click="toggleSmart('Sell')" class="inline-button md-primary">Smart Sell
+                <md-tooltip>Low-quality items are sold first.</md-tooltip>
+              </md-button>
             </div>
             <div class="vital-stat"><span class="fa fa-fw fa-{{getSmartIcon('Equip')}}"></span>
-              <md-button ng-click="toggleSmart('Equip')" class="inline-button md-primary">Smart Equip</md-button>
+              <md-button ng-click="toggleSmart('Equip')" class="inline-button md-primary">Smart Equip
+                <md-tooltip>High-quality gear is auto-equipped.</md-tooltip>
+              </md-button>
             </div>
             <div class="vital-stat"><span class="fa fa-fw fa-{{getSmartIcon('Self')}}"></span>
-              <md-button ng-click="toggleSmart('Self')" class="inline-button md-primary">Smart Self</md-button>
+              <md-button ng-click="toggleSmart('Self')" class="inline-button md-primary">Smart Self
+                <md-tooltip>Pet upgrades itself.</md-tooltip>
+              </md-button>
             </div>
             <div class="vital-stat"><span class="fa fa-fw icon-money"></span>
               <md-button ng-click="takePetGold()" class="inline-button md-primary">Take Pet Gold</md-button>
@@ -203,6 +209,11 @@
             <div class="vital-stat"><span class="fa fa-fw fa-cutlery"></span>
               <md-button ng-click="feedPet()" class="inline-button md-primary">Feed Pet</md-button>
             </div>
+            <!--div.vital-stat
+            span.fa.fa-fw.fa-shield
+            select(ng-model="test",ng-options="val for val in ['Test', 'test2']")
+            
+            -->
           </div>
         </md-content>
       </md-card>
@@ -215,7 +226,8 @@
         <md-content class="card-padding">
           <div ng-if="!pet"><span>No Pets Purchased</span></div>
           <div layout="column" ng-if="pet">
-            <div><span class="fa fa-fw fa-clock-o"></span><span>&nbsp;{{pet.creator.name}} originally found this pet <span am-time-ago='pet.createdAt'></span></span></div>
+            <div><span class="fa fa-fw fa-clock-o"></span><span>&nbsp;{{pet.creator.name}} originally found this pet <span am-time-ago='pet.createdAt'></span>
+                <md-tooltip>{{pet.createdAt | amDateFormat:'dddd, MMMM Do YYYY, h:mm:ss a'}}</md-tooltip></span></div>
             <div><span class="fa fa-fw fa-{{getTypeIcon(pet)}}"></span><span>&nbsp;{{pet._configCache.category}}</span></div>
             <div><span class="fa fa-fw fa-{{getGenderFor(pet)}}"></span><span>&nbsp;{{pet.gender}}</span></div>
             <div><span class="fa fa-fw fa-link"></span><span>&nbsp;Max Item Score: {{pet._baseStats.itemFindRange | number:0}}</span></div>
@@ -609,7 +621,7 @@
             <div class="vital-stat"><span class="fa fa-fw fa-users"></span><span>&nbsp;{{player.partyName || 'No party'}}</span></div>
             <div class="vital-stat"><span class="fa fa-fw fa-sitemap"></span><span>&nbsp;{{player.guild || 'No guild'}}</span></div>
             <div><span class="fa fa-fw fa-clock-o"></span><span>&nbsp;Started&nbsp;</span><span am-time-ago="player.registrationDate">
-                <md-tooltip>{{player.registrationDate}}</md-tooltip></span></div>
+                <md-tooltip>{{player.registrationDate | amDateFormat:'dddd, MMMM Do YYYY, h:mm:ss a'}}</md-tooltip></span></div>
           </div>
         </md-content>
       </md-card>

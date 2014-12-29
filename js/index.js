@@ -895,15 +895,73 @@
 (function() {
   angular.module('IdleLands').controller('PlayerMap', [
     '$scope', '$timeout', 'CurrentPlayer', 'CurrentMap', 'BaseURL', function($scope, $timeout, Player, CurrentMap, BaseURL) {
-      var game, mapName, newMapName, sprite, text, textForPlayer;
+      var game, handleObjects, hoverText, itemText, mapName, newMapName, objectGroup, sprite, text, textForPlayer;
       $scope.currentMap = {};
       sprite = null;
       game = null;
       mapName = null;
       newMapName = null;
       text = null;
+      objectGroup = null;
+      itemText = '';
+      handleObjects = function() {
+        return _.each(objectGroup.children, function(child) {
+          child.inputEnabled = true;
+          child.events.onInputOver.add(function() {
+            var requirementText, requires;
+            itemText = '';
+            if (child.realtype && child.realtype !== 'Door') {
+              itemText = "" + child.realtype + ": " + child.name;
+            }
+            if (child.flavorText) {
+              itemText += "\n\"" + child.flavorText + "\"";
+            }
+            requires = false;
+            requirementText = '\nRequirements\n-------------------';
+            if (child.requireAchievement) {
+              requirementText += "\nAchievement: " + child.requireAchievement;
+              requires = true;
+            }
+            if (child.requireBoss) {
+              requirementText += "\nBoss Kill: " + child.requireBoss;
+              requires = true;
+            }
+            if (child.requireClass) {
+              requirementText += "\nClass: " + child.requireClass;
+              requires = true;
+            }
+            if (child.requireCollectible) {
+              requirementText += "\nCollectible: " + child.requireCollectible;
+              requires = true;
+            }
+            if (child.requireHoliday) {
+              requirementText += "\nHoliday: " + child.requireHoliday;
+              requires = true;
+            }
+            if (child.requireRegion) {
+              requirementText += "\nRegion Visited: " + child.requireHoliday;
+              requires = true;
+            }
+            if (child.requireMap) {
+              requirementText += "\Map Visited: " + child.requireHoliday;
+              requires = true;
+            }
+            if (requires) {
+              return itemText = "" + itemText + "\n" + requirementText;
+            }
+          });
+          return child.events.onInputOut.add(function() {
+            return itemText = '';
+          });
+        });
+      };
+      hoverText = function() {
+        var coordinates;
+        coordinates = (Math.floor((game.camera.x + game.input.x) / 16)) + ', ' + (Math.floor((game.camera.y + game.input.y) / 16));
+        return "Hovering (" + coordinates + ")\n" + itemText;
+      };
       textForPlayer = function(player) {
-        return "" + player.map + " (" + player.mapRegion + ")\n" + player.x + ", " + player.y;
+        return "" + player.map + " (" + player.mapRegion + ")\n" + player.x + ", " + player.y + "\n\n" + (hoverText());
       };
       $scope.drawMap = function() {
         var phaserOpts, player;
@@ -940,11 +998,13 @@
             terrain = map.createLayer('Terrain');
             terrain.resizeWorld();
             map.createLayer('Blocking');
+            objectGroup = this.game.add.group();
             _ref = [1, 2, 12, 13, 14, 15, 18, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 35];
             for (_i = 0, _len = _ref.length; _i < _len; _i++) {
               i = _ref[_i];
-              map.createFromObjects('Interactables', i, 'interactables', i - 1);
+              map.createFromObjects('Interactables', i, 'interactables', i - 1, true, false, objectGroup);
             }
+            handleObjects();
             sprite = this.game.add.sprite(player.x * 16, player.y * 16, 'interactables', 12);
             this.game.camera.follow(sprite);
             text = this.game.add.text(10, 10, textForPlayer(player), {
@@ -968,10 +1028,24 @@
         return null;
       };
       $scope.initializeMap = function() {
-        var _ref;
+        var _ref, _ref1;
         $scope.currentMap = CurrentMap.getMap();
-        _.each((_ref = $scope.currentMap) != null ? _ref.map.layers[2].objects : void 0, function(object) {
-          return object.properties = {};
+        _.each((_ref = $scope.currentMap) != null ? (_ref1 = _ref.map) != null ? _ref1.layers[2].objects : void 0 : void 0, function(object) {
+          return object.properties = {
+            realtype: object.type,
+            teleportX: parseInt(object.properties.destx),
+            teleportY: parseInt(object.properties.desty),
+            teleportMap: object.properties.map,
+            teleportLocation: object.properties.toLoc,
+            requireBoss: object.properties.requireBoss,
+            requireCollectible: object.properties.requireCollectible,
+            requireAchievement: object.properties.requireAchievement,
+            requireClass: object.properties.requireClass,
+            requireRegion: object.properties.requireRegion,
+            requireMap: object.properties.requireMap,
+            flavorText: object.properties.flavorText,
+            requireHoliday: object.properties.holiday
+          };
         });
         return game != null ? game.state.restart() : void 0;
       };
@@ -1452,7 +1526,8 @@
     'CredentialCache', '$injector', function(CredentialCache, $injector) {
       var shouldRelog;
       shouldRelog = function(response) {
-        return !response.data || response.data.message === 'Token validation failed.';
+        var _ref;
+        return !response.data || ((_ref = response.data.message) === 'Token validation failed.' || _ref === "You aren't logged in!");
       };
       return {
         response: function(response) {
