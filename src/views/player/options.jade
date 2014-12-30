@@ -15,7 +15,12 @@ script(id="player-options", type="text/ng-template")
                   span.fa.fa-fw.fa-paper-plane.fa-lg.vertical-center
                   span &nbsp;
                   small
-                     a.inline-link(ng-click="loadCustomContent()") Submit New Content
+                     a.inline-link(ng-click="openSubmissionWindow()") Submit New Content
+               div.vital-stat(ng-if="player.isContentModerator")
+                  span.fa.fa-fw.fa-bullhorn.fa-lg.vertical-center
+                  span &nbsp;
+                  small
+                     a.inline-link(ng-click="openSubmissionWindow()") Moderate Content
 
          md-card.inner-card(layout="column")
             md-toolbar.md-theme-light-blue
@@ -105,3 +110,19 @@ script(id="player-options", type="text/ng-template")
                      span &nbsp;
                      small
                         a.inline-link(target="_blank",href="http://idle.land/s/thanks") Special Thanks
+
+script(id="submit-content",type="text/ng-template")
+   md-dialog
+      md-content
+         md-subheader.md-sticky-no-effect
+            h2 Submit New Custom Content
+         div(layout="row")
+            div
+            select(ng-model="data.type", ng-options="obj.type group by obj.folder for obj in types", style="margin:15px")
+            md-text-float(label="Name of Object", ng-model="data._name",ng-if="data.type.requiresName")
+            md-text-float.extended-input(label="Custom Content", ng-model="data.content")
+
+      div.md-actions(layout="row")
+         md-button.md-accent(target="_blank",href="https://github.com/IdleLands/IdleLands/tree/master/assets/data/{{data.type.folder}}/{{data.type.type}}.txt") Show Example
+         md-button(ng-click="cancel()") Cancel
+         md-button.md-primary(ng-click="submit()") Submit

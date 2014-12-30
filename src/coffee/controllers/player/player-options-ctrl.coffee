@@ -1,7 +1,7 @@
 angular.module 'IdleLands'
 .controller 'PlayerOptions', [
-  '$scope', '$timeout', 'CurrentPlayer', 'OptionsCache', 'API'
-  ($scope, $timeout, Player, OptionsCache, API) ->
+  '$scope', '$timeout', '$mdDialog', 'CurrentPlayer', 'OptionsCache', 'API'
+  ($scope, $timeout, $mdDialog, Player, OptionsCache, API) ->
 
     initializing = yes
 
@@ -39,6 +39,11 @@ angular.module 'IdleLands'
         $scope.player.messages = _.omit $scope.player.messages, key
 
         $scope.buildStringList()
+
+    $scope.openSubmissionWindow = ->
+      $mdDialog.show
+        templateUrl: 'submit-content'
+        controller: 'ContentSubmission'
 
     $scope.$watch 'strings', (newVal, oldVal) ->
       return if newVal is oldVal
@@ -104,4 +109,83 @@ angular.module 'IdleLands'
 
     $scope.initialize()
 
+]
+
+angular.module 'IdleLands'
+.controller 'ContentSubmission', [
+  '$scope', '$mdDialog', '$mdToast', 'API'
+  ($scope, $mdDialog, $mdToast, API) ->
+
+    $scope.types = [
+      {folder: 'events',      type: 'battle' }
+      {folder: 'events',      type: 'blessGold' }
+      {folder: 'events',      type: 'blessGoldParty' }
+      {folder: 'events',      type: 'blessItem' }
+      {folder: 'events',      type: 'blessXp' }
+      {folder: 'events',      type: 'blessXpParty' }
+      {folder: 'events',      type: 'enchant' }
+      {folder: 'events',      type: 'findItem' }
+      {folder: 'events',      type: 'flipStat' }
+      {folder: 'events',      type: 'forsakeGold' }
+      {folder: 'events',      type: 'forsakeItem' }
+      {folder: 'events',      type: 'forsakeXp' }
+      {folder: 'events',      type: 'levelDown' }
+      {folder: 'events',      type: 'merchant' }
+      {folder: 'events',      type: 'party' }
+      {folder: 'events',      type: 'providence' }
+      {folder: 'events',      type: 'tinker' }
+      {folder: 'ingredients', type: 'bread',    requiresName: yes }
+      {folder: 'ingredients', type: 'meat',     requiresName: yes }
+      {folder: 'ingredients', type: 'veg',      requiresName: yes }
+      {folder: 'items',       type: 'body',     requiresName: yes }
+      {folder: 'items',       type: 'charm',    requiresName: yes }
+      {folder: 'items',       type: 'feet',     requiresName: yes }
+      {folder: 'items',       type: 'finger',   requiresName: yes }
+      {folder: 'items',       type: 'hands',    requiresName: yes }
+      {folder: 'items',       type: 'head',     requiresName: yes }
+      {folder: 'items',       type: 'legs',     requiresName: yes }
+      {folder: 'items',       type: 'mainhand', requiresName: yes }
+      {folder: 'items',       type: 'neck',     requiresName: yes }
+      {folder: 'items',       type: 'offhand',  requiresName: yes }
+      {folder: 'items',       type: 'prefix',   requiresName: yes }
+      {folder: 'items',       type: 'suffix',   requiresName: yes }
+      {folder: 'monsters',    type: 'monster',  requiresName: yes }
+    ]
+
+    $scope.data = type: _.sample $scope.types
+
+    $scope.cancel = $mdDialog.hide
+
+    $scope.submit = ->
+      data = $scope.data
+      data._name = data._name?.trim()
+      data.content = data.content?.trim()
+
+      $mdToast.simple 'submitting...'
+
+      requiresName = $scope.data.type.requiresName
+
+      if not data.content
+        $mdToast.show template: '<md-toast>You must have content!</md-toast>'
+        return
+
+      if requiresName and not data._name
+        $mdToast.show template: '<md-toast>You must to specify a name!</md-toast>'
+        return
+
+      newData =
+        type: $scope.data.type.type
+        content: if requiresName then "\"#{data._name}\" #{data.content}" else data.content
+
+      API.custom.submit data: newData
+      .then (res) ->
+        return if not res.data.isSuccess
+
+        $mdDialog.hide()
+
+      #API.pet.buyPet petAttrs
+      #.then (res) ->
+      #  return if not res.data.isSuccess
+#
+      #  $mdDialog.hide()
 ]
