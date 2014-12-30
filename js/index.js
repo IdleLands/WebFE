@@ -1075,7 +1075,7 @@
 
 (function() {
   angular.module('IdleLands').controller('PlayerOptions', [
-    '$scope', '$timeout', 'CurrentPlayer', 'OptionsCache', 'API', function($scope, $timeout, Player, OptionsCache, API) {
+    '$scope', '$timeout', '$mdDialog', 'CurrentPlayer', 'OptionsCache', 'API', function($scope, $timeout, $mdDialog, Player, OptionsCache, API) {
       var initializing, isChanging;
       initializing = true;
       $scope.options = OptionsCache.getOpts();
@@ -1120,6 +1120,22 @@
           });
           $scope.player.messages = _.omit($scope.player.messages, key);
           return $scope.buildStringList();
+        });
+      };
+      $scope.openSubmissionWindow = function() {
+        return $mdDialog.show({
+          templateUrl: 'submit-content',
+          controller: 'ContentSubmission'
+        });
+      };
+      $scope.openModerationWindow = function() {
+        return $mdDialog.show({
+          templateUrl: 'moderate-content',
+          controller: 'ContentModeration',
+          escapeToClose: false,
+          clickOutsideToClose: false
+        }).then(function() {
+          return $scope.refreshCustomContent();
         });
       };
       $scope.$watch('strings', function(newVal, oldVal) {
@@ -1188,10 +1204,19 @@
           });
         });
       }, true);
+      $scope.refreshCustomContent = function() {
+        return API.custom.list().then(function(res) {
+          return $scope.customContentList = res.data.customs;
+        });
+      };
       $scope.initialize = function() {
+        var _ref;
         initializing = true;
         $scope.player = Player.getPlayer();
         $scope.buildStringList();
+        if (((_ref = $scope.player) != null ? _ref.isContentModerator : void 0) && !$scope.customContentList) {
+          $scope.refreshCustomContent();
+        }
         return $timeout(function() {
           return initializing = false;
         }, 0);
@@ -1200,6 +1225,202 @@
         return $scope.initialize();
       });
       return $scope.initialize();
+    }
+  ]);
+
+  angular.module('IdleLands').controller('ContentModeration', [
+    '$scope', '$mdDialog', 'API', function($scope, $mdDialog, API) {
+      var getSelected;
+      $scope.cancel = $mdDialog.hide;
+      $scope.toggleAll = function() {
+        return _.each($scope.customContentList, function(item) {
+          return item.currentlySelected = !item.currentlySelected;
+        });
+      };
+      ($scope.refreshData = function() {
+        return API.custom.list().then(function(res) {
+          return $scope.customContentList = res.data.customs;
+        });
+      })();
+      getSelected = function() {
+        return _($scope.customContentList).filter(function(item) {
+          return item.currentlySelected;
+        }).map(function(item) {
+          return item._id;
+        }).value();
+      };
+      $scope.approve = function() {
+        return API.custom.approve({
+          ids: getSelected()
+        }).then(function() {
+          return $scope.refreshData();
+        });
+      };
+      return $scope.reject = function() {
+        return API.custom.reject({
+          ids: getSelected()
+        }).then(function() {
+          return $scope.refreshData();
+        });
+      };
+    }
+  ]);
+
+  angular.module('IdleLands').controller('ContentSubmission', [
+    '$scope', '$mdDialog', '$mdToast', 'API', function($scope, $mdDialog, $mdToast, API) {
+      $scope.types = [
+        {
+          folder: 'events',
+          type: 'battle'
+        }, {
+          folder: 'events',
+          type: 'blessGold'
+        }, {
+          folder: 'events',
+          type: 'blessGoldParty'
+        }, {
+          folder: 'events',
+          type: 'blessItem'
+        }, {
+          folder: 'events',
+          type: 'blessXp'
+        }, {
+          folder: 'events',
+          type: 'blessXpParty'
+        }, {
+          folder: 'events',
+          type: 'enchant'
+        }, {
+          folder: 'events',
+          type: 'findItem'
+        }, {
+          folder: 'events',
+          type: 'flipStat'
+        }, {
+          folder: 'events',
+          type: 'forsakeGold'
+        }, {
+          folder: 'events',
+          type: 'forsakeItem'
+        }, {
+          folder: 'events',
+          type: 'forsakeXp'
+        }, {
+          folder: 'events',
+          type: 'levelDown'
+        }, {
+          folder: 'events',
+          type: 'merchant'
+        }, {
+          folder: 'events',
+          type: 'party'
+        }, {
+          folder: 'events',
+          type: 'providence'
+        }, {
+          folder: 'events',
+          type: 'tinker'
+        }, {
+          folder: 'ingredients',
+          type: 'bread',
+          requiresName: true
+        }, {
+          folder: 'ingredients',
+          type: 'meat',
+          requiresName: true
+        }, {
+          folder: 'ingredients',
+          type: 'veg',
+          requiresName: true
+        }, {
+          folder: 'items',
+          type: 'body',
+          requiresName: true
+        }, {
+          folder: 'items',
+          type: 'charm',
+          requiresName: true
+        }, {
+          folder: 'items',
+          type: 'feet',
+          requiresName: true
+        }, {
+          folder: 'items',
+          type: 'finger',
+          requiresName: true
+        }, {
+          folder: 'items',
+          type: 'hands',
+          requiresName: true
+        }, {
+          folder: 'items',
+          type: 'head',
+          requiresName: true
+        }, {
+          folder: 'items',
+          type: 'legs',
+          requiresName: true
+        }, {
+          folder: 'items',
+          type: 'mainhand',
+          requiresName: true
+        }, {
+          folder: 'items',
+          type: 'neck',
+          requiresName: true
+        }, {
+          folder: 'items',
+          type: 'offhand',
+          requiresName: true
+        }, {
+          folder: 'items',
+          type: 'prefix',
+          requiresName: true
+        }, {
+          folder: 'items',
+          type: 'suffix',
+          requiresName: true
+        }, {
+          folder: 'monsters',
+          type: 'monster',
+          requiresName: true
+        }
+      ];
+      $scope.data = {
+        type: _.sample($scope.types)
+      };
+      $scope.cancel = $mdDialog.hide;
+      return $scope.submit = function() {
+        var data, newData, requiresName, _ref, _ref1;
+        data = $scope.data;
+        data._name = (_ref = data._name) != null ? _ref.trim() : void 0;
+        data.content = (_ref1 = data.content) != null ? _ref1.trim() : void 0;
+        requiresName = $scope.data.type.requiresName;
+        if (!data.content) {
+          $mdToast.show({
+            template: '<md-toast>You must have content!</md-toast>'
+          });
+          return;
+        }
+        if (requiresName && !data._name) {
+          $mdToast.show({
+            template: '<md-toast>You must to specify a name!</md-toast>'
+          });
+          return;
+        }
+        newData = {
+          type: $scope.data.type.type,
+          content: requiresName ? "\"" + data._name + "\" " + data.content : data.content
+        };
+        return API.custom.submit({
+          data: newData
+        }).then(function(res) {
+          if (!res.data.isSuccess) {
+            return;
+          }
+          return $mdDialog.hide();
+        });
+      };
     }
   ]);
 
@@ -1371,16 +1592,18 @@
     '$scope', 'CurrentPlayer', function($scope, Player) {
       $scope.getAllStatisticsInFamily = function(family) {
         var base;
-        if (!$scope.player) {
-          return;
-        }
         base = _.omit($scope.player.statistics, function(value, key) {
           return key.indexOf(family) !== 0;
         });
         return $scope.statisticsKeys[family] = _.keys(base);
       };
       $scope.initialize = function() {
-        return _.each(['calculated', 'combat self', 'event', 'explore', 'player'], $scope.getAllStatisticsInFamily);
+        if (!$scope.player) {
+          return;
+        }
+        _.each(['calculated', 'combat self', 'event', 'explore', 'player'], $scope.getAllStatisticsInFamily);
+        $scope.permanentStatisticsKeys = _.keys($scope.player.permanentAchievements);
+        return $scope.showPermStats = !($scope.permanentStatisticsKeys.length === 0);
       };
       Player.observe().then(null, null, function() {
         return $scope.initialize();
@@ -1563,7 +1786,7 @@
   angular.module('IdleLands').factory('ToastInterceptor', [
     '$injector', function($injector) {
       var badMessages, canShowMessage;
-      badMessages = ['Turn taken.', 'Token validation failed.', 'You can only have one turn every 10 seconds!', 'Map retrieved successfully.'];
+      badMessages = ['Turn taken.', 'Token validation failed.', 'You can only have one turn every 10 seconds!', 'Map retrieved successfully.', 'Successfully retrieved custom content listing.'];
       canShowMessage = function(response) {
         var msg;
         msg = response.data.message;
@@ -1624,7 +1847,7 @@
 
 (function() {
   angular.module('IdleLands').factory('API', [
-    'Authentication', 'Action', 'Battle', 'Personality', 'Pushbullet', 'Strings', 'Gender', 'Inventory', 'Shop', 'Priority', 'Pet', function(Authentication, Action, Battle, Personality, Pushbullet, Strings, Gender, Inventory, Shop, Priority, Pet) {
+    'Authentication', 'Action', 'Battle', 'Personality', 'Pushbullet', 'Strings', 'Gender', 'Inventory', 'Shop', 'Priority', 'Pet', 'Custom', function(Authentication, Action, Battle, Personality, Pushbullet, Strings, Gender, Inventory, Shop, Priority, Pet, Custom) {
       return {
         auth: Authentication,
         action: Action,
@@ -1636,7 +1859,8 @@
         gender: Gender,
         inventory: Inventory,
         shop: Shop,
-        pet: Pet
+        pet: Pet,
+        custom: Custom
       };
     }
   ]);
@@ -1675,6 +1899,30 @@
       return {
         get: function(data) {
           return $http.post("" + url, data);
+        }
+      };
+    }
+  ]);
+
+}).call(this);
+
+(function() {
+  angular.module('IdleLands').factory('Custom', [
+    '$http', 'BaseURL', function($http, baseURL) {
+      var url;
+      url = "" + baseURL + "/custom";
+      return {
+        submit: function(data) {
+          return $http.put("" + url + "/player/submit", data);
+        },
+        list: function(data) {
+          return $http.post("" + url + "/mod/list", data);
+        },
+        approve: function(data) {
+          return $http.patch("" + url + "/mod/approve", data);
+        },
+        reject: function(data) {
+          return $http.patch("" + url + "/mod/reject", data);
         }
       };
     }
