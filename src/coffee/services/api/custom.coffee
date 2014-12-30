@@ -6,6 +6,7 @@ angular.module 'IdleLands'
     url = "#{baseURL}/custom"
 
     submit:  (data) -> $http.put    "#{url}/player/submit", data
+    list:    (data) -> $http.post   "#{url}/mod/list", data
     approve: (data) -> $http.patch  "#{url}/mod/approve", data
     reject:  (data) -> $http.patch  "#{url}/mod/reject", data
 ]

@@ -45,6 +45,16 @@ angular.module 'IdleLands'
         templateUrl: 'submit-content'
         controller: 'ContentSubmission'
 
+    $scope.openModerationWindow = ->
+      $mdDialog.show
+        templateUrl: 'moderate-content'
+        controller: 'ContentModeration'
+        escapeToClose: no
+        clickOutsideToClose: no
+
+      .then ->
+        $scope.refreshCustomContent()
+
     $scope.$watch 'strings', (newVal, oldVal) ->
       return if newVal is oldVal
       $scope.updateStrings()
@@ -94,11 +104,18 @@ angular.module 'IdleLands'
           , 0
     , yes
 
+    $scope.refreshCustomContent = ->
+      API.custom.list()
+      .then (res) ->
+        $scope.customContentList = res.data.customs
+
     $scope.initialize = ->
       initializing = yes
 
       $scope.player = Player.getPlayer()
       $scope.buildStringList()
+
+      $scope.refreshCustomContent() if $scope.player?.isContentModerator and not $scope.customContentList
 
       $timeout ->
         initializing = no
@@ -108,6 +125,39 @@ angular.module 'IdleLands'
       $scope.initialize()
 
     $scope.initialize()
+
+]
+
+angular.module 'IdleLands'
+.controller 'ContentModeration', [
+  '$scope', '$mdDialog', 'API'
+  ($scope, $mdDialog, API) ->
+    $scope.cancel = $mdDialog.hide
+
+    $scope.toggleAll = ->
+      _.each $scope.customContentList, (item) ->
+        item.currentlySelected = not item.currentlySelected
+
+    do $scope.refreshData = ->
+      API.custom.list()
+      .then (res) ->
+        $scope.customContentList = res.data.customs
+
+    getSelected = ->
+      _($scope.customContentList)
+        .filter (item) -> item.currentlySelected
+        .map (item) -> item._id
+        .value()
+
+    $scope.approve = ->
+      API.custom.approve ids: getSelected()
+      .then ->
+        $scope.refreshData()
+
+    $scope.reject = ->
+      API.custom.reject ids: getSelected()
+      .then ->
+        $scope.refreshData()
 
 ]
 
@@ -161,8 +211,6 @@ angular.module 'IdleLands'
       data._name = data._name?.trim()
       data.content = data.content?.trim()
 
-      $mdToast.simple 'submitting...'
-
       requiresName = $scope.data.type.requiresName
 
       if not data.content
@@ -182,10 +230,4 @@ angular.module 'IdleLands'
         return if not res.data.isSuccess
 
         $mdDialog.hide()
-
-      #API.pet.buyPet petAttrs
-      #.then (res) ->
-      #  return if not res.data.isSuccess
-#
-      #  $mdDialog.hide()
 ]

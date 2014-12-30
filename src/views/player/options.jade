@@ -20,7 +20,7 @@ script(id="player-options", type="text/ng-template")
                   span.fa.fa-fw.fa-bullhorn.fa-lg.vertical-center
                   span &nbsp;
                   small
-                     a.inline-link(ng-click="openSubmissionWindow()") Moderate Content
+                     a.inline-link(ng-click="openModerationWindow()") Moderate Content ({{customContentList.length}} items)
 
          md-card.inner-card(layout="column")
             md-toolbar.md-theme-light-blue
@@ -110,6 +110,36 @@ script(id="player-options", type="text/ng-template")
                      span &nbsp;
                      small
                         a.inline-link(target="_blank",href="http://idle.land/s/thanks") Special Thanks
+
+script(id="moderate-content",type="text/ng-template")
+   md-dialog
+      md-content
+         md-subheader.md-sticky-no-effect
+            h2 Moderate Custom Content
+         div(layout="row", layout-align="space-around center", style="padding:15px")
+            md-button.md-accent(ng-click="toggleAll()") Toggle All
+            md-button.md-accent(ng-click="refreshData()") Refresh
+            md-button.md-warn(ng-click="reject()") Reject
+            md-button.md-primary(ng-click="approve()") Approve
+
+         div(layout="row")
+            table
+               thead
+                  tr
+                     th
+                     th(width="100px") Type
+                     th(width="400px") Content
+                     th(width="200px") Submitter
+               tbody
+                  tr(ng-repeat="item in customContentList")
+                     td
+                        md-switch(ng-model="item.currentlySelected",aria-label="Toggle Selection")
+                     td {{item.type}}
+                     td {{item.content}}
+                     td {{item.submitterName}}, <span am-time-ago='item.submissionTime'></span>
+
+      div.md-actions(layout="row")
+         md-button.md-warn(ng-click="cancel()") Close
 
 script(id="submit-content",type="text/ng-template")
    md-dialog
