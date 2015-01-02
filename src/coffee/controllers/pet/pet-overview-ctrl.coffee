@@ -1,7 +1,7 @@
 angular.module 'IdleLands'
 .controller 'PetOverview', [
-  '$scope', '$timeout', '$mdDialog', 'CurrentPet', 'CurrentPets', 'CurrentPlayer', 'API', '$state',
-  ($scope, $timeout, $mdDialog, Pet, Pets, Player, API, $state) ->
+  '$scope', '$mdDialog', 'CurrentPet', 'CurrentPets', 'CurrentPlayer', 'API', '$state',
+  ($scope, $mdDialog, Pet, Pets, Player, API, $state) ->
 
     $scope.equipmentStatArray = [
       {name: 'str', fa: 'fa-legal fa-rotate-90'}

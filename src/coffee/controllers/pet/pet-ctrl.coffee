@@ -1,7 +1,7 @@
 angular.module 'IdleLands'
 .controller 'Pet', [
-  '$scope', '$state', '$window', '$timeout', 'CurrentPet', 'CurrentPlayer', 'CredentialCache', 'TurnTaker'
-  ($scope, $state, $window, $timeout, Pet, Player, CredentialCache, TurnTaker) ->
+  '$scope', '$state', '$window', 'CurrentPet', 'CurrentPlayer', 'CredentialCache', 'TurnTaker'
+  ($scope, $state, $window, Pet, Player, CredentialCache, TurnTaker) ->
 
     if not Player.getPlayer()
       CredentialCache.tryLogin().then (->
