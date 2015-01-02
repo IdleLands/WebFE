@@ -186,12 +186,20 @@
 
 (function() {
   angular.module('IdleLands').controller('Login', [
-    '$scope', '$state', 'API', 'CredentialCache', function($scope, $state, API, CredentialCache) {
+    '$scope', '$state', 'API', 'CredentialCache', 'CurrentPlayer', 'TurnTaker', function($scope, $state, API, CredentialCache, Player, TurnTaker) {
       var goToPlayerView;
       $scope.selectedIndex = 0;
       $scope.selectTab = function(tabIndex) {
         return $scope.selectedIndex = tabIndex;
       };
+      if (!Player.getPlayer()) {
+        CredentialCache.tryLogin().then((function() {
+          if (Player.getPlayer()) {
+            TurnTaker.beginTakingTurns(Player.getPlayer());
+            return $state.go('player.overview');
+          }
+        }));
+      }
       $scope.login = {};
       $scope.register = {};
       $scope.advLogin = {};
