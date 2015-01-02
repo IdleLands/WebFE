@@ -45440,34 +45440,17 @@ Phaser.Physics.P2.RevoluteConstraint.prototype.constructor = Phaser.Physics.P2.R
     function minErr(module, ErrorConstructor) {
         ErrorConstructor = ErrorConstructor || Error;
         return function() {
-            var code = arguments[0], prefix = "[" + (module ? module + ":" : "") + code + "] ", template = arguments[1], templateArgs = arguments, stringify = function(obj) {
-                if (typeof obj === "function") {
-                    return obj.toString().replace(/ \{[\s\S]*$/, "");
-                } else if (typeof obj === "undefined") {
-                    return "undefined";
-                } else if (typeof obj !== "string") {
-                    return JSON.stringify(obj);
-                }
-                return obj;
-            }, message, i;
+            var code = arguments[0], prefix = "[" + (module ? module + ":" : "") + code + "] ", template = arguments[1], templateArgs = arguments, message, i;
             message = prefix + template.replace(/\{\d+\}/g, function(match) {
                 var index = +match.slice(1, -1), arg;
                 if (index + 2 < templateArgs.length) {
-                    arg = templateArgs[index + 2];
-                    if (typeof arg === "function") {
-                        return arg.toString().replace(/ ?\{[\s\S]*$/, "");
-                    } else if (typeof arg === "undefined") {
-                        return "undefined";
-                    } else if (typeof arg !== "string") {
-                        return toJson(arg);
-                    }
-                    return arg;
+                    return toDebugString(templateArgs[index + 2]);
                 }
                 return match;
             });
-            message = message + "\nhttp://errors.angularjs.org/1.3.0/" + (module ? module + "/" : "") + code;
+            message = message + "\nhttp://errors.angularjs.org/1.3.8/" + (module ? module + "/" : "") + code;
             for (i = 2; i < arguments.length; i++) {
-                message = message + (i == 2 ? "?" : "&") + "p" + (i - 2) + "=" + encodeURIComponent(stringify(arguments[i]));
+                message = message + (i == 2 ? "?" : "&") + "p" + (i - 2) + "=" + encodeURIComponent(toDebugString(arguments[i]));
             }
             return new ErrorConstructor(message);
         };
@@ -45536,13 +45519,7 @@ Phaser.Physics.P2.RevoluteConstraint.prototype.constructor = Phaser.Physics.P2.R
         return obj;
     }
     function sortedKeys(obj) {
-        var keys = [];
-        for (var key in obj) {
-            if (obj.hasOwnProperty(key)) {
-                keys.push(key);
-            }
-        }
-        return keys.sort();
+        return Object.keys(obj).sort();
     }
     function forEachSorted(obj, iterator, context) {
         var keys = sortedKeys(obj);
@@ -45585,9 +45562,7 @@ Phaser.Physics.P2.RevoluteConstraint.prototype.constructor = Phaser.Physics.P2.R
         return parseInt(str, 10);
     }
     function inherit(parent, extra) {
-        return extend(new (extend(function() {}, {
-            prototype: parent
-        }))(), extra);
+        return extend(Object.create(parent), extra);
     }
     function noop() {}
     noop.$inject = [];
@@ -45634,6 +45609,9 @@ Phaser.Physics.P2.RevoluteConstraint.prototype.constructor = Phaser.Physics.P2.R
     function isFile(obj) {
         return toString.call(obj) === "[object File]";
     }
+    function isFormData(obj) {
+        return toString.call(obj) === "[object FormData]";
+    }
     function isBlob(obj) {
         return toString.call(obj) === "[object Blob]";
     }
@@ -45646,6 +45624,9 @@ Phaser.Physics.P2.RevoluteConstraint.prototype.constructor = Phaser.Physics.P2.R
     var trim = function(value) {
         return isString(value) ? value.trim() : value;
     };
+    var escapeForRegexp = function(s) {
+        return s.replace(/([-()\[\]{}+?*.$\^|,:#<!\\])/g, "\\$1").replace(/\x08/g, "\\x08");
+    };
     function isElement(node) {
         return !!(node && (node.nodeName || node.prop && node.attr && node.find));
     }
@@ -45655,16 +45636,7 @@ Phaser.Physics.P2.RevoluteConstraint.prototype.constructor = Phaser.Physics.P2.R
         return obj;
     }
     function nodeName_(element) {
-        return lowercase(element.nodeName || element[0].nodeName);
-    }
-    function size(obj, ownPropsOnly) {
-        var count = 0, key;
-        if (isArray(obj) || isString(obj)) {
-            return obj.length;
-        } else if (isObject(obj)) {
-            for (key in obj) if (!ownPropsOnly || obj.hasOwnProperty(key)) count++;
-        }
-        return count;
+        return lowercase(element.nodeName || element[0] && element[0].nodeName);
     }
     function includes(array, obj) {
         return Array.prototype.indexOf.call(array, obj) != -1;
@@ -45673,17 +45645,6 @@ Phaser.Physics.P2.RevoluteConstraint.prototype.constructor = Phaser.Physics.P2.R
         var index = array.indexOf(value);
         if (index >= 0) array.splice(index, 1);
         return value;
-    }
-    function isLeafNode(node) {
-        if (node) {
-            switch (nodeName_(node)) {
-              case "option":
-              case "pre":
-              case "title":
-                return true;
-            }
-        }
-        return false;
     }
     function copy(source, destination, stackSource, stackDest) {
         if (isWindow(source) || isScope(source)) {
@@ -45824,7 +45785,7 @@ Phaser.Physics.P2.RevoluteConstraint.prototype.constructor = Phaser.Physics.P2.R
         var curryArgs = arguments.length > 2 ? sliceArgs(arguments, 2) : [];
         if (isFunction(fn) && !(fn instanceof RegExp)) {
             return curryArgs.length ? function() {
-                return arguments.length ? fn.apply(self, curryArgs.concat(slice.call(arguments, 0))) : fn.apply(self, curryArgs);
+                return arguments.length ? fn.apply(self, concat(curryArgs, arguments, 0)) : fn.apply(self, curryArgs);
             } : function() {
                 return arguments.length ? fn.apply(self, arguments) : fn.call(self);
             };
@@ -45847,7 +45808,10 @@ Phaser.Physics.P2.RevoluteConstraint.prototype.constructor = Phaser.Physics.P2.R
     }
     function toJson(obj, pretty) {
         if (typeof obj === "undefined") return undefined;
-        return JSON.stringify(obj, toJsonReplacer, pretty ? "  " : null);
+        if (!isNumber(pretty)) {
+            pretty = pretty ? 2 : null;
+        }
+        return JSON.stringify(obj, toJsonReplacer, pretty);
     }
     function fromJson(json) {
         return isString(json) ? JSON.parse(json) : json;
@@ -45997,7 +45961,11 @@ Phaser.Physics.P2.RevoluteConstraint.prototype.constructor = Phaser.Physics.P2.R
         window.location.reload();
     }
     function getTestability(rootElement) {
-        return angular.element(rootElement).injector().get("$$testability");
+        var injector = angular.element(rootElement).injector();
+        if (!injector) {
+            throw ngMinErr("test", "no injector found for element argument to getTestability");
+        }
+        return injector.get("$$testability");
     }
     var SNAKE_CASE_REGEXP = /[A-Z]/g;
     function snake_case(name, separator) {
@@ -46162,12 +46130,33 @@ Phaser.Physics.P2.RevoluteConstraint.prototype.constructor = Phaser.Physics.P2.R
             };
         });
     }
+    function serializeObject(obj) {
+        var seen = [];
+        return JSON.stringify(obj, function(key, val) {
+            val = toJsonReplacer(key, val);
+            if (isObject(val)) {
+                if (seen.indexOf(val) >= 0) return "<<already seen>>";
+                seen.push(val);
+            }
+            return val;
+        });
+    }
+    function toDebugString(obj) {
+        if (typeof obj === "function") {
+            return obj.toString().replace(/ \{[\s\S]*$/, "");
+        } else if (typeof obj === "undefined") {
+            return "undefined";
+        } else if (typeof obj !== "string") {
+            return serializeObject(obj);
+        }
+        return obj;
+    }
     var version = {
-        full: "1.3.0",
+        full: "1.3.8",
         major: 1,
         minor: 3,
-        dot: 0,
-        codeName: "superluminal-nudge"
+        dot: 8,
+        codeName: "prophetic-narwhal"
     };
     function publishExternalAPI(angular) {
         extend(angular, {
@@ -46289,7 +46278,8 @@ Phaser.Physics.P2.RevoluteConstraint.prototype.constructor = Phaser.Physics.P2.R
                 $timeout: $TimeoutProvider,
                 $window: $WindowProvider,
                 $$rAF: $$RAFProvider,
-                $$asyncCallback: $$AsyncCallbackProvider
+                $$asyncCallback: $$AsyncCallbackProvider,
+                $$jqLite: $$jqLiteProvider
             });
         } ]);
     }
@@ -46574,7 +46564,6 @@ Phaser.Physics.P2.RevoluteConstraint.prototype.constructor = Phaser.Physics.P2.R
             } else {
                 this.on("DOMContentLoaded", trigger);
                 JQLite(window).on("load", trigger);
-                this.on("DOMContentLoaded", trigger);
             }
         },
         toString: function() {
@@ -46964,6 +46953,24 @@ Phaser.Physics.P2.RevoluteConstraint.prototype.constructor = Phaser.Physics.P2.R
         JQLite.prototype.bind = JQLite.prototype.on;
         JQLite.prototype.unbind = JQLite.prototype.off;
     });
+    function $$jqLiteProvider() {
+        this.$get = function $$jqLite() {
+            return extend(JQLite, {
+                hasClass: function(node, classes) {
+                    if (node.attr) node = node[0];
+                    return jqLiteHasClass(node, classes);
+                },
+                addClass: function(node, classes) {
+                    if (node.attr) node = node[0];
+                    return jqLiteAddClass(node, classes);
+                },
+                removeClass: function(node, classes) {
+                    if (node.attr) node = node[0];
+                    return jqLiteRemoveClass(node, classes);
+                }
+            });
+        };
+    }
     function hashKey(obj, nextUidFn) {
         var key = obj && obj.$$hashKey;
         if (key) {
@@ -47056,11 +47063,14 @@ Phaser.Physics.P2.RevoluteConstraint.prototype.constructor = Phaser.Physics.P2.R
                 constant: supportObject(constant),
                 decorator: decorator
             }
-        }, providerInjector = providerCache.$injector = createInternalInjector(providerCache, function() {
+        }, providerInjector = providerCache.$injector = createInternalInjector(providerCache, function(serviceName, caller) {
+            if (angular.isString(caller)) {
+                path.push(caller);
+            }
             throw $injectorMinErr("unpr", "Unknown provider: {0}", path.join(" <- "));
-        }), instanceCache = {}, instanceInjector = instanceCache.$injector = createInternalInjector(instanceCache, function(servicename) {
-            var provider = providerInjector.get(servicename + providerSuffix);
-            return instanceInjector.invoke(provider.$get, provider, undefined, servicename);
+        }), instanceCache = {}, instanceInjector = instanceCache.$injector = createInternalInjector(instanceCache, function(serviceName, caller) {
+            var provider = providerInjector.get(serviceName + providerSuffix, caller);
+            return instanceInjector.invoke(provider.$get, provider, undefined, serviceName);
         });
         forEach(loadModules(modulesToLoad), function(fn) {
             instanceInjector.invoke(fn || noop);
@@ -47087,7 +47097,7 @@ Phaser.Physics.P2.RevoluteConstraint.prototype.constructor = Phaser.Physics.P2.R
         }
         function enforceReturnValue(name, factory) {
             return function enforcedReturnValue() {
-                var result = instanceInjector.invoke(factory, this, undefined, name);
+                var result = instanceInjector.invoke(factory, this);
                 if (isUndefined(result)) {
                     throw $injectorMinErr("undef", "Provider '{0}' must return a value from $get factory method.", name);
                 }
@@ -47159,7 +47169,7 @@ Phaser.Physics.P2.RevoluteConstraint.prototype.constructor = Phaser.Physics.P2.R
             return runBlocks;
         }
         function createInternalInjector(cache, factory) {
-            function getService(serviceName) {
+            function getService(serviceName, caller) {
                 if (cache.hasOwnProperty(serviceName)) {
                     if (cache[serviceName] === INSTANTIATING) {
                         throw $injectorMinErr("cdep", "Circular dependency found: {0}", serviceName + " <- " + path.join(" <- "));
@@ -47169,7 +47179,7 @@ Phaser.Physics.P2.RevoluteConstraint.prototype.constructor = Phaser.Physics.P2.R
                     try {
                         path.unshift(serviceName);
                         cache[serviceName] = INSTANTIATING;
-                        return cache[serviceName] = factory(serviceName);
+                        return cache[serviceName] = factory(serviceName, caller);
                     } catch (err) {
                         if (cache[serviceName] === INSTANTIATING) {
                             delete cache[serviceName];
@@ -47191,7 +47201,7 @@ Phaser.Physics.P2.RevoluteConstraint.prototype.constructor = Phaser.Physics.P2.R
                     if (typeof key !== "string") {
                         throw $injectorMinErr("itkn", "Incorrect injection token! Expected service name as string, got {0}", key);
                     }
-                    args.push(locals && locals.hasOwnProperty(key) ? locals[key] : getService(key));
+                    args.push(locals && locals.hasOwnProperty(key) ? locals[key] : getService(key, serviceName));
                 }
                 if (isArray(fn)) {
                     fn = fn[length];
@@ -47199,10 +47209,8 @@ Phaser.Physics.P2.RevoluteConstraint.prototype.constructor = Phaser.Physics.P2.R
                 return fn.apply(self, args);
             }
             function instantiate(Type, locals, serviceName) {
-                var Constructor = function() {}, instance, returnedValue;
-                Constructor.prototype = (isArray(Type) ? Type[Type.length - 1] : Type).prototype;
-                instance = new Constructor();
-                returnedValue = invoke(Type, instance, locals, serviceName);
+                var instance = Object.create((isArray(Type) ? Type[Type.length - 1] : Type).prototype);
+                var returnedValue = invoke(Type, instance, locals, serviceName);
                 return isObject(returnedValue) || isFunction(returnedValue) ? returnedValue : instance;
             }
             return {
@@ -47224,7 +47232,6 @@ Phaser.Physics.P2.RevoluteConstraint.prototype.constructor = Phaser.Physics.P2.R
         };
         this.$get = [ "$window", "$location", "$rootScope", function($window, $location, $rootScope) {
             var document = $window.document;
-            var scrollScheduled = false;
             function getFirstAnchor(list) {
                 var result = null;
                 Array.prototype.some.call(list, function(element) {
@@ -47473,6 +47480,10 @@ Phaser.Physics.P2.RevoluteConstraint.prototype.constructor = Phaser.Physics.P2.R
                 }
             }
         }
+        function getHash(url) {
+            var index = url.indexOf("#");
+            return index === -1 ? "" : url.substr(index + 1);
+        }
         self.notifyWhenNoOutstandingRequests = function(callback) {
             forEach(pollFns, function(pollFn) {
                 pollFn();
@@ -47509,7 +47520,7 @@ Phaser.Physics.P2.RevoluteConstraint.prototype.constructor = Phaser.Physics.P2.R
             if (url) {
                 var sameState = lastHistoryState === state;
                 if (lastBrowserUrl === url && (!$sniffer.history || sameState)) {
-                    return;
+                    return self;
                 }
                 var sameBase = lastBrowserUrl && stripHash(lastBrowserUrl) === stripHash(url);
                 lastBrowserUrl = url;
@@ -47524,8 +47535,10 @@ Phaser.Physics.P2.RevoluteConstraint.prototype.constructor = Phaser.Physics.P2.R
                     }
                     if (replace) {
                         location.replace(url);
-                    } else {
+                    } else if (!sameBase) {
                         location.href = url;
+                    } else {
+                        location.hash = getHash(url);
                     }
                 }
                 return self;
@@ -47746,10 +47759,10 @@ Phaser.Physics.P2.RevoluteConstraint.prototype.constructor = Phaser.Physics.P2.R
     var $compileMinErr = minErr("$compile");
     $CompileProvider.$inject = [ "$provide", "$$sanitizeUriProvider" ];
     function $CompileProvider($provide, $$sanitizeUriProvider) {
-        var hasDirectives = {}, Suffix = "Directive", COMMENT_DIRECTIVE_REGEXP = /^\s*directive\:\s*([\d\w_\-]+)\s+(.*)$/, CLASS_DIRECTIVE_REGEXP = /(([\d\w_\-]+)(?:\:([^;]+))?;?)/, ALL_OR_NOTHING_ATTRS = makeMap("ngSrc,ngSrcset,src,srcset"), REQUIRE_PREFIX_REGEXP = /^(?:(\^\^?)?(\?)?(\^\^?)?)?/;
+        var hasDirectives = {}, Suffix = "Directive", COMMENT_DIRECTIVE_REGEXP = /^\s*directive\:\s*([\w\-]+)\s+(.*)$/, CLASS_DIRECTIVE_REGEXP = /(([\w\-]+)(?:\:([^;]+))?;?)/, ALL_OR_NOTHING_ATTRS = makeMap("ngSrc,ngSrcset,src,srcset"), REQUIRE_PREFIX_REGEXP = /^(?:(\^\^?)?(\?)?(\^\^?)?)?/;
         var EVENT_HANDLER_ATTR_REGEXP = /^(on[a-z]+|formaction)$/;
         function parseIsolateBindings(scope, directiveName) {
-            var LOCAL_REGEXP = /^\s*([@=&])(\??)\s*(\w*)\s*$/;
+            var LOCAL_REGEXP = /^\s*([@&]|=(\*?))(\??)\s*(\w*)\s*$/;
             var bindings = {};
             forEach(scope, function(definition, scopeName) {
                 var match = definition.match(LOCAL_REGEXP);
@@ -47757,9 +47770,10 @@ Phaser.Physics.P2.RevoluteConstraint.prototype.constructor = Phaser.Physics.P2.R
                     throw $compileMinErr("iscp", "Invalid isolate scope definition for directive '{0}'." + " Definition: {... {1}: '{2}' ...}", directiveName, scopeName, definition);
                 }
                 bindings[scopeName] = {
-                    attrName: match[3] || scopeName,
-                    mode: match[1],
-                    optional: match[2] === "?"
+                    mode: match[1][0],
+                    collection: match[2] === "*",
+                    optional: match[3] === "?",
+                    attrName: match[4] || scopeName
                 };
             });
             return bindings;
@@ -47865,7 +47879,7 @@ Phaser.Physics.P2.RevoluteConstraint.prototype.constructor = Phaser.Physics.P2.R
                     }
                 },
                 $set: function(key, value, writeAttr, attrName) {
-                    var node = this.$$element[0], booleanKey = getBooleanAttrName(node, key), aliasedKey = getAliasedAttrName(node, key), observer = key, normalizedVal, nodeName;
+                    var node = this.$$element[0], booleanKey = getBooleanAttrName(node, key), aliasedKey = getAliasedAttrName(node, key), observer = key, nodeName;
                     if (booleanKey) {
                         this.$$element.prop(key, value);
                         attrName = booleanKey;
@@ -47924,7 +47938,7 @@ Phaser.Physics.P2.RevoluteConstraint.prototype.constructor = Phaser.Physics.P2.R
                     var attrs = this, $$observers = attrs.$$observers || (attrs.$$observers = createMap()), listeners = $$observers[key] || ($$observers[key] = []);
                     listeners.push(fn);
                     $rootScope.$evalAsync(function() {
-                        if (!listeners.$$inter) {
+                        if (!listeners.$$inter && attrs.hasOwnProperty(key)) {
                             fn(attrs[key]);
                         }
                     });
@@ -47973,8 +47987,13 @@ Phaser.Physics.P2.RevoluteConstraint.prototype.constructor = Phaser.Physics.P2.R
                 var compositeLinkFn = compileNodes($compileNodes, transcludeFn, $compileNodes, maxPriority, ignoreDirective, previousCompileContext);
                 compile.$$addScopeClass($compileNodes);
                 var namespace = null;
-                return function publicLinkFn(scope, cloneConnectFn, transcludeControllers, parentBoundTranscludeFn, futureParentElement) {
+                return function publicLinkFn(scope, cloneConnectFn, options) {
                     assertArg(scope, "scope");
+                    options = options || {};
+                    var parentBoundTranscludeFn = options.parentBoundTranscludeFn, transcludeControllers = options.transcludeControllers, futureParentElement = options.futureParentElement;
+                    if (parentBoundTranscludeFn && parentBoundTranscludeFn.$$boundTransclude) {
+                        parentBoundTranscludeFn = parentBoundTranscludeFn.$$boundTransclude;
+                    }
                     if (!namespace) {
                         namespace = detectNamespaceForChildElements(futureParentElement);
                     }
@@ -48069,7 +48088,11 @@ Phaser.Physics.P2.RevoluteConstraint.prototype.constructor = Phaser.Physics.P2.R
                         transcludedScope = scope.$new(false, containingScope);
                         transcludedScope.$$transcluded = true;
                     }
-                    return transcludeFn(transcludedScope, cloneFn, controllers, previousBoundTranscludeFn, futureParentElement);
+                    return transcludeFn(transcludedScope, cloneFn, {
+                        parentBoundTranscludeFn: previousBoundTranscludeFn,
+                        transcludeControllers: controllers,
+                        futureParentElement: futureParentElement
+                    });
                 };
                 return boundTranscludeFn;
             }
@@ -48086,7 +48109,9 @@ Phaser.Physics.P2.RevoluteConstraint.prototype.constructor = Phaser.Physics.P2.R
                         value = trim(attr.value);
                         ngAttrName = directiveNormalize(name);
                         if (isNgAttr = NG_ATTR_BINDING.test(ngAttrName)) {
-                            name = snake_case(ngAttrName.substr(6), "-");
+                            name = name.replace(PREFIX_REGEXP, "").substr(8).replace(/_(.)/g, function(match, letter) {
+                                return letter.toUpperCase();
+                            });
                         }
                         var directiveNName = ngAttrName.replace(/(Start|End)$/, "");
                         if (directiveIsMultiElement(directiveNName)) {
@@ -48142,7 +48167,6 @@ Phaser.Physics.P2.RevoluteConstraint.prototype.constructor = Phaser.Physics.P2.R
                 var nodes = [];
                 var depth = 0;
                 if (attrStart && node.hasAttribute && node.hasAttribute(attrStart)) {
-                    var startNode = node;
                     do {
                         if (!node) {
                             throw $compileMinErr("uterdir", "Unterminated attribute, found '{0}' but no matching '{1}' found.", attrStart, attrEnd);
@@ -48343,7 +48367,7 @@ Phaser.Physics.P2.RevoluteConstraint.prototype.constructor = Phaser.Physics.P2.R
                         if (!value && !optional) {
                             throw $compileMinErr("ctreq", "Controller '{0}', required by directive '{1}', can't be found!", require, directiveName);
                         }
-                        return value;
+                        return value || null;
                     } else if (isArray(require)) {
                         value = [];
                         forEach(require, function(require) {
@@ -48364,7 +48388,10 @@ Phaser.Physics.P2.RevoluteConstraint.prototype.constructor = Phaser.Physics.P2.R
                     if (newIsolateScopeDirective) {
                         isolateScope = scope.$new(true);
                     }
-                    transcludeFn = boundTranscludeFn && controllersBoundTransclude;
+                    if (boundTranscludeFn) {
+                        transcludeFn = controllersBoundTransclude;
+                        transcludeFn.$$boundTransclude = boundTranscludeFn;
+                    }
                     if (controllerDirectives) {
                         controllers = {};
                         elementControllers = {};
@@ -48388,7 +48415,6 @@ Phaser.Physics.P2.RevoluteConstraint.prototype.constructor = Phaser.Physics.P2.R
                         });
                     }
                     if (newIsolateScopeDirective) {
-                        var LOCAL_REGEXP = /^\s*([@=&])(\??)\s*(\w*)\s*$/;
                         compile.$$addScopeInfo($element, isolateScope, true, !(templateDirective && (templateDirective === newIsolateScopeDirective || templateDirective === newIsolateScopeDirective.$$originalDirective)));
                         compile.$$addScopeClass($element, true);
                         var isolateScopeController = controllers && controllers[newIsolateScopeDirective.name];
@@ -48437,7 +48463,12 @@ Phaser.Physics.P2.RevoluteConstraint.prototype.constructor = Phaser.Physics.P2.R
                                     return lastValue = parentValue;
                                 };
                                 parentValueWatch.$stateful = true;
-                                var unwatch = scope.$watch($parse(attrs[attrName], parentValueWatch), null, parentGet.literal);
+                                var unwatch;
+                                if (definition.collection) {
+                                    unwatch = scope.$watchCollection(attrs[attrName], parentValueWatch);
+                                } else {
+                                    unwatch = scope.$watch($parse(attrs[attrName], parentValueWatch), null, parentGet.literal);
+                                }
                                 isolateScope.$on("$destroy", unwatch);
                                 break;
 
@@ -48618,10 +48649,7 @@ Phaser.Physics.P2.RevoluteConstraint.prototype.constructor = Phaser.Physics.P2.R
                     var childBoundTranscludeFn = boundTranscludeFn;
                     if (scope.$$destroyed) return;
                     if (linkQueue) {
-                        linkQueue.push(scope);
-                        linkQueue.push(node);
-                        linkQueue.push(rootElement);
-                        linkQueue.push(childBoundTranscludeFn);
+                        linkQueue.push(scope, node, rootElement, childBoundTranscludeFn);
                     } else {
                         if (afterTemplateNodeLinkFn.transcludeOnThisElement) {
                             childBoundTranscludeFn = createBoundTranscludeFn(scope, afterTemplateNodeLinkFn.transclude, boundTranscludeFn);
@@ -48684,7 +48712,9 @@ Phaser.Physics.P2.RevoluteConstraint.prototype.constructor = Phaser.Physics.P2.R
                 }
             }
             function addAttrInterpolateDirective(node, directives, value, name, allOrNothing) {
-                var interpolateFn = $interpolate(value, true);
+                var trustedContext = getTrustedContext(node, name);
+                allOrNothing = ALL_OR_NOTHING_ATTRS[name] || allOrNothing;
+                var interpolateFn = $interpolate(value, true, trustedContext, allOrNothing);
                 if (!interpolateFn) return;
                 if (name === "multiple" && nodeName_(node) === "select") {
                     throw $compileMinErr("selmulti", "Binding to the 'multiple' attribute is not supported. Element: {0}", startingTag(node));
@@ -48698,10 +48728,11 @@ Phaser.Physics.P2.RevoluteConstraint.prototype.constructor = Phaser.Physics.P2.R
                                 if (EVENT_HANDLER_ATTR_REGEXP.test(name)) {
                                     throw $compileMinErr("nodomevents", "Interpolations for HTML DOM event attributes are disallowed.  Please use the " + "ng- versions (such as ng-click instead of onclick) instead.");
                                 }
-                                if (!attr[name]) {
-                                    return;
+                                var newValue = attr[name];
+                                if (newValue !== value) {
+                                    interpolateFn = newValue && $interpolate(newValue, true, trustedContext, allOrNothing);
+                                    value = newValue;
                                 }
-                                interpolateFn = $interpolate(attr[name], true, getTrustedContext(node, name), ALL_OR_NOTHING_ATTRS[name] || allOrNothing);
                                 if (!interpolateFn) return;
                                 attr[name] = interpolateFn(scope);
                                 ($$observers[name] || ($$observers[name] = [])).$$inter = true;
@@ -48774,7 +48805,7 @@ Phaser.Physics.P2.RevoluteConstraint.prototype.constructor = Phaser.Physics.P2.R
             }
         } ];
     }
-    var PREFIX_REGEXP = /^(x[\:\-_]|data[\:\-_])/i;
+    var PREFIX_REGEXP = /^((?:x|data)[\:\-_])/i;
     function directiveNormalize(name) {
         return camelCase(name.replace(PREFIX_REGEXP, ""));
     }
@@ -48831,9 +48862,8 @@ Phaser.Physics.P2.RevoluteConstraint.prototype.constructor = Phaser.Physics.P2.R
                     assertArgFn(expression, constructor, true);
                 }
                 if (later) {
-                    var Constructor = function() {};
-                    Constructor.prototype = (isArray(expression) ? expression[expression.length - 1] : expression).prototype;
-                    instance = new Constructor();
+                    var controllerPrototype = (isArray(expression) ? expression[expression.length - 1] : expression).prototype;
+                    instance = Object.create(controllerPrototype);
                     if (identifier) {
                         addIdentifier(locals, identifier, instance, constructor || expression.name);
                     }
@@ -48871,8 +48901,34 @@ Phaser.Physics.P2.RevoluteConstraint.prototype.constructor = Phaser.Physics.P2.R
             };
         } ];
     }
+    var APPLICATION_JSON = "application/json";
+    var CONTENT_TYPE_APPLICATION_JSON = {
+        "Content-Type": APPLICATION_JSON + ";charset=utf-8"
+    };
+    var JSON_START = /^\[|^\{(?!\{)/;
+    var JSON_ENDS = {
+        "[": /]$/,
+        "{": /}$/
+    };
+    var JSON_PROTECTION_PREFIX = /^\)\]\}',?\n/;
+    function defaultHttpResponseTransform(data, headers) {
+        if (isString(data)) {
+            var tempData = data.replace(JSON_PROTECTION_PREFIX, "").trim();
+            if (tempData) {
+                var contentType = headers("Content-Type");
+                if (contentType && contentType.indexOf(APPLICATION_JSON) === 0 || isJsonLike(tempData)) {
+                    data = fromJson(tempData);
+                }
+            }
+        }
+        return data;
+    }
+    function isJsonLike(str) {
+        var jsonStart = str.match(JSON_START);
+        return jsonStart && JSON_ENDS[jsonStart[0]].test(str);
+    }
     function parseHeaders(headers) {
-        var parsed = {}, key, val, i;
+        var parsed = createMap(), key, val, i;
         if (!headers) return parsed;
         forEach(headers.split("\n"), function(line) {
             i = line.indexOf(":");
@@ -48889,15 +48945,19 @@ Phaser.Physics.P2.RevoluteConstraint.prototype.constructor = Phaser.Physics.P2.R
         return function(name) {
             if (!headersObj) headersObj = parseHeaders(headers);
             if (name) {
-                return headersObj[lowercase(name)] || null;
+                var value = headersObj[lowercase(name)];
+                if (value === void 0) {
+                    value = null;
+                }
+                return value;
             }
             return headersObj;
         };
     }
-    function transformData(data, headers, fns) {
-        if (isFunction(fns)) return fns(data, headers);
+    function transformData(data, headers, status, fns) {
+        if (isFunction(fns)) return fns(data, headers, status);
         forEach(fns, function(fn) {
-            data = fn(data, headers);
+            data = fn(data, headers, status);
         });
         return data;
     }
@@ -48905,22 +48965,10 @@ Phaser.Physics.P2.RevoluteConstraint.prototype.constructor = Phaser.Physics.P2.R
         return 200 <= status && status < 300;
     }
     function $HttpProvider() {
-        var JSON_START = /^\s*(\[|\{[^\{])/, JSON_END = /[\}\]]\s*$/, PROTECTION_PREFIX = /^\)\]\}',?\n/, APPLICATION_JSON = "application/json", CONTENT_TYPE_APPLICATION_JSON = {
-            "Content-Type": APPLICATION_JSON + ";charset=utf-8"
-        };
         var defaults = this.defaults = {
-            transformResponse: [ function defaultHttpResponseTransform(data, headers) {
-                if (isString(data)) {
-                    data = data.replace(PROTECTION_PREFIX, "");
-                    var contentType = headers("Content-Type");
-                    if (contentType && contentType.indexOf(APPLICATION_JSON) === 0 || JSON_START.test(data) && JSON_END.test(data)) {
-                        data = fromJson(data);
-                    }
-                }
-                return data;
-            } ],
+            transformResponse: [ defaultHttpResponseTransform ],
             transformRequest: [ function(d) {
-                return isObject(d) && !isFile(d) && !isBlob(d) ? toJson(d) : d;
+                return isObject(d) && !isFile(d) && !isBlob(d) && !isFormData(d) ? toJson(d) : d;
             } ],
             headers: {
                 common: {
@@ -48949,18 +48997,19 @@ Phaser.Physics.P2.RevoluteConstraint.prototype.constructor = Phaser.Physics.P2.R
                 reversedInterceptors.unshift(isString(interceptorFactory) ? $injector.get(interceptorFactory) : $injector.invoke(interceptorFactory));
             });
             function $http(requestConfig) {
-                var config = {
+                if (!angular.isObject(requestConfig)) {
+                    throw minErr("$http")("badreq", "Http request configuration must be an object.  Received: {0}", requestConfig);
+                }
+                var config = extend({
                     method: "get",
                     transformRequest: defaults.transformRequest,
                     transformResponse: defaults.transformResponse
-                };
-                var headers = mergeHeaders(requestConfig);
-                extend(config, requestConfig);
-                config.headers = headers;
+                }, requestConfig);
+                config.headers = mergeHeaders(requestConfig);
                 config.method = uppercase(config.method);
                 var serverRequest = function(config) {
-                    headers = config.headers;
-                    var reqData = transformData(config.data, headersGetter(headers), config.transformRequest);
+                    var headers = config.headers;
+                    var reqData = transformData(config.data, headersGetter(headers), undefined, config.transformRequest);
                     if (isUndefined(reqData)) {
                         forEach(headers, function(value, header) {
                             if (lowercase(header) === "content-type") {
@@ -48971,7 +49020,7 @@ Phaser.Physics.P2.RevoluteConstraint.prototype.constructor = Phaser.Physics.P2.R
                     if (isUndefined(config.withCredentials) && !isUndefined(defaults.withCredentials)) {
                         config.withCredentials = defaults.withCredentials;
                     }
-                    return sendReq(config, reqData, headers).then(transformResponse, transformResponse);
+                    return sendReq(config, reqData).then(transformResponse, transformResponse);
                 };
                 var chain = [ serverRequest, undefined ];
                 var promise = $q.when(config);
@@ -49006,9 +49055,23 @@ Phaser.Physics.P2.RevoluteConstraint.prototype.constructor = Phaser.Physics.P2.R
                     if (!response.data) {
                         resp.data = response.data;
                     } else {
-                        resp.data = transformData(response.data, response.headers, config.transformResponse);
+                        resp.data = transformData(response.data, response.headers, response.status, config.transformResponse);
                     }
                     return isSuccess(response.status) ? resp : $q.reject(resp);
+                }
+                function executeHeaderFns(headers) {
+                    var headerContent, processedHeaders = {};
+                    forEach(headers, function(headerFn, header) {
+                        if (isFunction(headerFn)) {
+                            headerContent = headerFn();
+                            if (headerContent != null) {
+                                processedHeaders[header] = headerContent;
+                            }
+                        } else {
+                            processedHeaders[header] = headerFn;
+                        }
+                    });
+                    return processedHeaders;
                 }
                 function mergeHeaders(config) {
                     var defHeaders = defaults.headers, reqHeaders = extend({}, config.headers), defHeaderName, lowercaseDefHeaderName, reqHeaderName;
@@ -49022,21 +49085,7 @@ Phaser.Physics.P2.RevoluteConstraint.prototype.constructor = Phaser.Physics.P2.R
                         }
                         reqHeaders[defHeaderName] = defHeaders[defHeaderName];
                     }
-                    execHeaders(reqHeaders);
-                    return reqHeaders;
-                    function execHeaders(headers) {
-                        var headerContent;
-                        forEach(headers, function(headerFn, header) {
-                            if (isFunction(headerFn)) {
-                                headerContent = headerFn();
-                                if (headerContent != null) {
-                                    headers[header] = headerContent;
-                                } else {
-                                    delete headers[header];
-                                }
-                            }
-                        });
-                    }
+                    return executeHeaderFns(reqHeaders);
                 }
             }
             $http.pendingRequests = [];
@@ -49065,8 +49114,8 @@ Phaser.Physics.P2.RevoluteConstraint.prototype.constructor = Phaser.Physics.P2.R
                     };
                 });
             }
-            function sendReq(config, reqData, reqHeaders) {
-                var deferred = $q.defer(), promise = deferred.promise, cache, cachedResp, url = buildUrl(config.url, config.params);
+            function sendReq(config, reqData) {
+                var deferred = $q.defer(), promise = deferred.promise, cache, cachedResp, reqHeaders = config.headers, url = buildUrl(config.url, config.params);
                 $http.pendingRequests.push(config);
                 promise.then(removePendingReq, removePendingReq);
                 if ((config.cache || defaults.cache) && config.cache !== false && (config.method === "GET" || config.method === "JSONP")) {
@@ -49076,8 +49125,7 @@ Phaser.Physics.P2.RevoluteConstraint.prototype.constructor = Phaser.Physics.P2.R
                     cachedResp = cache.get(url);
                     if (isDefined(cachedResp)) {
                         if (isPromiseLike(cachedResp)) {
-                            cachedResp.then(removePendingReq, removePendingReq);
-                            return cachedResp;
+                            cachedResp.then(resolvePromiseWithResult, resolvePromiseWithResult);
                         } else {
                             if (isArray(cachedResp)) {
                                 resolvePromise(cachedResp[1], cachedResp[0], shallowCopy(cachedResp[2]), cachedResp[3]);
@@ -49124,6 +49172,9 @@ Phaser.Physics.P2.RevoluteConstraint.prototype.constructor = Phaser.Physics.P2.R
                         config: config,
                         statusText: statusText
                     });
+                }
+                function resolvePromiseWithResult(result) {
+                    resolvePromise(result.data, result.status, shallowCopy(result.headers()), result.statusText);
                 }
                 function removePendingReq() {
                     var idx = $http.pendingRequests.indexOf(config);
@@ -49222,7 +49273,9 @@ Phaser.Physics.P2.RevoluteConstraint.prototype.constructor = Phaser.Physics.P2.R
                 xhr && xhr.abort();
             }
             function completeRequest(callback, status, response, headersString, statusText) {
-                timeoutId && $browserDefer.cancel(timeoutId);
+                if (timeoutId !== undefined) {
+                    $browserDefer.cancel(timeoutId);
+                }
                 jsonpDone = xhr = null;
                 callback(status, response, headersString, statusText);
                 $browser.$$completeOutstandingRequest(noop);
@@ -49369,7 +49422,8 @@ Phaser.Physics.P2.RevoluteConstraint.prototype.constructor = Phaser.Physics.P2.R
                 }
                 function parseStringifyInterceptor(value) {
                     try {
-                        return stringify(getValue(value));
+                        value = getValue(value);
+                        return allOrNothing && !isDefined(value) ? value : stringify(value);
                     } catch (err) {
                         var newErr = $interpolateMinErr("interr", "Can't interpolate: {0}\n{1}", text, err.toString());
                         $exceptionHandler(newErr);
@@ -49483,18 +49537,18 @@ Phaser.Physics.P2.RevoluteConstraint.prototype.constructor = Phaser.Physics.P2.R
         }
         return segments.join("/");
     }
-    function parseAbsoluteUrl(absoluteUrl, locationObj, appBase) {
-        var parsedUrl = urlResolve(absoluteUrl, appBase);
+    function parseAbsoluteUrl(absoluteUrl, locationObj) {
+        var parsedUrl = urlResolve(absoluteUrl);
         locationObj.$$protocol = parsedUrl.protocol;
         locationObj.$$host = parsedUrl.hostname;
         locationObj.$$port = int(parsedUrl.port) || DEFAULT_PORTS[parsedUrl.protocol] || null;
     }
-    function parseAppUrl(relativeUrl, locationObj, appBase) {
+    function parseAppUrl(relativeUrl, locationObj) {
         var prefixed = relativeUrl.charAt(0) !== "/";
         if (prefixed) {
             relativeUrl = "/" + relativeUrl;
         }
-        var match = urlResolve(relativeUrl, appBase);
+        var match = urlResolve(relativeUrl);
         locationObj.$$path = decodeURIComponent(prefixed && match.pathname.charAt(0) === "/" ? match.pathname.substring(1) : match.pathname);
         locationObj.$$search = parseKeyValue(match.search);
         locationObj.$$hash = decodeURIComponent(match.hash);
@@ -49511,6 +49565,9 @@ Phaser.Physics.P2.RevoluteConstraint.prototype.constructor = Phaser.Physics.P2.R
         var index = url.indexOf("#");
         return index == -1 ? url : url.substr(0, index);
     }
+    function trimEmptyHash(url) {
+        return url.replace(/(#.+)|#$/, "$1");
+    }
     function stripFile(url) {
         return url.substr(0, stripHash(url).lastIndexOf("/") + 1);
     }
@@ -49521,13 +49578,13 @@ Phaser.Physics.P2.RevoluteConstraint.prototype.constructor = Phaser.Physics.P2.R
         this.$$html5 = true;
         basePrefix = basePrefix || "";
         var appBaseNoFile = stripFile(appBase);
-        parseAbsoluteUrl(appBase, this, appBase);
+        parseAbsoluteUrl(appBase, this);
         this.$$parse = function(url) {
             var pathUrl = beginsWith(appBaseNoFile, url);
             if (!isString(pathUrl)) {
                 throw $locationMinErr("ipthprfx", 'Invalid url "{0}", missing path prefix "{1}".', url, appBaseNoFile);
             }
-            parseAppUrl(pathUrl, this, appBase);
+            parseAppUrl(pathUrl, this);
             if (!this.$$path) {
                 this.$$path = "/";
             }
@@ -49565,14 +49622,19 @@ Phaser.Physics.P2.RevoluteConstraint.prototype.constructor = Phaser.Physics.P2.R
     }
     function LocationHashbangUrl(appBase, hashPrefix) {
         var appBaseNoFile = stripFile(appBase);
-        parseAbsoluteUrl(appBase, this, appBase);
+        parseAbsoluteUrl(appBase, this);
         this.$$parse = function(url) {
             var withoutBaseUrl = beginsWith(appBase, url) || beginsWith(appBaseNoFile, url);
-            var withoutHashUrl = withoutBaseUrl.charAt(0) == "#" ? beginsWith(hashPrefix, withoutBaseUrl) : this.$$html5 ? withoutBaseUrl : "";
-            if (!isString(withoutHashUrl)) {
-                throw $locationMinErr("ihshprfx", 'Invalid url "{0}", missing hash prefix "{1}".', url, hashPrefix);
+            var withoutHashUrl;
+            if (withoutBaseUrl.charAt(0) === "#") {
+                withoutHashUrl = beginsWith(hashPrefix, withoutBaseUrl);
+                if (isUndefined(withoutHashUrl)) {
+                    withoutHashUrl = withoutBaseUrl;
+                }
+            } else {
+                withoutHashUrl = this.$$html5 ? withoutBaseUrl : "";
             }
-            parseAppUrl(withoutHashUrl, this, appBase);
+            parseAppUrl(withoutHashUrl, this);
             this.$$path = removeWindowsDriveName(this.$$path, withoutHashUrl, appBase);
             this.$$compose();
             function removeWindowsDriveName(path, url, base) {
@@ -49637,8 +49699,8 @@ Phaser.Physics.P2.RevoluteConstraint.prototype.constructor = Phaser.Physics.P2.R
         url: function(url) {
             if (isUndefined(url)) return this.$$url;
             var match = PATH_MATCH.exec(url);
-            if (match[1]) this.path(decodeURIComponent(match[1]));
-            if (match[2] || match[1]) this.search(match[3] || "");
+            if (match[1] || url === "") this.path(decodeURIComponent(match[1]));
+            if (match[2] || match[1] || url === "") this.search(match[3] || "");
             this.hash(match[5] || "");
             return this;
         },
@@ -49744,7 +49806,7 @@ Phaser.Physics.P2.RevoluteConstraint.prototype.constructor = Phaser.Physics.P2.R
                 return html5Mode;
             }
         };
-        this.$get = [ "$rootScope", "$browser", "$sniffer", "$rootElement", function($rootScope, $browser, $sniffer, $rootElement) {
+        this.$get = [ "$rootScope", "$browser", "$sniffer", "$rootElement", "$window", function($rootScope, $browser, $sniffer, $rootElement, $window) {
             var $location, LocationMode, baseHref = $browser.baseHref(), initialUrl = $browser.url(), appBase;
             if (html5Mode.enabled) {
                 if (!baseHref && html5Mode.requireBase) {
@@ -49789,7 +49851,7 @@ Phaser.Physics.P2.RevoluteConstraint.prototype.constructor = Phaser.Physics.P2.R
                         event.preventDefault();
                         if ($location.absUrl() != $browser.url()) {
                             $rootScope.$apply();
-                            window.angular["ff-684208-preventDefault"] = true;
+                            $window.angular["ff-684208-preventDefault"] = true;
                         }
                     }
                 }
@@ -49802,9 +49864,12 @@ Phaser.Physics.P2.RevoluteConstraint.prototype.constructor = Phaser.Physics.P2.R
                 $rootScope.$evalAsync(function() {
                     var oldUrl = $location.absUrl();
                     var oldState = $location.$$state;
+                    var defaultPrevented;
                     $location.$$parse(newUrl);
                     $location.$$state = newState;
-                    if ($rootScope.$broadcast("$locationChangeStart", newUrl, oldUrl, newState, oldState).defaultPrevented) {
+                    defaultPrevented = $rootScope.$broadcast("$locationChangeStart", newUrl, oldUrl, newState, oldState).defaultPrevented;
+                    if ($location.absUrl() !== newUrl) return;
+                    if (defaultPrevented) {
                         $location.$$parse(oldUrl);
                         $location.$$state = oldState;
                         setBrowserUrlWithFallback(oldUrl, false, oldState);
@@ -49816,19 +49881,23 @@ Phaser.Physics.P2.RevoluteConstraint.prototype.constructor = Phaser.Physics.P2.R
                 if (!$rootScope.$$phase) $rootScope.$digest();
             });
             $rootScope.$watch(function $locationWatch() {
-                var oldUrl = $browser.url();
+                var oldUrl = trimEmptyHash($browser.url());
+                var newUrl = trimEmptyHash($location.absUrl());
                 var oldState = $browser.state();
                 var currentReplace = $location.$$replace;
-                var urlOrStateChanged = oldUrl !== $location.absUrl() || $location.$$html5 && $sniffer.history && oldState !== $location.$$state;
+                var urlOrStateChanged = oldUrl !== newUrl || $location.$$html5 && $sniffer.history && oldState !== $location.$$state;
                 if (initializing || urlOrStateChanged) {
                     initializing = false;
                     $rootScope.$evalAsync(function() {
-                        if ($rootScope.$broadcast("$locationChangeStart", $location.absUrl(), oldUrl, $location.$$state, oldState).defaultPrevented) {
+                        var newUrl = $location.absUrl();
+                        var defaultPrevented = $rootScope.$broadcast("$locationChangeStart", newUrl, oldUrl, $location.$$state, oldState).defaultPrevented;
+                        if ($location.absUrl() !== newUrl) return;
+                        if (defaultPrevented) {
                             $location.$$parse(oldUrl);
                             $location.$$state = oldState;
                         } else {
                             if (urlOrStateChanged) {
-                                setBrowserUrlWithFallback($location.absUrl(), currentReplace, oldState === $location.$$state ? null : $location.$$state);
+                                setBrowserUrlWithFallback(newUrl, currentReplace, oldState === $location.$$state ? null : $location.$$state);
                             }
                             afterLocationChange(oldUrl, oldState);
                         }
@@ -50029,51 +50098,37 @@ Phaser.Physics.P2.RevoluteConstraint.prototype.constructor = Phaser.Physics.P2.R
         lex: function(text) {
             this.text = text;
             this.index = 0;
-            this.ch = undefined;
             this.tokens = [];
             while (this.index < this.text.length) {
-                this.ch = this.text.charAt(this.index);
-                if (this.is("\"'")) {
-                    this.readString(this.ch);
-                } else if (this.isNumber(this.ch) || this.is(".") && this.isNumber(this.peek())) {
+                var ch = this.text.charAt(this.index);
+                if (ch === '"' || ch === "'") {
+                    this.readString(ch);
+                } else if (this.isNumber(ch) || ch === "." && this.isNumber(this.peek())) {
                     this.readNumber();
-                } else if (this.isIdent(this.ch)) {
+                } else if (this.isIdent(ch)) {
                     this.readIdent();
-                } else if (this.is("(){}[].,;:?")) {
+                } else if (this.is(ch, "(){}[].,;:?")) {
                     this.tokens.push({
                         index: this.index,
-                        text: this.ch
+                        text: ch
                     });
                     this.index++;
-                } else if (this.isWhitespace(this.ch)) {
+                } else if (this.isWhitespace(ch)) {
                     this.index++;
                 } else {
-                    var ch2 = this.ch + this.peek();
+                    var ch2 = ch + this.peek();
                     var ch3 = ch2 + this.peek(2);
-                    var fn = OPERATORS[this.ch];
-                    var fn2 = OPERATORS[ch2];
-                    var fn3 = OPERATORS[ch3];
-                    if (fn3) {
+                    var op1 = OPERATORS[ch];
+                    var op2 = OPERATORS[ch2];
+                    var op3 = OPERATORS[ch3];
+                    if (op1 || op2 || op3) {
+                        var token = op3 ? ch3 : op2 ? ch2 : ch;
                         this.tokens.push({
                             index: this.index,
-                            text: ch3,
-                            fn: fn3
+                            text: token,
+                            operator: true
                         });
-                        this.index += 3;
-                    } else if (fn2) {
-                        this.tokens.push({
-                            index: this.index,
-                            text: ch2,
-                            fn: fn2
-                        });
-                        this.index += 2;
-                    } else if (fn) {
-                        this.tokens.push({
-                            index: this.index,
-                            text: this.ch,
-                            fn: fn
-                        });
-                        this.index += 1;
+                        this.index += token.length;
                     } else {
                         this.throwError("Unexpected next character ", this.index, this.index + 1);
                     }
@@ -50081,15 +50136,15 @@ Phaser.Physics.P2.RevoluteConstraint.prototype.constructor = Phaser.Physics.P2.R
             }
             return this.tokens;
         },
-        is: function(chars) {
-            return chars.indexOf(this.ch) !== -1;
+        is: function(ch, chars) {
+            return chars.indexOf(ch) !== -1;
         },
         peek: function(i) {
             var num = i || 1;
             return this.index + num < this.text.length ? this.text.charAt(this.index + num) : false;
         },
         isNumber: function(ch) {
-            return "0" <= ch && ch <= "9";
+            return "0" <= ch && ch <= "9" && typeof ch === "string";
         },
         isWhitespace: function(ch) {
             return ch === " " || ch === "\r" || ch === "	" || ch === "\n" || ch === "" || ch === " ";
@@ -50126,71 +50181,27 @@ Phaser.Physics.P2.RevoluteConstraint.prototype.constructor = Phaser.Physics.P2.R
                 }
                 this.index++;
             }
-            number = 1 * number;
             this.tokens.push({
                 index: start,
                 text: number,
                 constant: true,
-                fn: function() {
-                    return number;
-                }
+                value: Number(number)
             });
         },
         readIdent: function() {
-            var expression = this.text;
-            var ident = "";
             var start = this.index;
-            var lastDot, peekIndex, methodName, ch;
             while (this.index < this.text.length) {
-                ch = this.text.charAt(this.index);
-                if (ch === "." || this.isIdent(ch) || this.isNumber(ch)) {
-                    if (ch === ".") lastDot = this.index;
-                    ident += ch;
-                } else {
+                var ch = this.text.charAt(this.index);
+                if (!(this.isIdent(ch) || this.isNumber(ch))) {
                     break;
                 }
                 this.index++;
             }
-            if (lastDot && ident[ident.length - 1] === ".") {
-                this.index--;
-                ident = ident.slice(0, -1);
-                lastDot = ident.lastIndexOf(".");
-                if (lastDot === -1) {
-                    lastDot = undefined;
-                }
-            }
-            if (lastDot) {
-                peekIndex = this.index;
-                while (peekIndex < this.text.length) {
-                    ch = this.text.charAt(peekIndex);
-                    if (ch === "(") {
-                        methodName = ident.substr(lastDot - start + 1);
-                        ident = ident.substr(0, lastDot - start);
-                        this.index = peekIndex;
-                        break;
-                    }
-                    if (this.isWhitespace(ch)) {
-                        peekIndex++;
-                    } else {
-                        break;
-                    }
-                }
-            }
             this.tokens.push({
                 index: start,
-                text: ident,
-                fn: CONSTANTS[ident] || getterFn(ident, this.options, expression)
+                text: this.text.slice(start, this.index),
+                identifier: true
             });
-            if (methodName) {
-                this.tokens.push({
-                    index: lastDot,
-                    text: "."
-                });
-                this.tokens.push({
-                    index: lastDot + 1,
-                    text: methodName
-                });
-            }
         },
         readString: function(quote) {
             var start = this.index;
@@ -50219,11 +50230,8 @@ Phaser.Physics.P2.RevoluteConstraint.prototype.constructor = Phaser.Physics.P2.R
                     this.tokens.push({
                         index: start,
                         text: rawString,
-                        string: string,
                         constant: true,
-                        fn: function() {
-                            return string;
-                        }
+                        value: string
                     });
                     return;
                 } else {
@@ -50270,16 +50278,14 @@ Phaser.Physics.P2.RevoluteConstraint.prototype.constructor = Phaser.Physics.P2.R
                 primary = this.arrayDeclaration();
             } else if (this.expect("{")) {
                 primary = this.object();
+            } else if (this.peek().identifier && this.peek().text in CONSTANTS) {
+                primary = CONSTANTS[this.consume().text];
+            } else if (this.peek().identifier) {
+                primary = this.identifier();
+            } else if (this.peek().constant) {
+                primary = this.constant();
             } else {
-                var token = this.expect();
-                primary = token.fn;
-                if (!primary) {
-                    this.throwError("not a primary expression", token);
-                }
-                if (token.constant) {
-                    primary.constant = true;
-                    primary.literal = true;
-                }
+                this.throwError("not a primary expression", this.peek());
             }
             var next, context;
             while (next = this.expect("(", "[", ".")) {
@@ -50306,8 +50312,11 @@ Phaser.Physics.P2.RevoluteConstraint.prototype.constructor = Phaser.Physics.P2.R
             return this.tokens[0];
         },
         peek: function(e1, e2, e3, e4) {
-            if (this.tokens.length > 0) {
-                var token = this.tokens[0];
+            return this.peekAhead(0, e1, e2, e3, e4);
+        },
+        peekAhead: function(i, e1, e2, e3, e4) {
+            if (this.tokens.length > i) {
+                var token = this.tokens[i];
                 var t = token.text;
                 if (t === e1 || t === e2 || t === e3 || t === e4 || !e1 && !e2 && !e3 && !e4) {
                     return token;
@@ -50324,11 +50333,17 @@ Phaser.Physics.P2.RevoluteConstraint.prototype.constructor = Phaser.Physics.P2.R
             return false;
         },
         consume: function(e1) {
-            if (!this.expect(e1)) {
+            if (this.tokens.length === 0) {
+                throw $parseMinErr("ueoe", "Unexpected end of expression: {0}", this.text);
+            }
+            var token = this.expect(e1);
+            if (!token) {
                 this.throwError("is unexpected, expecting [" + e1 + "]", this.peek());
             }
+            return token;
         },
-        unaryFn: function(fn, right) {
+        unaryFn: function(op, right) {
+            var fn = OPERATORS[op];
             return extend(function $parseUnaryFn(self, locals) {
                 return fn(self, locals, right);
             }, {
@@ -50336,12 +50351,29 @@ Phaser.Physics.P2.RevoluteConstraint.prototype.constructor = Phaser.Physics.P2.R
                 inputs: [ right ]
             });
         },
-        binaryFn: function(left, fn, right, isBranching) {
+        binaryFn: function(left, op, right, isBranching) {
+            var fn = OPERATORS[op];
             return extend(function $parseBinaryFn(self, locals) {
                 return fn(self, locals, left, right);
             }, {
                 constant: left.constant && right.constant,
                 inputs: !isBranching && [ left, right ]
+            });
+        },
+        identifier: function() {
+            var id = this.consume().text;
+            while (this.peek(".") && this.peekAhead(1).identifier && !this.peekAhead(2, "(")) {
+                id += this.consume().text + this.consume().text;
+            }
+            return getterFn(id, this.options, this.text);
+        },
+        constant: function() {
+            var value = this.consume().value;
+            return extend(function $parseConstant() {
+                return value;
+            }, {
+                constant: true,
+                literal: true
             });
         },
         statements: function() {
@@ -50368,8 +50400,7 @@ Phaser.Physics.P2.RevoluteConstraint.prototype.constructor = Phaser.Physics.P2.R
             return left;
         },
         filter: function(inputFn) {
-            var token = this.expect();
-            var fn = this.$filter(token.text);
+            var fn = this.$filter(this.consume().text);
             var argsFn;
             var args;
             if (this.peek(":")) {
@@ -50422,15 +50453,13 @@ Phaser.Physics.P2.RevoluteConstraint.prototype.constructor = Phaser.Physics.P2.R
             var token;
             if (token = this.expect("?")) {
                 middle = this.assignment();
-                if (token = this.expect(":")) {
+                if (this.consume(":")) {
                     var right = this.assignment();
                     return extend(function $parseTernary(self, locals) {
                         return left(self, locals) ? middle(self, locals) : right(self, locals);
                     }, {
                         constant: left.constant && middle.constant && right.constant
                     });
-                } else {
-                    this.throwError("expected :", token);
                 }
             }
             return left;
@@ -50439,31 +50468,31 @@ Phaser.Physics.P2.RevoluteConstraint.prototype.constructor = Phaser.Physics.P2.R
             var left = this.logicalAND();
             var token;
             while (token = this.expect("||")) {
-                left = this.binaryFn(left, token.fn, this.logicalAND(), true);
+                left = this.binaryFn(left, token.text, this.logicalAND(), true);
             }
             return left;
         },
         logicalAND: function() {
             var left = this.equality();
             var token;
-            if (token = this.expect("&&")) {
-                left = this.binaryFn(left, token.fn, this.logicalAND(), true);
+            while (token = this.expect("&&")) {
+                left = this.binaryFn(left, token.text, this.equality(), true);
             }
             return left;
         },
         equality: function() {
             var left = this.relational();
             var token;
-            if (token = this.expect("==", "!=", "===", "!==")) {
-                left = this.binaryFn(left, token.fn, this.equality());
+            while (token = this.expect("==", "!=", "===", "!==")) {
+                left = this.binaryFn(left, token.text, this.relational());
             }
             return left;
         },
         relational: function() {
             var left = this.additive();
             var token;
-            if (token = this.expect("<", ">", "<=", ">=")) {
-                left = this.binaryFn(left, token.fn, this.relational());
+            while (token = this.expect("<", ">", "<=", ">=")) {
+                left = this.binaryFn(left, token.text, this.additive());
             }
             return left;
         },
@@ -50471,7 +50500,7 @@ Phaser.Physics.P2.RevoluteConstraint.prototype.constructor = Phaser.Physics.P2.R
             var left = this.multiplicative();
             var token;
             while (token = this.expect("+", "-")) {
-                left = this.binaryFn(left, token.fn, this.multiplicative());
+                left = this.binaryFn(left, token.text, this.multiplicative());
             }
             return left;
         },
@@ -50479,7 +50508,7 @@ Phaser.Physics.P2.RevoluteConstraint.prototype.constructor = Phaser.Physics.P2.R
             var left = this.unary();
             var token;
             while (token = this.expect("*", "/", "%")) {
-                left = this.binaryFn(left, token.fn, this.unary());
+                left = this.binaryFn(left, token.text, this.unary());
             }
             return left;
         },
@@ -50488,24 +50517,23 @@ Phaser.Physics.P2.RevoluteConstraint.prototype.constructor = Phaser.Physics.P2.R
             if (this.expect("+")) {
                 return this.primary();
             } else if (token = this.expect("-")) {
-                return this.binaryFn(Parser.ZERO, token.fn, this.unary());
+                return this.binaryFn(Parser.ZERO, token.text, this.unary());
             } else if (token = this.expect("!")) {
-                return this.unaryFn(token.fn, this.unary());
+                return this.unaryFn(token.text, this.unary());
             } else {
                 return this.primary();
             }
         },
         fieldAccess: function(object) {
-            var expression = this.text;
-            var field = this.expect().text;
-            var getter = getterFn(field, this.options, expression);
+            var getter = this.identifier();
             return extend(function $parseFieldAccess(scope, locals, self) {
-                return getter(self || object(scope, locals));
+                var o = self || object(scope, locals);
+                return o == null ? undefined : getter(o);
             }, {
                 assign: function(scope, value, locals) {
                     var o = object(scope, locals);
                     if (!o) object.assign(scope, o = {});
-                    return setter(o, field, value, expression);
+                    return getter.assign(o, value);
                 }
             });
         },
@@ -50539,7 +50567,7 @@ Phaser.Physics.P2.RevoluteConstraint.prototype.constructor = Phaser.Physics.P2.R
             var expressionText = this.text;
             var args = argsFn.length ? [] : null;
             return function $parseFunctionCall(scope, locals) {
-                var context = contextGetter ? contextGetter(scope, locals) : scope;
+                var context = contextGetter ? contextGetter(scope, locals) : isDefined(contextGetter) ? undefined : scope;
                 var fn = fnGetter(scope, locals, context) || noop;
                 if (args) {
                     var i = argsFn.length;
@@ -50560,8 +50588,7 @@ Phaser.Physics.P2.RevoluteConstraint.prototype.constructor = Phaser.Physics.P2.R
                     if (this.peek("]")) {
                         break;
                     }
-                    var elementFn = this.expression();
-                    elementFns.push(elementFn);
+                    elementFns.push(this.expression());
                 } while (this.expect(","));
             }
             this.consume("]");
@@ -50584,11 +50611,16 @@ Phaser.Physics.P2.RevoluteConstraint.prototype.constructor = Phaser.Physics.P2.R
                     if (this.peek("}")) {
                         break;
                     }
-                    var token = this.expect();
-                    keys.push(token.string || token.text);
+                    var token = this.consume();
+                    if (token.constant) {
+                        keys.push(token.value);
+                    } else if (token.identifier) {
+                        keys.push(token.text);
+                    } else {
+                        this.throwError("invalid key", token);
+                    }
                     this.consume(":");
-                    var value = this.expression();
-                    valueFns.push(value);
+                    valueFns.push(this.expression());
                 } while (this.expect(","));
             }
             this.consume("}");
@@ -50622,44 +50654,63 @@ Phaser.Physics.P2.RevoluteConstraint.prototype.constructor = Phaser.Physics.P2.R
         obj[key] = setValue;
         return setValue;
     }
-    var getterFnCache = createMap();
-    function cspSafeGetterFn(key0, key1, key2, key3, key4, fullExp) {
+    var getterFnCacheDefault = createMap();
+    var getterFnCacheExpensive = createMap();
+    function isPossiblyDangerousMemberName(name) {
+        return name == "constructor";
+    }
+    function cspSafeGetterFn(key0, key1, key2, key3, key4, fullExp, expensiveChecks) {
         ensureSafeMemberName(key0, fullExp);
         ensureSafeMemberName(key1, fullExp);
         ensureSafeMemberName(key2, fullExp);
         ensureSafeMemberName(key3, fullExp);
         ensureSafeMemberName(key4, fullExp);
+        var eso = function(o) {
+            return ensureSafeObject(o, fullExp);
+        };
+        var eso0 = expensiveChecks || isPossiblyDangerousMemberName(key0) ? eso : identity;
+        var eso1 = expensiveChecks || isPossiblyDangerousMemberName(key1) ? eso : identity;
+        var eso2 = expensiveChecks || isPossiblyDangerousMemberName(key2) ? eso : identity;
+        var eso3 = expensiveChecks || isPossiblyDangerousMemberName(key3) ? eso : identity;
+        var eso4 = expensiveChecks || isPossiblyDangerousMemberName(key4) ? eso : identity;
         return function cspSafeGetter(scope, locals) {
             var pathVal = locals && locals.hasOwnProperty(key0) ? locals : scope;
             if (pathVal == null) return pathVal;
-            pathVal = pathVal[key0];
+            pathVal = eso0(pathVal[key0]);
             if (!key1) return pathVal;
             if (pathVal == null) return undefined;
-            pathVal = pathVal[key1];
+            pathVal = eso1(pathVal[key1]);
             if (!key2) return pathVal;
             if (pathVal == null) return undefined;
-            pathVal = pathVal[key2];
+            pathVal = eso2(pathVal[key2]);
             if (!key3) return pathVal;
             if (pathVal == null) return undefined;
-            pathVal = pathVal[key3];
+            pathVal = eso3(pathVal[key3]);
             if (!key4) return pathVal;
             if (pathVal == null) return undefined;
-            pathVal = pathVal[key4];
+            pathVal = eso4(pathVal[key4]);
             return pathVal;
         };
     }
+    function getterFnWithEnsureSafeObject(fn, fullExpression) {
+        return function(s, l) {
+            return fn(s, l, ensureSafeObject, fullExpression);
+        };
+    }
     function getterFn(path, options, fullExp) {
+        var expensiveChecks = options.expensiveChecks;
+        var getterFnCache = expensiveChecks ? getterFnCacheExpensive : getterFnCacheDefault;
         var fn = getterFnCache[path];
         if (fn) return fn;
         var pathKeys = path.split("."), pathKeysLength = pathKeys.length;
         if (options.csp) {
             if (pathKeysLength < 6) {
-                fn = cspSafeGetterFn(pathKeys[0], pathKeys[1], pathKeys[2], pathKeys[3], pathKeys[4], fullExp);
+                fn = cspSafeGetterFn(pathKeys[0], pathKeys[1], pathKeys[2], pathKeys[3], pathKeys[4], fullExp, expensiveChecks);
             } else {
                 fn = function cspSafeGetter(scope, locals) {
                     var i = 0, val;
                     do {
-                        val = cspSafeGetterFn(pathKeys[i++], pathKeys[i++], pathKeys[i++], pathKeys[i++], pathKeys[i++], fullExp)(scope, locals);
+                        val = cspSafeGetterFn(pathKeys[i++], pathKeys[i++], pathKeys[i++], pathKeys[i++], pathKeys[i++], fullExp, expensiveChecks)(scope, locals);
                         locals = undefined;
                         scope = val;
                     } while (i < pathKeysLength);
@@ -50668,13 +50719,25 @@ Phaser.Physics.P2.RevoluteConstraint.prototype.constructor = Phaser.Physics.P2.R
             }
         } else {
             var code = "";
+            if (expensiveChecks) {
+                code += "s = eso(s, fe);\nl = eso(l, fe);\n";
+            }
+            var needsEnsureSafeObject = expensiveChecks;
             forEach(pathKeys, function(key, index) {
                 ensureSafeMemberName(key, fullExp);
-                code += "if(s == null) return undefined;\n" + "s=" + (index ? "s" : '((l&&l.hasOwnProperty("' + key + '"))?l:s)') + "." + key + ";\n";
+                var lookupJs = (index ? "s" : '((l&&l.hasOwnProperty("' + key + '"))?l:s)') + "." + key;
+                if (expensiveChecks || isPossiblyDangerousMemberName(key)) {
+                    lookupJs = "eso(" + lookupJs + ", fe)";
+                    needsEnsureSafeObject = true;
+                }
+                code += "if(s == null) return undefined;\n" + "s=" + lookupJs + ";\n";
             });
             code += "return s;";
-            var evaledFnGetter = new Function("s", "l", code);
+            var evaledFnGetter = new Function("s", "l", "eso", "fe", code);
             evaledFnGetter.toString = valueFn(code);
+            if (needsEnsureSafeObject) {
+                evaledFnGetter = getterFnWithEnsureSafeObject(evaledFnGetter, fullExp);
+            }
             fn = evaledFnGetter;
         }
         fn.sharedGetter = true;
@@ -50684,13 +50747,21 @@ Phaser.Physics.P2.RevoluteConstraint.prototype.constructor = Phaser.Physics.P2.R
         getterFnCache[path] = fn;
         return fn;
     }
+    var objectValueOf = Object.prototype.valueOf;
+    function getValueOf(value) {
+        return isFunction(value.valueOf) ? value.valueOf() : objectValueOf.call(value);
+    }
     function $ParseProvider() {
-        var cache = createMap();
-        var $parseOptions = {
-            csp: false
-        };
+        var cacheDefault = createMap();
+        var cacheExpensive = createMap();
         this.$get = [ "$filter", "$sniffer", function($filter, $sniffer) {
-            $parseOptions.csp = $sniffer.csp;
+            var $parseOptions = {
+                csp: $sniffer.csp,
+                expensiveChecks: false
+            }, $parseOptionsExpensive = {
+                csp: $sniffer.csp,
+                expensiveChecks: true
+            };
             function wrapSharedExpression(exp) {
                 var wrapped = exp;
                 if (exp.sharedGetter) {
@@ -50703,19 +50774,21 @@ Phaser.Physics.P2.RevoluteConstraint.prototype.constructor = Phaser.Physics.P2.R
                 }
                 return wrapped;
             }
-            return function $parse(exp, interceptorFn) {
+            return function $parse(exp, interceptorFn, expensiveChecks) {
                 var parsedExpression, oneTime, cacheKey;
                 switch (typeof exp) {
                   case "string":
                     cacheKey = exp = exp.trim();
+                    var cache = expensiveChecks ? cacheExpensive : cacheDefault;
                     parsedExpression = cache[cacheKey];
                     if (!parsedExpression) {
                         if (exp.charAt(0) === ":" && exp.charAt(1) === ":") {
                             oneTime = true;
                             exp = exp.substring(2);
                         }
-                        var lexer = new Lexer($parseOptions);
-                        var parser = new Parser(lexer, $filter, $parseOptions);
+                        var parseOptions = expensiveChecks ? $parseOptionsExpensive : $parseOptions;
+                        var lexer = new Lexer(parseOptions);
+                        var parser = new Parser(lexer, $filter, parseOptions);
                         parsedExpression = parser.parse(exp);
                         if (parsedExpression.constant) {
                             parsedExpression.$$watchDelegate = constantWatchDelegate;
@@ -50754,7 +50827,7 @@ Phaser.Physics.P2.RevoluteConstraint.prototype.constructor = Phaser.Physics.P2.R
                     return newValue === oldValueOfValue;
                 }
                 if (typeof newValue === "object") {
-                    newValue = newValue.valueOf();
+                    newValue = getValueOf(newValue);
                     if (typeof newValue === "object") {
                         return false;
                     }
@@ -50771,7 +50844,7 @@ Phaser.Physics.P2.RevoluteConstraint.prototype.constructor = Phaser.Physics.P2.R
                         var newInputValue = inputExpressions(scope);
                         if (!expressionInputDirtyCheck(newInputValue, oldInputValue)) {
                             lastResult = parsedExpression(scope);
-                            oldInputValue = newInputValue && newInputValue.valueOf();
+                            oldInputValue = newInputValue && getValueOf(newInputValue);
                         }
                         return lastResult;
                     }, listener, objectEquality);
@@ -50785,7 +50858,7 @@ Phaser.Physics.P2.RevoluteConstraint.prototype.constructor = Phaser.Physics.P2.R
                     for (var i = 0, ii = inputExpressions.length; i < ii; i++) {
                         var newInputValue = inputExpressions[i](scope);
                         if (changed || (changed = !expressionInputDirtyCheck(newInputValue, oldInputValueOfValues[i]))) {
-                            oldInputValueOfValues[i] = newInputValue && newInputValue.valueOf();
+                            oldInputValueOfValues[i] = newInputValue && getValueOf(newInputValue);
                         }
                     }
                     if (changed) {
@@ -50848,7 +50921,12 @@ Phaser.Physics.P2.RevoluteConstraint.prototype.constructor = Phaser.Physics.P2.R
             }
             function addInterceptor(parsedExpression, interceptorFn) {
                 if (!interceptorFn) return parsedExpression;
-                var fn = function interceptedExpression(scope, locals) {
+                var watchDelegate = parsedExpression.$$watchDelegate;
+                var regularWatch = watchDelegate !== oneTimeLiteralWatchDelegate && watchDelegate !== oneTimeWatchDelegate;
+                var fn = regularWatch ? function regularInterceptedExpression(scope, locals) {
+                    var value = parsedExpression(scope, locals);
+                    return interceptorFn(value, scope, locals);
+                } : function oneTimeInterceptedExpression(scope, locals) {
                     var value = parsedExpression(scope, locals);
                     var result = interceptorFn(value, scope, locals);
                     return isDefined(value) ? result : value;
@@ -51090,8 +51168,8 @@ Phaser.Physics.P2.RevoluteConstraint.prototype.constructor = Phaser.Physics.P2.R
     }
     function $$RAFProvider() {
         this.$get = [ "$window", "$timeout", function($window, $timeout) {
-            var requestAnimationFrame = $window.requestAnimationFrame || $window.webkitRequestAnimationFrame || $window.mozRequestAnimationFrame;
-            var cancelAnimationFrame = $window.cancelAnimationFrame || $window.webkitCancelAnimationFrame || $window.mozCancelAnimationFrame || $window.webkitCancelRequestAnimationFrame;
+            var requestAnimationFrame = $window.requestAnimationFrame || $window.webkitRequestAnimationFrame;
+            var cancelAnimationFrame = $window.cancelAnimationFrame || $window.webkitCancelAnimationFrame || $window.webkitCancelRequestAnimationFrame;
             var rafSupported = !!requestAnimationFrame;
             var raf = rafSupported ? function(fn) {
                 var id = requestAnimationFrame(fn);
@@ -51254,6 +51332,7 @@ Phaser.Physics.P2.RevoluteConstraint.prototype.constructor = Phaser.Physics.P2.R
                     function $watchCollectionInterceptor(_value) {
                         newValue = _value;
                         var newLength, key, bothNaN, newItem, oldItem;
+                        if (isUndefined(newValue)) return;
                         if (!isObject(newValue)) {
                             if (oldValue !== newValue) {
                                 oldValue = newValue;
@@ -51358,7 +51437,7 @@ Phaser.Physics.P2.RevoluteConstraint.prototype.constructor = Phaser.Physics.P2.R
                         while (asyncQueue.length) {
                             try {
                                 asyncTask = asyncQueue.shift();
-                                asyncTask.scope.$eval(asyncTask.expression);
+                                asyncTask.scope.$eval(asyncTask.expression, asyncTask.locals);
                             } catch (e) {
                                 $exceptionHandler(e);
                             }
@@ -51379,9 +51458,11 @@ Phaser.Physics.P2.RevoluteConstraint.prototype.constructor = Phaser.Physics.P2.R
                                                 if (ttl < 5) {
                                                     logIdx = 4 - ttl;
                                                     if (!watchLog[logIdx]) watchLog[logIdx] = [];
-                                                    logMsg = isFunction(watch.exp) ? "fn: " + (watch.exp.name || watch.exp.toString()) : watch.exp;
-                                                    logMsg += "; newVal: " + toJson(value) + "; oldVal: " + toJson(last);
-                                                    watchLog[logIdx].push(logMsg);
+                                                    watchLog[logIdx].push({
+                                                        msg: isFunction(watch.exp) ? "fn: " + (watch.exp.name || watch.exp.toString()) : watch.exp,
+                                                        newVal: value,
+                                                        oldVal: last
+                                                    });
                                                 }
                                             } else if (watch === lastDirtyWatch) {
                                                 dirty = false;
@@ -51401,7 +51482,7 @@ Phaser.Physics.P2.RevoluteConstraint.prototype.constructor = Phaser.Physics.P2.R
                         } while (current = next);
                         if ((dirty || asyncQueue.length) && !ttl--) {
                             clearPhase();
-                            throw $rootScopeMinErr("infdig", "{0} $digest() iterations reached. Aborting!\n" + "Watchers fired in the last 5 iterations: {1}", TTL, toJson(watchLog));
+                            throw $rootScopeMinErr("infdig", "{0} $digest() iterations reached. Aborting!\n" + "Watchers fired in the last 5 iterations: {1}", TTL, watchLog);
                         }
                     } while (dirty || asyncQueue.length);
                     clearPhase();
@@ -51436,7 +51517,7 @@ Phaser.Physics.P2.RevoluteConstraint.prototype.constructor = Phaser.Physics.P2.R
                 $eval: function(expr, locals) {
                     return $parse(expr)(this, locals);
                 },
-                $evalAsync: function(expr) {
+                $evalAsync: function(expr, locals) {
                     if (!$rootScope.$$phase && !asyncQueue.length) {
                         $browser.defer(function() {
                             if (asyncQueue.length) {
@@ -51446,7 +51527,8 @@ Phaser.Physics.P2.RevoluteConstraint.prototype.constructor = Phaser.Physics.P2.R
                     }
                     asyncQueue.push({
                         scope: this,
-                        expression: expr
+                        expression: expr,
+                        locals: locals
                     });
                 },
                 $$postDigest: function(fn) {
@@ -51491,8 +51573,11 @@ Phaser.Physics.P2.RevoluteConstraint.prototype.constructor = Phaser.Physics.P2.R
                     } while (current = current.$parent);
                     var self = this;
                     return function() {
-                        namedListeners[namedListeners.indexOf(listener)] = null;
-                        decrementListenerCount(self, 1, name);
+                        var indexOfListener = namedListeners.indexOf(listener);
+                        if (indexOfListener !== -1) {
+                            namedListeners[indexOfListener] = null;
+                            decrementListenerCount(self, 1, name);
+                        }
                     };
                 },
                 $emit: function(name, args) {
@@ -51647,9 +51732,6 @@ Phaser.Physics.P2.RevoluteConstraint.prototype.constructor = Phaser.Physics.P2.R
         RESOURCE_URL: "resourceUrl",
         JS: "js"
     };
-    function escapeForRegexp(s) {
-        return s.replace(/([-()\[\]{}+?*.$\^|,:#<!\\])/g, "\\$1").replace(/\x08/g, "\\x08");
-    }
     function adjustMatcher(matcher) {
         if (matcher === "self") {
             return matcher;
@@ -51799,8 +51881,8 @@ Phaser.Physics.P2.RevoluteConstraint.prototype.constructor = Phaser.Physics.P2.R
             }
             return enabled;
         };
-        this.$get = [ "$document", "$parse", "$sceDelegate", function($document, $parse, $sceDelegate) {
-            if (enabled && $document[0].documentMode < 8) {
+        this.$get = [ "$parse", "$sceDelegate", function($parse, $sceDelegate) {
+            if (enabled && msie < 8) {
                 throw $sceMinErr("iequirks", "Strict Contextual Escaping does not support Internet Explorer version < 11 in quirks " + "mode.  You can fix this by adding the text <!doctype html> to the top of your HTML " + "document.  See http://docs.angularjs.org/api/ng.$sce for more information.");
             }
             var sce = shallowCopy(SCE_CONTEXTS);
@@ -51844,7 +51926,7 @@ Phaser.Physics.P2.RevoluteConstraint.prototype.constructor = Phaser.Physics.P2.R
     }
     function $SnifferProvider() {
         this.$get = [ "$window", "$document", function($window, $document) {
-            var eventSupport = {}, android = int((/android (\d+)/.exec(lowercase(($window.navigator || {}).userAgent)) || [])[1]), boxee = /Boxee/i.test(($window.navigator || {}).userAgent), document = $document[0] || {}, vendorPrefix, vendorRegex = /^(Moz|webkit|O|ms)(?=[A-Z])/, bodyStyle = document.body && document.body.style, transitions = false, animations = false, match;
+            var eventSupport = {}, android = int((/android (\d+)/.exec(lowercase(($window.navigator || {}).userAgent)) || [])[1]), boxee = /Boxee/i.test(($window.navigator || {}).userAgent), document = $document[0] || {}, vendorPrefix, vendorRegex = /^(Moz|webkit|ms)(?=[A-Z])/, bodyStyle = document.body && document.body.style, transitions = false, animations = false, match;
             if (bodyStyle) {
                 for (var prop in bodyStyle) {
                     if (match = vendorRegex.exec(prop)) {
@@ -51866,7 +51948,7 @@ Phaser.Physics.P2.RevoluteConstraint.prototype.constructor = Phaser.Physics.P2.R
             return {
                 history: !!($window.history && $window.history.pushState && !(android < 4) && !boxee),
                 hasEvent: function(event) {
-                    if (event == "input" && msie == 9) return false;
+                    if (event === "input" && msie <= 11) return false;
                     if (isUndefined(eventSupport[event])) {
                         var divElm = document.createElement("div");
                         eventSupport[event] = "on" + event in divElm;
@@ -51887,23 +51969,28 @@ Phaser.Physics.P2.RevoluteConstraint.prototype.constructor = Phaser.Physics.P2.R
             function handleRequestFn(tpl, ignoreRequestError) {
                 var self = handleRequestFn;
                 self.totalPendingRequests++;
-                return $http.get(tpl, {
-                    cache: $templateCache
-                }).then(function(response) {
-                    var html = response.data;
-                    if (!html || html.length === 0) {
-                        return handleError();
-                    }
+                var transformResponse = $http.defaults && $http.defaults.transformResponse;
+                if (isArray(transformResponse)) {
+                    transformResponse = transformResponse.filter(function(transformer) {
+                        return transformer !== defaultHttpResponseTransform;
+                    });
+                } else if (transformResponse === defaultHttpResponseTransform) {
+                    transformResponse = null;
+                }
+                var httpOptions = {
+                    cache: $templateCache,
+                    transformResponse: transformResponse
+                };
+                return $http.get(tpl, httpOptions).then(function(response) {
                     self.totalPendingRequests--;
-                    $templateCache.put(tpl, html);
-                    return html;
+                    return response.data;
                 }, handleError);
-                function handleError() {
+                function handleError(resp) {
                     self.totalPendingRequests--;
                     if (!ignoreRequestError) {
                         throw $compileMinErr("tpload", "Failed to load template: {0}", tpl);
                     }
-                    return $q.reject();
+                    return $q.reject(resp);
                 }
             }
             handleRequestFn.totalPendingRequests = 0;
@@ -51921,7 +52008,7 @@ Phaser.Physics.P2.RevoluteConstraint.prototype.constructor = Phaser.Physics.P2.R
                     if (dataBinding) {
                         forEach(dataBinding, function(bindingName) {
                             if (opt_exactMatch) {
-                                var matcher = new RegExp("(^|\\s)" + expression + "(\\s|\\||$)");
+                                var matcher = new RegExp("(^|\\s)" + escapeForRegexp(expression) + "(\\s|\\||$)");
                                 if (matcher.test(bindingName)) {
                                     matches.push(binding);
                                 }
@@ -51993,8 +52080,8 @@ Phaser.Physics.P2.RevoluteConstraint.prototype.constructor = Phaser.Physics.P2.R
         } ];
     }
     var urlParsingNode = document.createElement("a");
-    var originUrl = urlResolve(window.location.href, true);
-    function urlResolve(url, base) {
+    var originUrl = urlResolve(window.location.href);
+    function urlResolve(url) {
         var href = url;
         if (msie) {
             urlParsingNode.setAttribute("href", href);
@@ -52052,107 +52139,95 @@ Phaser.Physics.P2.RevoluteConstraint.prototype.constructor = Phaser.Physics.P2.R
     function filterFilter() {
         return function(array, expression, comparator) {
             if (!isArray(array)) return array;
-            var comparatorType = typeof comparator, predicates = [];
-            predicates.check = function(value, index) {
-                for (var j = 0; j < predicates.length; j++) {
-                    if (!predicates[j](value, index)) {
-                        return false;
-                    }
-                }
-                return true;
-            };
-            if (comparatorType !== "function") {
-                if (comparatorType === "boolean" && comparator) {
-                    comparator = function(obj, text) {
-                        return angular.equals(obj, text);
-                    };
-                } else {
-                    comparator = function(obj, text) {
-                        if (obj && text && typeof obj === "object" && typeof text === "object") {
-                            for (var objKey in obj) {
-                                if (objKey.charAt(0) !== "$" && hasOwnProperty.call(obj, objKey) && comparator(obj[objKey], text[objKey])) {
-                                    return true;
-                                }
-                            }
-                            return false;
-                        }
-                        text = ("" + text).toLowerCase();
-                        return ("" + obj).toLowerCase().indexOf(text) > -1;
-                    };
-                }
-            }
-            var search = function(obj, text) {
-                if (typeof text === "string" && text.charAt(0) === "!") {
-                    return !search(obj, text.substr(1));
-                }
-                switch (typeof obj) {
-                  case "boolean":
-                  case "number":
-                  case "string":
-                    return comparator(obj, text);
-
-                  case "object":
-                    switch (typeof text) {
-                      case "object":
-                        return comparator(obj, text);
-
-                      default:
-                        for (var objKey in obj) {
-                            if (objKey.charAt(0) !== "$" && search(obj[objKey], text)) {
-                                return true;
-                            }
-                        }
-                        break;
-                    }
-                    return false;
-
-                  case "array":
-                    for (var i = 0; i < obj.length; i++) {
-                        if (search(obj[i], text)) {
-                            return true;
-                        }
-                    }
-                    return false;
-
-                  default:
-                    return false;
-                }
-            };
+            var predicateFn;
+            var matchAgainstAnyProp;
             switch (typeof expression) {
+              case "function":
+                predicateFn = expression;
+                break;
+
               case "boolean":
               case "number":
               case "string":
-                expression = {
-                    $: expression
-                };
+                matchAgainstAnyProp = true;
 
               case "object":
-                for (var key in expression) {
-                    (function(path) {
-                        if (typeof expression[path] === "undefined") return;
-                        predicates.push(function(value) {
-                            return search(path == "$" ? value : value && value[path], expression[path]);
-                        });
-                    })(key);
-                }
-                break;
-
-              case "function":
-                predicates.push(expression);
+                predicateFn = createPredicateFn(expression, comparator, matchAgainstAnyProp);
                 break;
 
               default:
                 return array;
             }
-            var filtered = [];
-            for (var j = 0; j < array.length; j++) {
-                var value = array[j];
-                if (predicates.check(value, j)) {
-                    filtered.push(value);
-                }
-            }
-            return filtered;
+            return array.filter(predicateFn);
         };
+    }
+    function createPredicateFn(expression, comparator, matchAgainstAnyProp) {
+        var shouldMatchPrimitives = isObject(expression) && "$" in expression;
+        var predicateFn;
+        if (comparator === true) {
+            comparator = equals;
+        } else if (!isFunction(comparator)) {
+            comparator = function(actual, expected) {
+                if (isObject(actual) || isObject(expected)) {
+                    return false;
+                }
+                actual = lowercase("" + actual);
+                expected = lowercase("" + expected);
+                return actual.indexOf(expected) !== -1;
+            };
+        }
+        predicateFn = function(item) {
+            if (shouldMatchPrimitives && !isObject(item)) {
+                return deepCompare(item, expression.$, comparator, false);
+            }
+            return deepCompare(item, expression, comparator, matchAgainstAnyProp);
+        };
+        return predicateFn;
+    }
+    function deepCompare(actual, expected, comparator, matchAgainstAnyProp, dontMatchWholeObject) {
+        var actualType = typeof actual;
+        var expectedType = typeof expected;
+        if (expectedType === "string" && expected.charAt(0) === "!") {
+            return !deepCompare(actual, expected.substring(1), comparator, matchAgainstAnyProp);
+        } else if (actualType === "array") {
+            return actual.some(function(item) {
+                return deepCompare(item, expected, comparator, matchAgainstAnyProp);
+            });
+        }
+        switch (actualType) {
+          case "object":
+            var key;
+            if (matchAgainstAnyProp) {
+                for (key in actual) {
+                    if (key.charAt(0) !== "$" && deepCompare(actual[key], expected, comparator, true)) {
+                        return true;
+                    }
+                }
+                return dontMatchWholeObject ? false : deepCompare(actual, expected, comparator, false);
+            } else if (expectedType === "object") {
+                for (key in expected) {
+                    var expectedVal = expected[key];
+                    if (isFunction(expectedVal)) {
+                        continue;
+                    }
+                    var matchAnyProperty = key === "$";
+                    var actualVal = matchAnyProperty ? actual : actual[key];
+                    if (!deepCompare(actualVal, expectedVal, comparator, matchAnyProperty, matchAnyProperty)) {
+                        return false;
+                    }
+                }
+                return true;
+            } else {
+                return comparator(actual, expected);
+            }
+            break;
+
+          case "function":
+            return false;
+
+          default:
+            return comparator(actual, expected);
+        }
     }
     currencyFilter.$inject = [ "$locale" ];
     function currencyFilter($locale) {
@@ -52162,7 +52237,7 @@ Phaser.Physics.P2.RevoluteConstraint.prototype.constructor = Phaser.Physics.P2.R
                 currencySymbol = formats.CURRENCY_SYM;
             }
             if (isUndefined(fractionSize)) {
-                fractionSize = 2;
+                fractionSize = formats.PATTERNS[1].maxFrac;
             }
             return amount == null ? amount : formatNumber(amount, formats.PATTERNS[1], formats.GROUP_SEP, formats.DECIMAL_SEP, fractionSize).replace(/\u00A4/g, currencySymbol);
         };
@@ -52184,7 +52259,6 @@ Phaser.Physics.P2.RevoluteConstraint.prototype.constructor = Phaser.Physics.P2.R
         if (numStr.indexOf("e") !== -1) {
             var match = numStr.match(/([\d\.]+)e(-?)(\d+)/);
             if (match && match[2] == "-" && match[3] > fractionSize + 1) {
-                numStr = "0";
                 number = 0;
             } else {
                 formatedText = numStr;
@@ -52197,9 +52271,6 @@ Phaser.Physics.P2.RevoluteConstraint.prototype.constructor = Phaser.Physics.P2.R
                 fractionSize = Math.min(Math.max(pattern.minFrac, fractionLen), pattern.maxFrac);
             }
             number = +(Math.round(+(number.toString() + "e" + fractionSize)).toString() + "e" + -fractionSize);
-            if (number === 0) {
-                isNegative = false;
-            }
             var fraction = ("" + number).split(DECIMAL_SEP);
             var whole = fraction[0];
             fraction = fraction[1] || "";
@@ -52224,13 +52295,15 @@ Phaser.Physics.P2.RevoluteConstraint.prototype.constructor = Phaser.Physics.P2.R
             }
             if (fractionSize && fractionSize !== "0") formatedText += decimalSep + fraction.substr(0, fractionSize);
         } else {
-            if (fractionSize > 0 && number > -1 && number < 1) {
+            if (fractionSize > 0 && number < 1) {
                 formatedText = number.toFixed(fractionSize);
+                number = parseFloat(formatedText);
             }
         }
-        parts.push(isNegative ? pattern.negPre : pattern.posPre);
-        parts.push(formatedText);
-        parts.push(isNegative ? pattern.negSuf : pattern.posSuf);
+        if (number === 0) {
+            isNegative = false;
+        }
+        parts.push(isNegative ? pattern.negPre : pattern.posPre, formatedText, isNegative ? pattern.negSuf : pattern.posSuf);
         return parts.join("");
     }
     function padNumber(num, digits, trim) {
@@ -52366,8 +52439,11 @@ Phaser.Physics.P2.RevoluteConstraint.prototype.constructor = Phaser.Physics.P2.R
         };
     }
     function jsonFilter() {
-        return function(object) {
-            return toJson(object, true);
+        return function(object, spacing) {
+            if (isUndefined(spacing)) {
+                spacing = 2;
+            }
+            return toJson(object, spacing);
         };
     }
     var lowercaseFilter = valueFn(lowercase);
@@ -52388,19 +52464,17 @@ Phaser.Physics.P2.RevoluteConstraint.prototype.constructor = Phaser.Physics.P2.R
                     return "";
                 }
             }
-            var out = [], i, n;
+            var i, n;
             if (limit > input.length) limit = input.length; else if (limit < -input.length) limit = -input.length;
             if (limit > 0) {
                 i = 0;
                 n = limit;
             } else {
+                if (!limit) return [];
                 i = input.length + limit;
                 n = input.length;
             }
-            for (;i < n; i++) {
-                out.push(input[i]);
-            }
-            return out;
+            return input.slice(i, n);
         };
     }
     orderByFilter.$inject = [ "$parse" ];
@@ -52419,9 +52493,7 @@ Phaser.Physics.P2.RevoluteConstraint.prototype.constructor = Phaser.Physics.P2.R
                         predicate = predicate.substring(1);
                     }
                     if (predicate === "") {
-                        return reverseComparator(function(a, b) {
-                            return compare(a, b);
-                        }, descending);
+                        return reverseComparator(compare, descending);
                     }
                     get = $parse(predicate);
                     if (get.constant) {
@@ -52435,11 +52507,7 @@ Phaser.Physics.P2.RevoluteConstraint.prototype.constructor = Phaser.Physics.P2.R
                     return compare(get(a), get(b));
                 }, descending);
             });
-            var arrayCopy = [];
-            for (var i = 0; i < array.length; i++) {
-                arrayCopy.push(array[i]);
-            }
-            return arrayCopy.sort(reverseComparator(comparator, reverseOrder));
+            return slice.call(array).sort(reverseComparator(comparator, reverseOrder));
             function comparator(o1, o2) {
                 for (var i = 0; i < sortPredicate.length; i++) {
                     var comp = sortPredicate[i](o1, o2);
@@ -52452,15 +52520,38 @@ Phaser.Physics.P2.RevoluteConstraint.prototype.constructor = Phaser.Physics.P2.R
                     return comp(b, a);
                 } : comp;
             }
+            function isPrimitive(value) {
+                switch (typeof value) {
+                  case "number":
+                  case "boolean":
+                  case "string":
+                    return true;
+
+                  default:
+                    return false;
+                }
+            }
+            function objectToString(value) {
+                if (value === null) return "null";
+                if (typeof value.valueOf === "function") {
+                    value = value.valueOf();
+                    if (isPrimitive(value)) return value;
+                }
+                if (typeof value.toString === "function") {
+                    value = value.toString();
+                    if (isPrimitive(value)) return value;
+                }
+                return "";
+            }
             function compare(v1, v2) {
                 var t1 = typeof v1;
                 var t2 = typeof v2;
-                if (t1 == t2) {
-                    if (isDate(v1) && isDate(v2)) {
-                        v1 = v1.valueOf();
-                        v2 = v2.valueOf();
-                    }
-                    if (t1 == "string") {
+                if (t1 === t2 && t1 === "object") {
+                    v1 = objectToString(v1);
+                    v2 = objectToString(v2);
+                }
+                if (t1 === t2) {
+                    if (t1 === "string") {
                         v1 = v1.toLowerCase();
                         v2 = v2.toLowerCase();
                     }
@@ -52690,7 +52781,7 @@ Phaser.Physics.P2.RevoluteConstraint.prototype.constructor = Phaser.Physics.P2.R
                                         controller.$commitViewValue();
                                         controller.$setSubmitted();
                                     });
-                                    event.preventDefault ? event.preventDefault() : event.returnValue = false;
+                                    event.preventDefault();
                                 };
                                 addEventListenerFn(formElement[0], "submit", handleFormSubmission);
                                 formElement.on("$destroy", function() {
@@ -52755,18 +52846,6 @@ Phaser.Physics.P2.RevoluteConstraint.prototype.constructor = Phaser.Physics.P2.R
         reset: noop,
         file: noop
     };
-    function testFlags(validity, flags) {
-        var i, flag;
-        if (flags) {
-            for (i = 0; i < flags.length; ++i) {
-                flag = flags[i];
-                if (validity[flag]) {
-                    return true;
-                }
-            }
-        }
-        return false;
-    }
     function stringBasedInputType(ctrl) {
         ctrl.$formatters.push(function(value) {
             return ctrl.$isEmpty(value) ? value : value.toString();
@@ -52777,8 +52856,6 @@ Phaser.Physics.P2.RevoluteConstraint.prototype.constructor = Phaser.Physics.P2.R
         stringBasedInputType(ctrl);
     }
     function baseInputType(scope, element, attr, ctrl, $sniffer, $browser) {
-        var validity = element.prop(VALIDITY_STATE_PROPERTY);
-        var placeholder = element[0].placeholder, noevent = {};
         var type = lowercase(element[0].type);
         if (!$sniffer.android) {
             var composing = false;
@@ -52791,12 +52868,12 @@ Phaser.Physics.P2.RevoluteConstraint.prototype.constructor = Phaser.Physics.P2.R
             });
         }
         var listener = function(ev) {
+            if (timeout) {
+                $browser.defer.cancel(timeout);
+                timeout = null;
+            }
             if (composing) return;
             var value = element.val(), event = ev && ev.type;
-            if (msie && (ev || noevent).type === "input" && element[0].placeholder !== placeholder) {
-                placeholder = element[0].placeholder;
-                return;
-            }
             if (type !== "password" && (!attr.ngTrim || attr.ngTrim !== "false")) {
                 value = trim(value);
             }
@@ -52808,18 +52885,20 @@ Phaser.Physics.P2.RevoluteConstraint.prototype.constructor = Phaser.Physics.P2.R
             element.on("input", listener);
         } else {
             var timeout;
-            var deferListener = function(ev) {
+            var deferListener = function(ev, input, origValue) {
                 if (!timeout) {
                     timeout = $browser.defer(function() {
-                        listener(ev);
                         timeout = null;
+                        if (!input || input.value !== origValue) {
+                            listener(ev);
+                        }
                     });
                 }
             };
             element.on("keydown", function(event) {
                 var key = event.keyCode;
                 if (key === 91 || 15 < key && key < 19 || 37 <= key && key <= 40) return;
-                deferListener(event);
+                deferListener(event, this, this.value);
             });
             if ($sniffer.hasEvent("paste")) {
                 element.on("paste cut", deferListener);
@@ -52827,7 +52906,7 @@ Phaser.Physics.P2.RevoluteConstraint.prototype.constructor = Phaser.Physics.P2.R
         }
         element.on("change", listener);
         ctrl.$render = function() {
-            element.val(ctrl.$isEmpty(ctrl.$modelValue) ? "" : ctrl.$viewValue);
+            element.val(ctrl.$isEmpty(ctrl.$viewValue) ? "" : ctrl.$viewValue);
         };
     }
     function weekParser(isoWeek, existingDate) {
@@ -52918,10 +52997,10 @@ Phaser.Physics.P2.RevoluteConstraint.prototype.constructor = Phaser.Physics.P2.R
                 return undefined;
             });
             ctrl.$formatters.push(function(value) {
-                if (!ctrl.$isEmpty(value)) {
-                    if (!isDate(value)) {
-                        throw $ngModelMinErr("datefmt", "Expected `{0}` to be a date", value);
-                    }
+                if (value && !isDate(value)) {
+                    throw $ngModelMinErr("datefmt", "Expected `{0}` to be a date", value);
+                }
+                if (isValidDate(value)) {
                     previousDate = value;
                     if (previousDate && timezone === "UTC") {
                         var timezoneOffset = 6e4 * previousDate.getTimezoneOffset();
@@ -52930,13 +53009,13 @@ Phaser.Physics.P2.RevoluteConstraint.prototype.constructor = Phaser.Physics.P2.R
                     return $filter("date")(value, format, timezone);
                 } else {
                     previousDate = null;
+                    return "";
                 }
-                return "";
             });
             if (isDefined(attr.min) || attr.ngMin) {
                 var minVal;
                 ctrl.$validators.min = function(value) {
-                    return ctrl.$isEmpty(value) || isUndefined(minVal) || parseDate(value) >= minVal;
+                    return !isValidDate(value) || isUndefined(minVal) || parseDate(value) >= minVal;
                 };
                 attr.$observe("min", function(val) {
                     minVal = parseObservedDateValue(val);
@@ -52946,16 +53025,16 @@ Phaser.Physics.P2.RevoluteConstraint.prototype.constructor = Phaser.Physics.P2.R
             if (isDefined(attr.max) || attr.ngMax) {
                 var maxVal;
                 ctrl.$validators.max = function(value) {
-                    return ctrl.$isEmpty(value) || isUndefined(maxVal) || parseDate(value) <= maxVal;
+                    return !isValidDate(value) || isUndefined(maxVal) || parseDate(value) <= maxVal;
                 };
                 attr.$observe("max", function(val) {
                     maxVal = parseObservedDateValue(val);
                     ctrl.$validate();
                 });
             }
-            ctrl.$isEmpty = function(value) {
-                return !value || value.getTime && value.getTime() !== value.getTime();
-            };
+            function isValidDate(value) {
+                return value && !(value.getTime && value.getTime() !== value.getTime());
+            }
             function parseObservedDateValue(val) {
                 return isDefined(val) ? isDate(val) ? val : parseDate(val) : undefined;
             }
@@ -53020,7 +53099,8 @@ Phaser.Physics.P2.RevoluteConstraint.prototype.constructor = Phaser.Physics.P2.R
         baseInputType(scope, element, attr, ctrl, $sniffer, $browser);
         stringBasedInputType(ctrl);
         ctrl.$$parserName = "url";
-        ctrl.$validators.url = function(value) {
+        ctrl.$validators.url = function(modelValue, viewValue) {
+            var value = modelValue || viewValue;
             return ctrl.$isEmpty(value) || URL_REGEXP.test(value);
         };
     }
@@ -53028,7 +53108,8 @@ Phaser.Physics.P2.RevoluteConstraint.prototype.constructor = Phaser.Physics.P2.R
         baseInputType(scope, element, attr, ctrl, $sniffer, $browser);
         stringBasedInputType(ctrl);
         ctrl.$$parserName = "email";
-        ctrl.$validators.email = function(value) {
+        ctrl.$validators.email = function(modelValue, viewValue) {
+            var value = modelValue || viewValue;
             return ctrl.$isEmpty(value) || EMAIL_REGEXP.test(value);
         };
     }
@@ -53070,7 +53151,7 @@ Phaser.Physics.P2.RevoluteConstraint.prototype.constructor = Phaser.Physics.P2.R
             element[0].checked = ctrl.$viewValue;
         };
         ctrl.$isEmpty = function(value) {
-            return value !== trueValue;
+            return value === false;
         };
         ctrl.$formatters.push(function(value) {
             return equals(value, trueValue);
@@ -53096,6 +53177,7 @@ Phaser.Physics.P2.RevoluteConstraint.prototype.constructor = Phaser.Physics.P2.R
     var NgModelController = [ "$scope", "$exceptionHandler", "$attrs", "$element", "$parse", "$animate", "$timeout", "$rootScope", "$q", "$interpolate", function($scope, $exceptionHandler, $attr, $element, $parse, $animate, $timeout, $rootScope, $q, $interpolate) {
         this.$viewValue = Number.NaN;
         this.$modelValue = Number.NaN;
+        this.$$rawModelValue = undefined;
         this.$validators = {};
         this.$asyncValidators = {};
         this.$parsers = [];
@@ -53111,25 +53193,28 @@ Phaser.Physics.P2.RevoluteConstraint.prototype.constructor = Phaser.Physics.P2.R
         this.$$success = {};
         this.$pending = undefined;
         this.$name = $interpolate($attr.name || "", false)($scope);
-        var parsedNgModel = $parse($attr.ngModel), pendingDebounce = null, ctrl = this;
-        var ngModelGet = function ngModelGet() {
-            var modelValue = parsedNgModel($scope);
-            if (ctrl.$options && ctrl.$options.getterSetter && isFunction(modelValue)) {
-                modelValue = modelValue();
-            }
-            return modelValue;
-        };
-        var ngModelSet = function ngModelSet(newValue) {
-            var getterSetter;
-            if (ctrl.$options && ctrl.$options.getterSetter && isFunction(getterSetter = parsedNgModel($scope))) {
-                getterSetter(ctrl.$modelValue);
-            } else {
-                parsedNgModel.assign($scope, ctrl.$modelValue);
-            }
-        };
+        var parsedNgModel = $parse($attr.ngModel), parsedNgModelAssign = parsedNgModel.assign, ngModelGet = parsedNgModel, ngModelSet = parsedNgModelAssign, pendingDebounce = null, ctrl = this;
         this.$$setOptions = function(options) {
             ctrl.$options = options;
-            if (!parsedNgModel.assign && (!options || !options.getterSetter)) {
+            if (options && options.getterSetter) {
+                var invokeModelGetter = $parse($attr.ngModel + "()"), invokeModelSetter = $parse($attr.ngModel + "($$$p)");
+                ngModelGet = function($scope) {
+                    var modelValue = parsedNgModel($scope);
+                    if (isFunction(modelValue)) {
+                        modelValue = invokeModelGetter($scope);
+                    }
+                    return modelValue;
+                };
+                ngModelSet = function($scope, newValue) {
+                    if (isFunction(parsedNgModel($scope))) {
+                        invokeModelSetter($scope, {
+                            $$$p: ctrl.$modelValue
+                        });
+                    } else {
+                        parsedNgModelAssign($scope, ctrl.$modelValue);
+                    }
+                };
+            } else if (!parsedNgModel.assign) {
                 throw $ngModelMinErr("nonassign", "Expression '{0}' is non-assignable. Element: {1}", $attr.ngModel, startingTag($element));
             }
         };
@@ -53156,6 +53241,13 @@ Phaser.Physics.P2.RevoluteConstraint.prototype.constructor = Phaser.Physics.P2.R
             $animate.removeClass($element, DIRTY_CLASS);
             $animate.addClass($element, PRISTINE_CLASS);
         };
+        this.$setDirty = function() {
+            ctrl.$dirty = true;
+            ctrl.$pristine = false;
+            $animate.removeClass($element, PRISTINE_CLASS);
+            $animate.addClass($element, DIRTY_CLASS);
+            parentForm.$setDirty();
+        };
         this.$setUntouched = function() {
             ctrl.$touched = false;
             ctrl.$untouched = true;
@@ -53175,7 +53267,21 @@ Phaser.Physics.P2.RevoluteConstraint.prototype.constructor = Phaser.Physics.P2.R
             if (isNumber(ctrl.$modelValue) && isNaN(ctrl.$modelValue)) {
                 return;
             }
-            this.$$parseAndValidate();
+            var viewValue = ctrl.$$lastCommittedViewValue;
+            var modelValue = ctrl.$$rawModelValue;
+            var parserName = ctrl.$$parserName || "parse";
+            var parserValid = ctrl.$error[parserName] ? false : undefined;
+            var prevValid = ctrl.$valid;
+            var prevModelValue = ctrl.$modelValue;
+            var allowInvalid = ctrl.$options && ctrl.$options.allowInvalid;
+            ctrl.$$runValidators(parserValid, modelValue, viewValue, function(allValid) {
+                if (!allowInvalid && prevValid !== allValid) {
+                    ctrl.$modelValue = allValid ? modelValue : undefined;
+                    if (ctrl.$modelValue !== prevModelValue) {
+                        ctrl.$$writeModelToScope();
+                    }
+                }
+            });
         };
         this.$$runValidators = function(parseValid, modelValue, viewValue, doneCallback) {
             currentValidationRunId++;
@@ -53265,11 +53371,7 @@ Phaser.Physics.P2.RevoluteConstraint.prototype.constructor = Phaser.Physics.P2.R
             }
             ctrl.$$lastCommittedViewValue = viewValue;
             if (ctrl.$pristine) {
-                ctrl.$dirty = true;
-                ctrl.$pristine = false;
-                $animate.removeClass($element, PRISTINE_CLASS);
-                $animate.addClass($element, DIRTY_CLASS);
-                parentForm.$setDirty();
+                this.$setDirty();
             }
             this.$$parseAndValidate();
         };
@@ -53287,15 +53389,16 @@ Phaser.Physics.P2.RevoluteConstraint.prototype.constructor = Phaser.Physics.P2.R
                 }
             }
             if (isNumber(ctrl.$modelValue) && isNaN(ctrl.$modelValue)) {
-                ctrl.$modelValue = ngModelGet();
+                ctrl.$modelValue = ngModelGet($scope);
             }
             var prevModelValue = ctrl.$modelValue;
             var allowInvalid = ctrl.$options && ctrl.$options.allowInvalid;
+            ctrl.$$rawModelValue = modelValue;
             if (allowInvalid) {
                 ctrl.$modelValue = modelValue;
                 writeToModelIfNeeded();
             }
-            ctrl.$$runValidators(parserValid, modelValue, viewValue, function(allValid) {
+            ctrl.$$runValidators(parserValid, modelValue, ctrl.$$lastCommittedViewValue, function(allValid) {
                 if (!allowInvalid) {
                     ctrl.$modelValue = allValid ? modelValue : undefined;
                     writeToModelIfNeeded();
@@ -53308,7 +53411,7 @@ Phaser.Physics.P2.RevoluteConstraint.prototype.constructor = Phaser.Physics.P2.R
             }
         };
         this.$$writeModelToScope = function() {
-            ngModelSet(ctrl.$modelValue);
+            ngModelSet($scope, ctrl.$modelValue);
             forEach(ctrl.$viewChangeListeners, function(listener) {
                 try {
                     listener();
@@ -53349,9 +53452,9 @@ Phaser.Physics.P2.RevoluteConstraint.prototype.constructor = Phaser.Physics.P2.R
             }
         };
         $scope.$watch(function ngModelWatch() {
-            var modelValue = ngModelGet();
+            var modelValue = ngModelGet($scope);
             if (modelValue !== ctrl.$modelValue) {
-                ctrl.$modelValue = modelValue;
+                ctrl.$modelValue = ctrl.$$rawModelValue = modelValue;
                 var formatters = ctrl.$formatters, idx = formatters.length;
                 var viewValue = modelValue;
                 while (idx--) {
@@ -53366,7 +53469,7 @@ Phaser.Physics.P2.RevoluteConstraint.prototype.constructor = Phaser.Physics.P2.R
             return modelValue;
         });
     } ];
-    var ngModelDirective = function() {
+    var ngModelDirective = [ "$rootScope", function($rootScope) {
         return {
             restrict: "A",
             require: [ "ngModel", "^?form", "^?ngModelOptions" ],
@@ -53397,15 +53500,17 @@ Phaser.Physics.P2.RevoluteConstraint.prototype.constructor = Phaser.Physics.P2.R
                         }
                         element.on("blur", function(ev) {
                             if (modelCtrl.$touched) return;
-                            scope.$apply(function() {
-                                modelCtrl.$setTouched();
-                            });
+                            if ($rootScope.$$phase) {
+                                scope.$evalAsync(modelCtrl.$setTouched);
+                            } else {
+                                scope.$apply(modelCtrl.$setTouched);
+                            }
                         });
                     }
                 };
             }
         };
-    };
+    } ];
     var ngChangeDirective = valueFn({
         restrict: "A",
         require: "ngModel",
@@ -53422,8 +53527,8 @@ Phaser.Physics.P2.RevoluteConstraint.prototype.constructor = Phaser.Physics.P2.R
             link: function(scope, elm, attr, ctrl) {
                 if (!ctrl) return;
                 attr.required = true;
-                ctrl.$validators.required = function(value) {
-                    return !attr.required || !ctrl.$isEmpty(value);
+                ctrl.$validators.required = function(modelValue, viewValue) {
+                    return !attr.required || !ctrl.$isEmpty(viewValue);
                 };
                 attr.$observe("required", function() {
                     ctrl.$validate();
@@ -53440,7 +53545,7 @@ Phaser.Physics.P2.RevoluteConstraint.prototype.constructor = Phaser.Physics.P2.R
                 var regexp, patternExp = attr.ngPattern || attr.pattern;
                 attr.$observe("pattern", function(regex) {
                     if (isString(regex) && regex.length > 0) {
-                        regex = new RegExp(regex);
+                        regex = new RegExp("^" + regex + "$");
                     }
                     if (regex && !regex.test) {
                         throw minErr("ngPattern")("noregexp", "Expected {0} to be a RegExp but was {1}. Element: {2}", patternExp, regex, startingTag(elm));
@@ -53460,13 +53565,14 @@ Phaser.Physics.P2.RevoluteConstraint.prototype.constructor = Phaser.Physics.P2.R
             require: "?ngModel",
             link: function(scope, elm, attr, ctrl) {
                 if (!ctrl) return;
-                var maxlength = 0;
+                var maxlength = -1;
                 attr.$observe("maxlength", function(value) {
-                    maxlength = int(value) || 0;
+                    var intVal = int(value);
+                    maxlength = isNaN(intVal) ? -1 : intVal;
                     ctrl.$validate();
                 });
                 ctrl.$validators.maxlength = function(modelValue, viewValue) {
-                    return ctrl.$isEmpty(modelValue) || viewValue.length <= maxlength;
+                    return maxlength < 0 || ctrl.$isEmpty(modelValue) || viewValue.length <= maxlength;
                 };
             }
         };
@@ -53483,7 +53589,7 @@ Phaser.Physics.P2.RevoluteConstraint.prototype.constructor = Phaser.Physics.P2.R
                     ctrl.$validate();
                 });
                 ctrl.$validators.minlength = function(modelValue, viewValue) {
-                    return ctrl.$isEmpty(modelValue) || viewValue.length >= minlength;
+                    return ctrl.$isEmpty(viewValue) || viewValue.length >= minlength;
                 };
             }
         };
@@ -53773,7 +53879,7 @@ Phaser.Physics.P2.RevoluteConstraint.prototype.constructor = Phaser.Physics.P2.R
                 } else if (isString(classVal)) {
                     return classVal.split(" ");
                 } else if (isObject(classVal)) {
-                    var classes = [], i = 0;
+                    var classes = [];
                     forEach(classVal, function(v, k) {
                         if (v) {
                             classes = classes.concat(k.split(" "));
@@ -53813,7 +53919,7 @@ Phaser.Physics.P2.RevoluteConstraint.prototype.constructor = Phaser.Physics.P2.R
             return {
                 restrict: "A",
                 compile: function($element, attr) {
-                    var fn = $parse(attr[directiveName]);
+                    var fn = $parse(attr[directiveName], null, true);
                     return function ngEventHandler(scope, element) {
                         element.on(eventName, function(event) {
                             var callback = function() {
@@ -53949,7 +54055,9 @@ Phaser.Physics.P2.RevoluteConstraint.prototype.constructor = Phaser.Physics.P2.R
                     $element.empty();
                     $compile(jqLiteBuildFragment(ctrl.template, document).childNodes)(scope, function namespaceAdaptedClone(clone) {
                         $element.append(clone);
-                    }, undefined, undefined, $element);
+                    }, {
+                        futureParentElement: $element
+                    });
                     return;
                 }
                 $element.html(ctrl.template);
@@ -53972,30 +54080,36 @@ Phaser.Physics.P2.RevoluteConstraint.prototype.constructor = Phaser.Physics.P2.R
         priority: 1e3
     });
     var ngPluralizeDirective = [ "$locale", "$interpolate", function($locale, $interpolate) {
-        var BRACE = /{}/g;
+        var BRACE = /{}/g, IS_WHEN = /^when(Minus)?(.+)$/;
         return {
             restrict: "EA",
             link: function(scope, element, attr) {
-                var numberExp = attr.count, whenExp = attr.$attr.when && element.attr(attr.$attr.when), offset = attr.offset || 0, whens = scope.$eval(whenExp) || {}, whensExpFns = {}, startSymbol = $interpolate.startSymbol(), endSymbol = $interpolate.endSymbol(), isWhen = /^when(Minus)?(.+)$/;
+                var numberExp = attr.count, whenExp = attr.$attr.when && element.attr(attr.$attr.when), offset = attr.offset || 0, whens = scope.$eval(whenExp) || {}, whensExpFns = {}, startSymbol = $interpolate.startSymbol(), endSymbol = $interpolate.endSymbol(), braceReplacement = startSymbol + numberExp + "-" + offset + endSymbol, watchRemover = angular.noop, lastCount;
                 forEach(attr, function(expression, attributeName) {
-                    if (isWhen.test(attributeName)) {
-                        whens[lowercase(attributeName.replace("when", "").replace("Minus", "-"))] = element.attr(attr.$attr[attributeName]);
+                    var tmpMatch = IS_WHEN.exec(attributeName);
+                    if (tmpMatch) {
+                        var whenKey = (tmpMatch[1] ? "-" : "") + lowercase(tmpMatch[2]);
+                        whens[whenKey] = element.attr(attr.$attr[attributeName]);
                     }
                 });
                 forEach(whens, function(expression, key) {
-                    whensExpFns[key] = $interpolate(expression.replace(BRACE, startSymbol + numberExp + "-" + offset + endSymbol));
+                    whensExpFns[key] = $interpolate(expression.replace(BRACE, braceReplacement));
                 });
-                scope.$watch(function ngPluralizeWatch() {
-                    var value = parseFloat(scope.$eval(numberExp));
-                    if (!isNaN(value)) {
-                        if (!(value in whens)) value = $locale.pluralCat(value - offset);
-                        return whensExpFns[value](scope);
-                    } else {
-                        return "";
+                scope.$watch(numberExp, function ngPluralizeWatchAction(newVal) {
+                    var count = parseFloat(newVal);
+                    var countIsNaN = isNaN(count);
+                    if (!countIsNaN && !(count in whens)) {
+                        count = $locale.pluralCat(count - offset);
                     }
-                }, function ngPluralizeWatchAction(newVal) {
-                    element.text(newVal);
+                    if (count !== lastCount && !(countIsNaN && isNaN(lastCount))) {
+                        watchRemover();
+                        watchRemover = scope.$watch(whensExpFns[count], updateElementText);
+                        lastCount = count;
+                    }
                 });
+                function updateElementText(newText) {
+                    element.text(newText || "");
+                }
             }
         };
     } ];
@@ -54035,7 +54149,7 @@ Phaser.Physics.P2.RevoluteConstraint.prototype.constructor = Phaser.Physics.P2.R
                 var rhs = match[2];
                 var aliasAs = match[3];
                 var trackByExp = match[4];
-                match = lhs.match(/^(?:([\$\w]+)|\(([\$\w]+)\s*,\s*([\$\w]+)\))$/);
+                match = lhs.match(/^(?:(\s*[\$\w]+)|\(\s*([\$\w]+)\s*,\s*([\$\w]+)\s*\))$/);
                 if (!match) {
                     throw ngRepeatMinErr("iidexp", "'_item_' in '_item_ in _collection_' should be an identifier or '(_key_, _value_)' expression, but got '{0}'.", lhs);
                 }
@@ -54101,7 +54215,7 @@ Phaser.Physics.P2.RevoluteConstraint.prototype.constructor = Phaser.Physics.P2.R
                                 forEach(nextBlockOrder, function(block) {
                                     if (block && block.scope) lastBlockMap[block.id] = block;
                                 });
-                                throw ngRepeatMinErr("dupes", "Duplicates in a repeater are not allowed. Use 'track by' expression to specify unique keys. Repeater: {0}, Duplicate key: {1}, Duplicate value: {2}", expression, trackById, toJson(value));
+                                throw ngRepeatMinErr("dupes", "Duplicates in a repeater are not allowed. Use 'track by' expression to specify unique keys. Repeater: {0}, Duplicate key: {1}, Duplicate value: {2}", expression, trackById, value);
                             } else {
                                 nextBlockOrder[index] = {
                                     id: trackById,
@@ -54323,7 +54437,7 @@ Phaser.Physics.P2.RevoluteConstraint.prototype.constructor = Phaser.Physics.P2.R
                 self.removeOption = function(value) {
                     if (this.hasOption(value)) {
                         delete optionsMap[value];
-                        if (ngModelCtrl.$viewValue == value) {
+                        if (ngModelCtrl.$viewValue === value) {
                             this.renderUnknownOption(value);
                         }
                     }
@@ -54411,7 +54525,7 @@ Phaser.Physics.P2.RevoluteConstraint.prototype.constructor = Phaser.Physics.P2.R
                     if (!(match = optionsExp.match(NG_OPTIONS_REGEXP))) {
                         throw ngOptionsMinErr("iexp", "Expected expression in form of " + "'_select_ (as _label_)? for (_key_,)?_value_ in _collection_'" + " but got '{0}'. Element: {1}", optionsExp, startingTag(selectElement));
                     }
-                    var displayFn = $parse(match[2] || match[1]), valueName = match[4] || match[6], selectAs = / as /.test(match[0]) && match[1], selectAsFn = selectAs ? $parse(selectAs) : null, keyName = match[5], groupByFn = $parse(match[3] || ""), valueFn = $parse(match[2] ? match[1] : valueName), valuesFn = $parse(match[7]), track = match[8], trackFn = track ? $parse(match[8]) : null, optionGroupsCache = [ [ {
+                    var displayFn = $parse(match[2] || match[1]), valueName = match[4] || match[6], selectAs = / as /.test(match[0]) && match[1], selectAsFn = selectAs ? $parse(selectAs) : null, keyName = match[5], groupByFn = $parse(match[3] || ""), valueFn = $parse(match[2] ? match[1] : valueName), valuesFn = $parse(match[7]), track = match[8], trackFn = track ? $parse(match[8]) : null, trackKeysCache = {}, optionGroupsCache = [ [ {
                         element: selectElement,
                         label: ""
                     } ] ], locals = {};
@@ -54437,15 +54551,16 @@ Phaser.Physics.P2.RevoluteConstraint.prototype.constructor = Phaser.Physics.P2.R
                     }
                     function selectionChanged() {
                         scope.$apply(function() {
-                            var optionGroup, collection = valuesFn(scope) || [], key, value, optionElement, index, groupIndex, length, groupLength, trackIndex;
+                            var collection = valuesFn(scope) || [];
                             var viewValue;
                             if (multiple) {
                                 viewValue = [];
                                 forEach(selectElement.val(), function(selectedKey) {
+                                    selectedKey = trackFn ? trackKeysCache[selectedKey] : selectedKey;
                                     viewValue.push(getViewValue(selectedKey, collection[selectedKey]));
                                 });
                             } else {
-                                var selectedKey = selectElement.val();
+                                var selectedKey = trackFn ? trackKeysCache[selectElement.val()] : selectElement.val();
                                 viewValue = getViewValue(selectedKey, collection[selectedKey]);
                             }
                             ctrl.$setViewValue(viewValue);
@@ -54507,7 +54622,7 @@ Phaser.Physics.P2.RevoluteConstraint.prototype.constructor = Phaser.Physics.P2.R
                             if (multiple) {
                                 return isDefined(selectedSet.remove(callExpression(compareValueFn, key, value)));
                             } else {
-                                return viewValue == callExpression(compareValueFn, key, value);
+                                return viewValue === callExpression(compareValueFn, key, value);
                             }
                         };
                     }
@@ -54525,7 +54640,8 @@ Phaser.Physics.P2.RevoluteConstraint.prototype.constructor = Phaser.Physics.P2.R
                         renderScheduled = false;
                         var optionGroups = {
                             "": []
-                        }, optionGroupNames = [ "" ], optionGroupName, optionGroup, option, existingParent, existingOptions, existingOption, viewValue = ctrl.$viewValue, values = valuesFn(scope) || [], keys = keyName ? sortedKeys(values) : values, key, value, groupLength, length, groupIndex, index, labelMap = {}, selected, isSelected = createIsSelectedFn(viewValue), anySelected = false, lastElement, element, label;
+                        }, optionGroupNames = [ "" ], optionGroupName, optionGroup, option, existingParent, existingOptions, existingOption, viewValue = ctrl.$viewValue, values = valuesFn(scope) || [], keys = keyName ? sortedKeys(values) : values, key, value, groupLength, length, groupIndex, index, labelMap = {}, selected, isSelected = createIsSelectedFn(viewValue), anySelected = false, lastElement, element, label, optionId;
+                        trackKeysCache = {};
                         for (index = 0; length = keys.length, index < length; index++) {
                             key = index;
                             if (keyName) {
@@ -54542,8 +54658,12 @@ Phaser.Physics.P2.RevoluteConstraint.prototype.constructor = Phaser.Physics.P2.R
                             anySelected = anySelected || selected;
                             label = callExpression(displayFn, key, value);
                             label = isDefined(label) ? label : "";
+                            optionId = trackFn ? trackFn(scope, locals) : keyName ? keys[index] : index;
+                            if (trackFn) {
+                                trackKeysCache[optionId] = key;
+                            }
                             optionGroup.push({
-                                id: keyName ? keys[index] : index,
+                                id: optionId,
                                 label: label,
                                 selected: selected
                             });
@@ -54590,6 +54710,7 @@ Phaser.Physics.P2.RevoluteConstraint.prototype.constructor = Phaser.Physics.P2.R
                                         updateLabelMap(labelMap, existingOption.label, false);
                                         updateLabelMap(labelMap, option.label, true);
                                         lastElement.text(existingOption.label = option.label);
+                                        lastElement.prop("label", existingOption.label);
                                     }
                                     if (existingOption.id !== option.id) {
                                         lastElement.val(existingOption.id = option.id);
@@ -54604,7 +54725,7 @@ Phaser.Physics.P2.RevoluteConstraint.prototype.constructor = Phaser.Physics.P2.R
                                     if (option.id === "" && nullOption) {
                                         element = nullOption;
                                     } else {
-                                        (element = optionTemplate.clone()).val(option.id).prop("selected", option.selected).attr("selected", option.selected).text(option.label);
+                                        (element = optionTemplate.clone()).val(option.id).prop("selected", option.selected).attr("selected", option.selected).prop("label", option.label).text(option.label);
                                     }
                                     existingOptions.push(existingOption = {
                                         element: element,
@@ -54627,17 +54748,21 @@ Phaser.Physics.P2.RevoluteConstraint.prototype.constructor = Phaser.Physics.P2.R
                                 updateLabelMap(labelMap, option.label, false);
                                 option.element.remove();
                             }
-                            forEach(labelMap, function(count, label) {
-                                if (count > 0) {
-                                    selectCtrl.addOption(label);
-                                } else if (count < 0) {
-                                    selectCtrl.removeOption(label);
-                                }
-                            });
                         }
                         while (optionGroupsCache.length > groupIndex) {
-                            optionGroupsCache.pop()[0].element.remove();
+                            optionGroup = optionGroupsCache.pop();
+                            for (index = 1; index < optionGroup.length; ++index) {
+                                updateLabelMap(labelMap, optionGroup[index].label, false);
+                            }
+                            optionGroup[0].element.remove();
                         }
+                        forEach(labelMap, function(count, label) {
+                            if (count > 0) {
+                                selectCtrl.addOption(label);
+                            } else if (count < 0) {
+                                selectCtrl.removeOption(label);
+                            }
+                        });
                     }
                 }
             }
@@ -60228,7 +60353,9 @@ angular.module("material.core").constant("$MD_THEME_CSS", "md-backdrop.md-opaque
         function isMatchingElement(elm1, elm2) {
             return extractElementNode(elm1) == extractElementNode(elm2);
         }
-        $provide.decorator("$animate", [ "$delegate", "$$q", "$injector", "$sniffer", "$rootElement", "$$asyncCallback", "$rootScope", "$document", "$templateRequest", function($delegate, $$q, $injector, $sniffer, $rootElement, $$asyncCallback, $rootScope, $document, $templateRequest) {
+        var $$jqLite;
+        $provide.decorator("$animate", [ "$delegate", "$$q", "$injector", "$sniffer", "$rootElement", "$$asyncCallback", "$rootScope", "$document", "$templateRequest", "$$jqLite", function($delegate, $$q, $injector, $sniffer, $rootElement, $$asyncCallback, $rootScope, $document, $templateRequest, $$$jqLite) {
+            $$jqLite = $$$jqLite;
             $rootElement.data(NG_ANIMATE_STATE, rootAnimateState);
             var deregisterWatch = $rootScope.$watch(function() {
                 return $templateRequest.totalPendingRequests;
@@ -60290,7 +60417,7 @@ angular.module("material.core").constant("$MD_THEME_CSS", "md-backdrop.md-opaque
                     hasClasses[className] = true;
                 });
                 var toAdd = [], toRemove = [];
-                forEach(cache.classes, function(status, className) {
+                forEach(cache && cache.classes || [], function(status, className) {
                     var hasClass = hasClasses[className];
                     var matchingAnimation = lookup[className] || {};
                     if (status === false) {
@@ -60681,10 +60808,10 @@ angular.module("material.core").constant("$MD_THEME_CSS", "md-backdrop.md-opaque
                         }
                     });
                 }
-                element.addClass(NG_ANIMATE_CLASS_NAME);
+                $$jqLite.addClass(element, NG_ANIMATE_CLASS_NAME);
                 if (options && options.tempClasses) {
                     forEach(options.tempClasses, function(className) {
-                        element.addClass(className);
+                        $$jqLite.addClass(element, className);
                     });
                 }
                 var localAnimationCount = globalAnimationCounter++;
@@ -60744,7 +60871,7 @@ angular.module("material.core").constant("$MD_THEME_CSS", "md-backdrop.md-opaque
                         closeAnimation.hasBeenRun = true;
                         if (options && options.tempClasses) {
                             forEach(options.tempClasses, function(className) {
-                                element.removeClass(className);
+                                $$jqLite.removeClass(element, className);
                             });
                         }
                         var data = element.data(NG_ANIMATE_STATE);
@@ -60794,7 +60921,7 @@ angular.module("material.core").constant("$MD_THEME_CSS", "md-backdrop.md-opaque
                         delete data.active[className];
                     }
                     if (removeAnimations || !data.totalActive) {
-                        element.removeClass(NG_ANIMATE_CLASS_NAME);
+                        $$jqLite.removeClass(element, NG_ANIMATE_CLASS_NAME);
                         element.removeData(NG_ANIMATE_STATE);
                     }
                 }
@@ -60974,17 +61101,17 @@ angular.module("material.core").constant("$MD_THEME_CSS", "md-backdrop.md-opaque
                     var staggerClassName = className + "-stagger";
                     var staggerCacheKey = cacheKey + " " + staggerClassName;
                     var applyClasses = !lookupCache[staggerCacheKey];
-                    applyClasses && element.addClass(staggerClassName);
+                    applyClasses && $$jqLite.addClass(element, staggerClassName);
                     stagger = getElementAnimationDetails(element, staggerCacheKey);
-                    applyClasses && element.removeClass(staggerClassName);
+                    applyClasses && $$jqLite.removeClass(element, staggerClassName);
                 }
-                element.addClass(className);
+                $$jqLite.addClass(element, className);
                 var formerData = element.data(NG_ANIMATE_CSS_DATA_KEY) || {};
                 var timings = getElementAnimationDetails(element, eventCacheKey);
                 var transitionDuration = timings.transitionDuration;
                 var animationDuration = timings.animationDuration;
                 if (structural && transitionDuration === 0 && animationDuration === 0) {
-                    element.removeClass(className);
+                    $$jqLite.removeClass(element, className);
                     return false;
                 }
                 var blockTransition = styles || structural && transitionDuration > 0;
@@ -61042,7 +61169,7 @@ angular.module("material.core").constant("$MD_THEME_CSS", "md-backdrop.md-opaque
                     staggerTime = Math.round(Math.max(transitionStaggerDelay, animationStaggerDelay) * 100) / 100;
                 }
                 if (!staggerTime) {
-                    element.addClass(activeClassName);
+                    $$jqLite.addClass(element, activeClassName);
                     if (elementData.blockTransition) {
                         blockTransitions(node, false);
                     }
@@ -61051,7 +61178,7 @@ angular.module("material.core").constant("$MD_THEME_CSS", "md-backdrop.md-opaque
                 var timings = getElementAnimationDetails(element, eventCacheKey);
                 var maxDuration = Math.max(timings.transitionDuration, timings.animationDuration);
                 if (maxDuration === 0) {
-                    element.removeClass(activeClassName);
+                    $$jqLite.removeClass(element, activeClassName);
                     animateClose(element, className);
                     activeAnimationComplete();
                     return;
@@ -61078,7 +61205,7 @@ angular.module("material.core").constant("$MD_THEME_CSS", "md-backdrop.md-opaque
                 var totalTime = (staggerTime + animationTime) * ONE_SECOND;
                 var staggerTimeout;
                 if (staggerTime > 0) {
-                    element.addClass(pendingClassName);
+                    $$jqLite.addClass(element, pendingClassName);
                     staggerTimeout = $timeout(function() {
                         staggerTimeout = null;
                         if (timings.transitionDuration > 0) {
@@ -61087,8 +61214,8 @@ angular.module("material.core").constant("$MD_THEME_CSS", "md-backdrop.md-opaque
                         if (timings.animationDuration > 0) {
                             blockAnimations(node, false);
                         }
-                        element.addClass(activeClassName);
-                        element.removeClass(pendingClassName);
+                        $$jqLite.addClass(element, activeClassName);
+                        $$jqLite.removeClass(element, pendingClassName);
                         if (styles) {
                             if (timings.transitionDuration === 0) {
                                 element.css("transition", timings.animationDuration + "s linear all");
@@ -61108,8 +61235,8 @@ angular.module("material.core").constant("$MD_THEME_CSS", "md-backdrop.md-opaque
                 return onEnd;
                 function onEnd() {
                     element.off(css3AnimationEvents, onAnimationProgress);
-                    element.removeClass(activeClassName);
-                    element.removeClass(pendingClassName);
+                    $$jqLite.removeClass(element, activeClassName);
+                    $$jqLite.removeClass(element, pendingClassName);
                     if (staggerTimeout) {
                         $timeout.cancel(staggerTimeout);
                     }
@@ -61166,7 +61293,7 @@ angular.module("material.core").constant("$MD_THEME_CSS", "md-backdrop.md-opaque
                 };
             }
             function animateClose(element, className) {
-                element.removeClass(className);
+                $$jqLite.removeClass(element, className);
                 var data = element.data(NG_ANIMATE_CSS_DATA_KEY);
                 if (data) {
                     if (data.running) {
