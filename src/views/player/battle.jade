@@ -1,5 +1,5 @@
 script(id="player-battle",type="text/ng-template")
-   div.tab-containment.is-flex.auto-flex.wrap-container(layout="row")
+   div.tab-containment.is-flex.auto-flex.wrap-container.has-height(layout="row")
       div.text-center.md-theme-yellow(ng-if="!currentBattle",layout="column",style="align-items:center;justify-content:center",flex="100")
          div Nothing to see here. You have to select a battle from your Adventure Log to see it here.
       div(flex="30",layout="column",ng-if="currentBattle")
