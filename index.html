@@ -95,7 +95,7 @@
 
 
 <script id="pet-equipment" type="text/ng-template">
-  <md-list class="flex-scroll">
+  <md-list class="flex-scroll has-height">
     <md-item ng-repeat="item in petSoulEtc track by $index">
       <md-item-content ng-include="'pet-equipment-item'"></md-item-content>
     </md-item>
@@ -123,7 +123,7 @@
 
 
 <script id="pet-inventory" type="text/ng-template">
-  <md-list class="flex-scroll">
+  <md-list class="flex-scroll has-height">
     <md-item ng-repeat="item in petItems track by $index">
       <md-item-content>
         <div class="md-tile-left class-badge text-center align-left-list-item">
@@ -319,7 +319,7 @@
 
 <script id="pet" type="text/ng-template">
   <md-toolbar ng-if="pet" class="md-theme-light">
-    <h1 class="md-toolbar-tools"><span>{{pet.name}}, the level {{pet.level.__current}} {{pet.professionName}} with {{pet.attrs[0]}} and {{pet.attrs[1]}}</span></h1>
+    <h1 class="md-toolbar-tools"><span>{{pet.name}}, the level {{pet.level.__current}} {{pet.type}} {{pet.professionName}} with {{pet.attrs[0]}} and {{pet.attrs[1]}}</span></h1>
   </md-toolbar>
   <md-progress-linear mode="determinate" ng-value="xpPercent" md-theme="green" ng-if="pet" class="player-xp"></md-progress-linear>
   <div id="pet-tabs" class="auto-flex md-whiteframe-z1 is-flex">
@@ -339,7 +339,7 @@
 
 
 <script id="player-achievements" type="text/ng-template">
-  <md-list layout="row" class="flex-scroll wrap-container">
+  <md-list layout="row" class="flex-scroll wrap-container has-height">
     <md-item ng-repeat="achievement in player.achievements" flex="25" class="md-whiteframe-z1">
       <md-item-content>
         <div class="md-tile-left text-center"><span class="fa-stack"><span ng-repeat="item in $parent.achievementTypeToIcon[achievement.type]" class="fa fa-stack-2x {{item}}"></span></span></div>
@@ -355,7 +355,7 @@
 
 
 <script id="player-battle" type="text/ng-template">
-  <div layout="row" class="tab-containment is-flex auto-flex wrap-container">
+  <div layout="row" class="tab-containment is-flex auto-flex wrap-container has-height">
     <div ng-if="!currentBattle" layout="column" style="align-items:center;justify-content:center" flex="100" class="text-center md-theme-yellow">
       <div>Nothing to see here. You have to select a battle from your Adventure Log to see it here.</div>
     </div>
@@ -401,7 +401,7 @@
 
 
 <script id="player-collectibles" type="text/ng-template">
-  <md-list layout="row" class="flex-scroll wrap-container">
+  <md-list layout="row" class="flex-scroll wrap-container has-height">
     <md-item ng-repeat="collectible in player.collectibles" flex="25" class="md-whiteframe-z1">
       <md-item-content>
         <div class="md-tile-content">
@@ -416,7 +416,7 @@
 
 
 <script id="player-equipment" type="text/ng-template">
-  <md-list class="flex-scroll">
+  <md-list class="flex-scroll has-height">
     <md-item ng-repeat="item in playerItems track by $index">
       <md-item-content>
         <div class="md-tile-left class-badge text-center align-left-list-item">
@@ -457,7 +457,7 @@
 
 
 <script id="player-options" type="text/ng-template">
-  <div layout="row" class="tab-containment is-flex auto-flex wrap-container">
+  <div layout="row" class="tab-containment is-flex auto-flex wrap-container has-height">
     <div flex="25" layout="column">
       <md-card layout="column" class="inner-card">
         <md-toolbar class="md-theme-light-blue">
@@ -765,7 +765,7 @@
 
 
 <script id="player-statistics" type="text/ng-template">
-  <div layout="row" class="flex-scroll">
+  <div layout="row" class="flex-scroll has-height">
     <div flex="25">
       <md-card class="inner-card">
         <md-toolbar class="md-theme-light-blue">

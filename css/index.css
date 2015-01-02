@@ -215,6 +215,9 @@ body {
 [offset="67"] {
   margin-left: 66.66%;
 }
+.has-height {
+  height: 1px;
+}
 
 #login-tabs .tab {
   height: 300px;
