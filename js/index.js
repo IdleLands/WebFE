@@ -246,7 +246,7 @@
 
 (function() {
   angular.module('IdleLands').controller('Pet', [
-    '$scope', '$state', '$window', '$timeout', 'CurrentPet', 'CurrentPlayer', 'CredentialCache', 'TurnTaker', function($scope, $state, $window, $timeout, Pet, Player, CredentialCache, TurnTaker) {
+    '$scope', '$state', '$window', 'CurrentPet', 'CurrentPlayer', 'CredentialCache', 'TurnTaker', function($scope, $state, $window, Pet, Player, CredentialCache, TurnTaker) {
       if (!Player.getPlayer()) {
         CredentialCache.tryLogin().then((function() {
           if (!Player.getPlayer()) {
@@ -425,7 +425,7 @@
 
 (function() {
   angular.module('IdleLands').controller('PetOverview', [
-    '$scope', '$timeout', '$mdDialog', 'CurrentPet', 'CurrentPets', 'CurrentPlayer', 'API', '$state', function($scope, $timeout, $mdDialog, Pet, Pets, Player, API, $state) {
+    '$scope', '$mdDialog', 'CurrentPet', 'CurrentPets', 'CurrentPlayer', 'API', '$state', function($scope, $mdDialog, Pet, Pets, Player, API, $state) {
       $scope.equipmentStatArray = [
         {
           name: 'str',
