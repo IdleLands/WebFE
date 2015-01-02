@@ -1,9 +1,16 @@
 angular.module 'IdleLands'
   .controller 'Login', [
-    '$scope', '$state', 'API', 'CredentialCache',
-    ($scope, $state, API, CredentialCache) ->
+    '$scope', '$state', 'API', 'CredentialCache', 'CurrentPlayer', 'TurnTaker'
+    ($scope, $state, API, CredentialCache, Player, TurnTaker) ->
       $scope.selectedIndex = 0
       $scope.selectTab = (tabIndex) -> $scope.selectedIndex = tabIndex
+
+      if not Player.getPlayer()
+        CredentialCache.tryLogin().then (->
+            if Player.getPlayer()
+              TurnTaker.beginTakingTurns Player.getPlayer()
+              $state.go 'player.overview'
+          )
 
       $scope.login = {}
       $scope.register = {}
