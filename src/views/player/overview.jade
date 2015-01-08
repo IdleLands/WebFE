@@ -3,108 +3,113 @@ script(id="player-overview", type="text/ng-template")
    div.tab-containment.is-flex.auto-flex.wrap-container(layout="row")
       div(flex="25",layout="column")
          md-card.inner-card(layout="column")
-            md-toolbar.md-theme-light-blue
-               div.md-toolbar-tools
-                  h3 Vitals
-            md-content.card-padding
-               div(layout="row")
-                  div.vital-stat(flex="33")
-                     span.fa.fa-fw.fa-heart.fa-lg.text-red.vertical-center
-                        md-tooltip Max HP
-                     span &nbsp;
-                     small {{player.hp.maximum | number:0}}
-                  div.vital-stat(flex="33")
-                     span.fa.fa-fw.fa-magic.fa-lg.text-blue.vertical-center
-                        md-tooltip Max MP
-                     span &nbsp;
-                     small {{player.mp.maximum | number:0}}
-                  div.vital-stat(flex="33")
-                     span.fa.fa-fw.fa-asterisk.fa-lg.text-yellow.vertical-center
-                        md-tooltip Special Stat
-                     span &nbsp;
-                     small {{player.special.name || 'None'}}
-               div(layout="row")
-                  div.vital-stat(flex="100")
-                     span.fa.fa-fw.icon-money.fa-lg.text-gold.vertical-center
-                        md-tooltip Gold
-                     span &nbsp;
-                     small {{player.gold.__current | number:0}}
+            md-card-content
+               md-toolbar.md-theme-light-blue
+                  div.md-toolbar-tools
+                     h3 Vitals
+               md-content.card-padding
+                  div(layout="row")
+                     div.vital-stat(flex="33")
+                        span.fa.fa-fw.fa-heart.fa-lg.text-red.vertical-center
+                           md-tooltip Max HP
+                        span &nbsp;
+                        small {{player.hp.maximum | number:0}}
+                     div.vital-stat(flex="33")
+                        span.fa.fa-fw.fa-magic.fa-lg.text-blue.vertical-center
+                           md-tooltip Max MP
+                        span &nbsp;
+                        small {{player.mp.maximum | number:0}}
+                     div.vital-stat(flex="33")
+                        span.fa.fa-fw.fa-asterisk.fa-lg.text-yellow.vertical-center
+                           md-tooltip Special Stat
+                        span &nbsp;
+                        small {{player.special.name || 'None'}}
+                  div(layout="row")
+                     div.vital-stat(flex="100")
+                        span.fa.fa-fw.icon-money.fa-lg.text-gold.vertical-center
+                           md-tooltip Gold
+                        span &nbsp;
+                        small {{player.gold.__current | number:0}}
 
-               div.wrap-container(layout="row")
-                  div.vital-stat(ng-repeat="stat in equipmentStatArray",flex="25")
-                     span.fa.fa-fw.fa-lg.vertical-center(class="{{stat.fa}}")
-                        md-tooltip {{stat.name}}
-                     span &nbsp;
-                     small(class="{{valueToColor(player._statCache[stat.name])}}") {{player._statCache[stat.name] | number:0}}
+                  div.wrap-container(layout="row")
+                     div.vital-stat(ng-repeat="stat in equipmentStatArray",flex="25")
+                        span.fa.fa-fw.fa-lg.vertical-center(class="{{stat.fa}}")
+                           md-tooltip {{stat.name}}
+                        span &nbsp;
+                        small(class="{{valueToColor(player._statCache[stat.name])}}") {{player._statCache[stat.name] | number:0}}
 
          md-card.inner-card(layout="column",ng-if="_.size(player.foundPets) > 0")
-            md-toolbar.md-theme-light-blue
-               div.md-toolbar-tools
-                  h3 Pet Information
-            md-content.card-padding
-               div(layout="column")
-                  div.vital-stat
-                     span.fa.fa-fw.fa-dashboard
-                     md-button.inline-button.md-raised.md-accent(ng-click="toPetView()") Swap to Pet View
-                  div.vital-stat
-                     span.fa.fa-fw.fa-paw
-                     span &nbsp;{{boughtPets()}}/{{_.size(player.foundPets)}} Pets
+            md-card-content
+               md-toolbar.md-theme-light-blue
+                  div.md-toolbar-tools
+                     h3 Pet Information
+               md-content.card-padding
+                  div(layout="column")
+                     div.vital-stat
+                        span.fa.fa-fw.fa-dashboard
+                        md-button.inline-button.md-raised.md-accent(ng-click="toPetView()") Swap to Pet View
+                     div.vital-stat
+                        span.fa.fa-fw.fa-paw
+                        span &nbsp;{{boughtPets()}}/{{_.size(player.foundPets)}} Pets
 
          md-card.inner-card(layout="column")
-            md-toolbar.md-theme-light-blue
-               div.md-toolbar-tools
-                  h3 Miscellaneous
-            md-content.card-padding
-               div(layout="column")
-                  div.vital-stat
-                     span.fa.fa-fw.fa-institution
-                     md-button.inline-button.md-raised.md-accent.md-hue-2(ng-disabled="praying", ng-click="pray()") {{prayText}}
-                        md-tooltip Praying raises Superstition by 1
-                  div.vital-stat
-                     span.fa.fa-fw.fa-globe
-                     span &nbsp;{{player.map}} ~ {{player.x}}, {{player.y}}
-                  div.vital-stat
-                     span.fa.fa-fw.fa-map-marker
-                     span &nbsp;{{player.mapRegion}}
-                  div.vital-stat(ng-if="player.shop")
-                     span.fa.fa-fw.icon-money.faa-tada.animated
-                     span &nbsp;In shop: {{player.shop.region}}!
-                  div.vital-stat
-                     span.fa.fa-fw.fa-users
-                     span &nbsp;{{player.partyName || 'No party'}}
-                  div.vital-stat
-                     span.fa.fa-fw.fa-sitemap
-                     span &nbsp;{{player.guild || 'No guild'}}
-                  div
-                     span.fa.fa-fw.fa-clock-o
-                     span &nbsp;Started&nbsp;
-                     span(am-time-ago="player.registrationDate")
-                        md-tooltip {{player.registrationDate | amDateFormat:'dddd, MMMM Do YYYY, h:mm:ss a'}}
+            md-card-content
+               md-toolbar.md-theme-light-blue
+                  div.md-toolbar-tools
+                     h3 Miscellaneous
+               md-content.card-padding
+                  div(layout="column")
+                     div.vital-stat
+                        span.fa.fa-fw.fa-institution
+                        md-button.inline-button.md-raised.md-accent.md-hue-2(ng-disabled="praying", ng-click="pray()") {{prayText}}
+                           md-tooltip Praying raises Superstition by 1
+                     div.vital-stat
+                        span.fa.fa-fw.fa-globe
+                        span &nbsp;{{player.map}} ~ {{player.x}}, {{player.y}}
+                     div.vital-stat
+                        span.fa.fa-fw.fa-map-marker
+                        span &nbsp;{{player.mapRegion}}
+                     div.vital-stat(ng-if="player.shop")
+                        span.fa.fa-fw.icon-money.faa-tada.animated
+                        span &nbsp;In shop: {{player.shop.region}}!
+                     div.vital-stat
+                        span.fa.fa-fw.fa-users
+                        span &nbsp;{{player.partyName || 'No party'}}
+                     div.vital-stat
+                        span.fa.fa-fw.fa-sitemap
+                        span &nbsp;{{player.guild || 'No guild'}}
+                     div
+                        span.fa.fa-fw.fa-clock-o
+                        span &nbsp;Started&nbsp;
+                        span(am-time-ago="player.registrationDate")
+                           md-tooltip {{player.registrationDate | amDateFormat:'dddd, MMMM Do YYYY, h:mm:ss a'}}
 
       div(flex="55",layout="column")
          md-card.is-flex.auto-flex.inner-card(layout="column")
-            md-toolbar.md-theme-light-blue
-               div.md-toolbar-tools
-                  h3 Adventure Log
+            md-card-content.is-flex.auto-flex(layout="column")
+               md-toolbar.md-theme-light-blue
+                  div.md-toolbar-tools
+                     h3 Adventure Log
 
-            md-content.is-flex.auto-flex(style="flex-basis:80px;height:80px",layout="column")
-               div.is-flex.auto-flex.adventure-log-item(flex="100",ng-repeat="event in player.recentEvents | reverse",layout="row")
-                  div.fa-stack.vertical-center(flex="10")
-                     span.fa.fa-fw.fa-stack-2x(ng-repeat="item in $parent.eventTypeToIcon[event.type]",class="{{item}}", ng-click="clickOnEvent(event.extra)", ng-class="{'hover-cursor': event.extra.battleId}")
-                  div(flex="90")
-                     small(am-time-ago="event.createdAt")
-                     div {{event.message}}
+               md-content.is-flex.auto-flex(style="flex-basis:80px;height:80px",layout="column")
+                  div.is-flex.auto-flex.adventure-log-item(flex="100",ng-repeat="event in player.recentEvents | reverse",layout="row")
+                     div.fa-stack.vertical-center(flex="10")
+                        span.fa.fa-fw.fa-stack-2x(ng-repeat="item in $parent.eventTypeToIcon[event.type]",class="{{item}}", ng-click="clickOnEvent(event.extra)", ng-class="{'hover-cursor': event.extra.battleId}")
+                     div(flex="90")
+                        small(am-time-ago="event.createdAt")
+                        div {{event.message}}
 
       div(flex="20",layout="column")
          md-card.is-flex.auto-flex.inner-card(layout="column")
-            md-toolbar.md-theme-light-blue
-               div.md-toolbar-tools
-                  h3
-                     a.fa.fa-question-circle(href="http://idlelands.github.io/IdleLands/#!/Player/Personalities",target="_blank") &nbsp;Your Personalities
+            md-card-content.is-flex.auto-flex(layout="column")
+               md-toolbar.md-theme-light-blue
+                  div.md-toolbar-tools
+                     h3
+                        a.fa.fa-question-circle(href="http://idlelands.github.io/IdleLands/#!/Player/Personalities",target="_blank") &nbsp;Your Personalities
 
-            md-content.is-flex.auto-flex(style="flex-basis:50px;height:50px",layout="column")
-               div.is-flex.auto-flex.adventure-log-item(ng-repeat="personality in player.achievements | filter:{type:'personality'}")
-                  div(flex="30")
-                     md-switch.personality-switch(ng-model="personalityToggle[personality._personality]",aria-label="{{personality._personality}}")
-                  div(flex="70")
-                     div(style="margin-top:10px") {{personality._personality}}
+               md-content.is-flex.auto-flex(style="flex-basis:50px;height:50px",layout="column")
+                  div.is-flex.auto-flex.adventure-log-item(ng-repeat="personality in player.achievements | filter:{type:'personality'}")
+                     div(flex="30")
+                        md-switch.personality-switch(ng-model="personalityToggle[personality._personality]",aria-label="{{personality._personality}}")
+                     div(flex="70")
+                        div(style="margin-top:10px") {{personality._personality}}

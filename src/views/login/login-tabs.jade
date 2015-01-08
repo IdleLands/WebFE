@@ -1,12 +1,13 @@
 script(id='login', type='text/ng-template')
    md-content
       md-card(layout="row", flex="50", offset="25", layout-align="center", id="login-tabs")
-         md-tabs(md-selected="selectedIndex")
-            md-tab(on-select="selectTab(0)",label="Login",ng-disabled="isSubmitting")
-               div.tab(layout="row",layout-fill,layout-align="left center", ng-include="'login-login'")
+         md-card-content
+            md-tabs(md-selected="selectedIndex")
+               md-tab(on-select="selectTab(0)",label="Login",ng-disabled="isSubmitting")
+                  div.tab(layout="row",layout-fill,layout-align="left center", ng-include="'login-login'")
 
-            md-tab(on-select="selectTab(1)",label="Register",ng-disabled="isSubmitting")
-               div.tab(layout="row",layout-fill,layout-align="left center", ng-include="'login-register'")
+               md-tab(on-select="selectTab(1)",label="Register",ng-disabled="isSubmitting")
+                  div.tab(layout="row",layout-fill,layout-align="left center", ng-include="'login-register'")
 
-            md-tab(on-select="selectTab(2)",label="Advanced Login",ng-disabled="isSubmitting")
-               div.tab(layout="row",layout-fill,layout-align="left center", ng-include="'login-advlogin'")
+               md-tab(on-select="selectTab(2)",label="Advanced Login",ng-disabled="isSubmitting")
+                  div.tab(layout="row",layout-fill,layout-align="left center", ng-include="'login-advlogin'")

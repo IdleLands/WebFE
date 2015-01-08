@@ -4,24 +4,26 @@ script(id="player-battle",type="text/ng-template")
          div Nothing to see here. You have to select a battle from your Adventure Log to see it here.
       div(flex="30",layout="column",ng-if="currentBattle")
          md-card.inner-card(layout="column")
-            md-toolbar.md-theme-light-blue
-               div.md-toolbar-tools
-                  h3 Teams ({{currentBattle.name}})
-            md-content.card-padding
-               div(layout="column")
-                  div(ng-repeat="team in currentBattle.teams")
-                     h3 Team "{{team.name}}"
-                     table
-                        tr(ng-repeat="member in team.members")
-                           td {{member.name}}
-                           td {{member.level}}
-                           td {{member.profession}}
+            md-card-content
+               md-toolbar.md-theme-light-blue
+                  div.md-toolbar-tools
+                     h3 Teams ({{currentBattle.name}})
+               md-content.card-padding
+                  div(layout="column")
+                     div(ng-repeat="team in currentBattle.teams")
+                        h3 Team "{{team.name}}"
+                        table
+                           tr(ng-repeat="member in team.members")
+                              td {{member.name}}
+                              td {{member.level}}
+                              td {{member.profession}}
 
       div(flex="70",layout="column",ng-if="currentBattle")
          md-card.is-flex.auto-flex.inner-card(layout="column")
-            md-toolbar.md-theme-light-blue
-               div.md-toolbar-tools
-                  h3 Combat Log ({{currentBattle.name}})
-            md-content.is-flex.auto-flex(style="flex-basis:40px",layout="column")
-               div.is-flex.top-margin-5(style="margin-top:40px;padding-left:10px;align-items:center",flex="100",ng-repeat="message in currentBattle.messages track by $index",layout="row")
-                  htmldiv(content="filterMessage(message)")
+            md-card-content
+               md-toolbar.md-theme-light-blue
+                  div.md-toolbar-tools
+                     h3 Combat Log ({{currentBattle.name}})
+               md-content.is-flex.auto-flex(style="flex-basis:40px",layout="column")
+                  div.is-flex.top-margin-5(style="margin-top:40px;padding-left:10px;align-items:center",flex="100",ng-repeat="message in currentBattle.messages track by $index",layout="row")
+                     htmldiv(content="filterMessage(message)")
