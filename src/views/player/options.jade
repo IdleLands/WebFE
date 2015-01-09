@@ -58,7 +58,9 @@ script(id="player-options", type="text/ng-template")
 
                md-content.card-padding
                   div.wrap-container(layout="row")
-                     md-text-float(label="{{stat}}", type="number", ng-model="player.priorityPoints[stat]", flex="33", ng-repeat="(stat,val) in player.priorityPoints track by $index")
+                     md-input-container(flex="33", ng-repeat="(stat,val) in player.priorityPoints track by $index")
+                        label {{stat}}
+                        input(type="number", ng-model="player.priorityPoints[stat]")
 
          md-card.inner-card(layout="column")
             md-card-content
@@ -156,8 +158,12 @@ script(id="submit-content",type="text/ng-template")
          div(layout="row")
             div
             select(ng-model="data.type", ng-options="obj.type group by obj.folder for obj in types", style="margin:15px")
-            md-text-float(label="Name of Object", ng-model="data._name",ng-if="data.type.requiresName")
-            md-text-float.extended-input(label="Custom Content", ng-model="data.content")
+            md-input-container(ng-if="data.type.requiresName")
+               label Name of Object
+               input(ng-model="data._name")
+            md-input-container.extended-input
+               label Custom Content
+               input(ng-model="data.content")
 
       div.md-actions(layout="row")
          md-button.md-accent(target="_blank",href="https://github.com/IdleLands/IdleLands/wiki/Content-Crafting") Help

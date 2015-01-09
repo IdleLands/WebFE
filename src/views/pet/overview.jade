@@ -154,9 +154,15 @@ script(id="buy-pet",type="text/ng-template")
             h2 Procure a New Pet: {{petType}}
          div(layout="row")
             div
-            md-text-float(label="Name", ng-model="newPet.name")
-            md-text-float(label="First Attribute", ng-model="newPet.attr1")
-            md-text-float(label="Second Attribute", ng-model="newPet.attr2")
+            md-input-container
+               label Name
+               input(ng-model="newPet.name")
+            md-input-container
+               label First Attribute
+               input(ng-model="newPet.attr1")
+            md-input-container
+               label Second Attribute
+               input(ng-model="newPet.attr2")
 
       div.md-actions(layout="row")
          md-button(ng-click="cancel()") Cancel

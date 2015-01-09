@@ -1,8 +1,12 @@
 script(id='login-advlogin', type='text/ng-template')
     div.tab-text(flex="25", layout="column")
         form
-            md-text-float(label="Identifier",ng-model="advLogin.identifier")
-            md-text-float(label="Password",ng-model="advLogin.password",type="password")
+            md-input-container
+                label Identifier
+                input(ng-model="advLogin.identifier")
+            md-input-container
+                label Password
+                input(ng-model="advLogin.password",type="password")
             md-checkbox.no-margin-left(ng-model="advLogin.remember") Remember Me
             md-button.md-raised.md-primary(ng-disabled="isSubmitting",ng-click="doAdvancedLogin()",aria-label="Login button")
                 span(ng-if="!isSubmitting") Log In

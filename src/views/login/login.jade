@@ -1,8 +1,12 @@
 script(id='login-login', type='text/ng-template')
    div.tab-text(flex="25", layout="column")
       form
-         md-text-float(label="Character Name",ng-model="login.name")
-         md-text-float(label="Password",ng-model="login.password",type="password")
+         md-input-container
+            label Character Name
+            input(ng-model="login.name")
+         md-input-container
+            label Password
+            input(ng-model="login.password",type="password")
          md-checkbox.no-margin-left(ng-model="login.remember") Remember Me
          md-button.md-raised.md-primary(ng-disabled="isSubmitting",ng-click="doLogin()",aria-label="Login button")
             span(ng-if="!isSubmitting") Log In

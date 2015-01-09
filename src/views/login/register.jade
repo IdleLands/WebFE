@@ -1,8 +1,12 @@
 script(id='login-register', type='text/ng-template')
     div.tab-text(flex="25", layout="column")
         form
-            md-text-float(label="Character Name",ng-model="register.name")
-            md-text-float(label="Password",ng-model="register.password",type="password")
+            md-input-container
+                label Character Name
+                input(ng-model="register.name")
+            md-input-container
+                label Password
+                input(ng-model="register.password",type="password")
             md-checkbox.no-margin-left(ng-model="register.remember") Remember Me
             md-button.md-raised.md-primary(ng-disabled="isSubmitting",ng-click="doRegister()",aria-label="Register button")
                 span(ng-if="!isSubmitting") Register
