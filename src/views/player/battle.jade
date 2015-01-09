@@ -20,7 +20,7 @@ script(id="player-battle",type="text/ng-template")
 
       div(flex="70",layout="column",ng-if="currentBattle")
          md-card.is-flex.auto-flex.inner-card(layout="column")
-            md-card-content
+            md-card-content.is-flex.auto-flex(layout="column")
                md-toolbar.md-theme-light-blue
                   div.md-toolbar-tools
                      h3 Combat Log ({{currentBattle.name}})
