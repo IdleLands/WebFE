@@ -21,8 +21,14 @@
 <script id="login-advlogin" type="text/ng-template">
   <div flex="25" layout="column" class="tab-text">
     <form>
-      <md-text-float label="Identifier" ng-model="advLogin.identifier"></md-text-float>
-      <md-text-float label="Password" ng-model="advLogin.password" type="password"></md-text-float>
+      <md-input-container>
+        <label>Identifier</label>
+        <input ng-model="advLogin.identifier"/>
+      </md-input-container>
+      <md-input-container>
+        <label>Password</label>
+        <input ng-model="advLogin.password" type="password"/>
+      </md-input-container>
       <md-checkbox ng-model="advLogin.remember" class="no-margin-left">Remember Me</md-checkbox>
       <md-button ng-disabled="isSubmitting" ng-click="doAdvancedLogin()" aria-label="Login button" class="md-raised md-primary"><span ng-if="!isSubmitting">Log In</span><span ng-if="isSubmitting">Logging in...</span></md-button>
     </form>
@@ -40,17 +46,19 @@
 <script id="login" type="text/ng-template">
   <md-content>
     <md-card layout="row" flex="50" offset="25" layout-align="center" id="login-tabs">
-      <md-tabs md-selected="selectedIndex">
-        <md-tab on-select="selectTab(0)" label="Login" ng-disabled="isSubmitting">
-          <div layout="row" layout-fill="layout-fill" layout-align="left center" ng-include="'login-login'" class="tab"></div>
-        </md-tab>
-        <md-tab on-select="selectTab(1)" label="Register" ng-disabled="isSubmitting">
-          <div layout="row" layout-fill="layout-fill" layout-align="left center" ng-include="'login-register'" class="tab"></div>
-        </md-tab>
-        <md-tab on-select="selectTab(2)" label="Advanced Login" ng-disabled="isSubmitting">
-          <div layout="row" layout-fill="layout-fill" layout-align="left center" ng-include="'login-advlogin'" class="tab"></div>
-        </md-tab>
-      </md-tabs>
+      <md-card-content>
+        <md-tabs md-selected="selectedIndex">
+          <md-tab on-select="selectTab(0)" label="Login" ng-disabled="isSubmitting">
+            <div layout="row" layout-fill="layout-fill" layout-align="left center" ng-include="'login-login'" class="tab"></div>
+          </md-tab>
+          <md-tab on-select="selectTab(1)" label="Register" ng-disabled="isSubmitting">
+            <div layout="row" layout-fill="layout-fill" layout-align="left center" ng-include="'login-register'" class="tab"></div>
+          </md-tab>
+          <md-tab on-select="selectTab(2)" label="Advanced Login" ng-disabled="isSubmitting">
+            <div layout="row" layout-fill="layout-fill" layout-align="left center" ng-include="'login-advlogin'" class="tab"></div>
+          </md-tab>
+        </md-tabs>
+      </md-card-content>
     </md-card>
   </md-content>
 </script>
@@ -59,8 +67,14 @@
 <script id="login-login" type="text/ng-template">
   <div flex="25" layout="column" class="tab-text">
     <form>
-      <md-text-float label="Character Name" ng-model="login.name"></md-text-float>
-      <md-text-float label="Password" ng-model="login.password" type="password"></md-text-float>
+      <md-input-container>
+        <label>Character Name</label>
+        <input ng-model="login.name"/>
+      </md-input-container>
+      <md-input-container>
+        <label>Password</label>
+        <input ng-model="login.password" type="password"/>
+      </md-input-container>
       <md-checkbox ng-model="login.remember" class="no-margin-left">Remember Me</md-checkbox>
       <md-button ng-disabled="isSubmitting" ng-click="doLogin()" aria-label="Login button" class="md-raised md-primary"><span ng-if="!isSubmitting">Log In</span><span ng-if="isSubmitting">Logging in...</span></md-button>
     </form>
@@ -78,8 +92,14 @@
 <script id="login-register" type="text/ng-template">
   <div flex="25" layout="column" class="tab-text">
     <form>
-      <md-text-float label="Character Name" ng-model="register.name"></md-text-float>
-      <md-text-float label="Password" ng-model="register.password" type="password"></md-text-float>
+      <md-input-container>
+        <label>Character Name</label>
+        <input ng-model="register.name"/>
+      </md-input-container>
+      <md-input-container>
+        <label>Password</label>
+        <input ng-model="register.password" type="password"/>
+      </md-input-container>
       <md-checkbox ng-model="register.remember" class="no-margin-left">Remember Me</md-checkbox>
       <md-button ng-disabled="isSubmitting" ng-click="doRegister()" aria-label="Register button" class="md-raised md-primary"><span ng-if="!isSubmitting">Register</span><span ng-if="isSubmitting">Registering...</span></md-button>
     </form>
@@ -152,146 +172,156 @@
   <div layout="row" class="tab-containment is-flex auto-flex wrap-container">
     <div flex="30" layout="column">
       <md-card layout="column" class="inner-card">
-        <md-toolbar class="md-theme-light-blue">
-          <div class="md-toolbar-tools">
-            <h3>Vitals</h3>
-          </div>
-        </md-toolbar>
-        <md-content class="card-padding">
-          <div ng-if="!pet"><span>No Pets Purchased</span></div>
-          <div layout="row" ng-if="pet">
-            <div flex="33" class="vital-stat"><span class="fa fa-fw fa-heart fa-lg text-red vertical-center">
-                <md-tooltip>Max HP</md-tooltip></span><span>&nbsp;</span><small>{{pet.hp.maximum | number:0 }}</small></div>
-            <div flex="33" class="vital-stat"><span class="fa fa-fw fa-magic fa-lg text-blue vertical-center">
-                <md-tooltip>Max MP</md-tooltip></span><span>&nbsp;</span><small>{{pet.mp.maximum | number:0}}</small></div>
-            <div flex="33" class="vital-stat"><span class="fa fa-fw fa-asterisk fa-lg text-yellow vertical-center">
-                <md-tooltip>Special Stat</md-tooltip></span><span>&nbsp;</span><small>{{pet.special.name || 'None'}}</small></div>
-          </div>
-          <div layout="row" ng-if="pet">
-            <div flex="25" class="vital-stat"><span class="fa fa-fw icon-money fa-lg text-gold vertical-center">
-                <md-tooltip>Gold</md-tooltip></span><span>&nbsp;</span><small>{{pet.gold.__current | number:0}}</small></div>
-          </div>
-          <div layout="row" ng-if="pet" class="wrap-container">
-            <div ng-repeat="stat in equipmentStatArray" flex="25" class="vital-stat"><span class="fa fa-fw fa-lg vertical-center {{stat.fa}}">
-                <md-tooltip>{{stat.name}}</md-tooltip></span><span>&nbsp;</span><small class="{{valueToColor(pet._statCache[stat.name])}}">{{pet._statCache[stat.name] || 0 | number:0}}</small></div>
-          </div>
-        </md-content>
+        <md-card-content>
+          <md-toolbar class="md-theme-light-blue">
+            <div class="md-toolbar-tools">
+              <h3>Vitals</h3>
+            </div>
+          </md-toolbar>
+          <md-content class="card-padding">
+            <div ng-if="!pet"><span>No Pets Purchased</span></div>
+            <div layout="row" ng-if="pet">
+              <div flex="33" class="vital-stat"><span class="fa fa-fw fa-heart fa-lg text-red vertical-center">
+                  <md-tooltip>Max HP</md-tooltip></span><span>&nbsp;</span><small>{{pet.hp.maximum | number:0 }}</small></div>
+              <div flex="33" class="vital-stat"><span class="fa fa-fw fa-magic fa-lg text-blue vertical-center">
+                  <md-tooltip>Max MP</md-tooltip></span><span>&nbsp;</span><small>{{pet.mp.maximum | number:0}}</small></div>
+              <div flex="33" class="vital-stat"><span class="fa fa-fw fa-asterisk fa-lg text-yellow vertical-center">
+                  <md-tooltip>Special Stat</md-tooltip></span><span>&nbsp;</span><small>{{pet.special.name || 'None'}}</small></div>
+            </div>
+            <div layout="row" ng-if="pet">
+              <div flex="25" class="vital-stat"><span class="fa fa-fw icon-money fa-lg text-gold vertical-center">
+                  <md-tooltip>Gold</md-tooltip></span><span>&nbsp;</span><small>{{pet.gold.__current | number:0}}</small></div>
+            </div>
+            <div layout="row" ng-if="pet" class="wrap-container">
+              <div ng-repeat="stat in equipmentStatArray" flex="25" class="vital-stat"><span class="fa fa-fw fa-lg vertical-center {{stat.fa}}">
+                  <md-tooltip>{{stat.name}}</md-tooltip></span><span>&nbsp;</span><small class="{{valueToColor(pet._statCache[stat.name])}}">{{pet._statCache[stat.name] || 0 | number:0}}</small></div>
+            </div>
+          </md-content>
+        </md-card-content>
       </md-card>
       <md-card layout="column" class="inner-card">
-        <md-toolbar class="md-theme-light-blue">
-          <div class="md-toolbar-tools">
-            <h3>Controls</h3>
-          </div>
-        </md-toolbar>
-        <md-content class="card-padding">
-          <div layout="column">
-            <div class="vital-stat"><span class="fa fa-fw fa-dashboard"></span>
-              <md-button ng-click="toPlayerView()" class="inline-button md-raised md-accent">Swap to Player View</md-button>
+        <md-card-content>
+          <md-toolbar class="md-theme-light-blue">
+            <div class="md-toolbar-tools">
+              <h3>Controls</h3>
             </div>
-            <div class="vital-stat"><span class="fa fa-fw fa-{{getSmartIcon('Sell')}}"></span>
-              <md-button ng-click="toggleSmart('Sell')" class="inline-button md-primary">Smart Sell
-                <md-tooltip>Low-quality items are sold first.</md-tooltip>
-              </md-button>
+          </md-toolbar>
+          <md-content class="card-padding">
+            <div layout="column">
+              <div class="vital-stat"><span class="fa fa-fw fa-dashboard"></span>
+                <md-button ng-click="toPlayerView()" class="inline-button md-raised md-accent">Swap to Player View</md-button>
+              </div>
+              <div class="vital-stat"><span class="fa fa-fw fa-{{getSmartIcon('Sell')}}"></span>
+                <md-button ng-click="toggleSmart('Sell')" class="inline-button md-primary">Smart Sell
+                  <md-tooltip>Low-quality items are sold first.</md-tooltip>
+                </md-button>
+              </div>
+              <div class="vital-stat"><span class="fa fa-fw fa-{{getSmartIcon('Equip')}}"></span>
+                <md-button ng-click="toggleSmart('Equip')" class="inline-button md-primary">Smart Equip
+                  <md-tooltip>High-quality gear is auto-equipped.</md-tooltip>
+                </md-button>
+              </div>
+              <div class="vital-stat"><span class="fa fa-fw fa-{{getSmartIcon('Self')}}"></span>
+                <md-button ng-click="toggleSmart('Self')" class="inline-button md-primary">Smart Self
+                  <md-tooltip>Pet upgrades itself.</md-tooltip>
+                </md-button>
+              </div>
+              <div class="vital-stat"><span class="fa fa-fw icon-money"></span>
+                <md-button ng-click="takePetGold()" class="inline-button md-primary">Take Pet Gold</md-button>
+              </div>
+              <div class="vital-stat"><span class="fa fa-fw fa-cutlery"></span>
+                <md-button ng-click="feedPet()" class="inline-button md-primary">Feed Pet</md-button>
+              </div>
+              <div class="vital-stat"><span class="fa fa-fw fa-shield"></span>
+                <select ng-model="pet.professionName" ng-options="val for val in availablePetClasses()" ng-change="changePetClass()"></select>
+              </div>
             </div>
-            <div class="vital-stat"><span class="fa fa-fw fa-{{getSmartIcon('Equip')}}"></span>
-              <md-button ng-click="toggleSmart('Equip')" class="inline-button md-primary">Smart Equip
-                <md-tooltip>High-quality gear is auto-equipped.</md-tooltip>
-              </md-button>
-            </div>
-            <div class="vital-stat"><span class="fa fa-fw fa-{{getSmartIcon('Self')}}"></span>
-              <md-button ng-click="toggleSmart('Self')" class="inline-button md-primary">Smart Self
-                <md-tooltip>Pet upgrades itself.</md-tooltip>
-              </md-button>
-            </div>
-            <div class="vital-stat"><span class="fa fa-fw icon-money"></span>
-              <md-button ng-click="takePetGold()" class="inline-button md-primary">Take Pet Gold</md-button>
-            </div>
-            <div class="vital-stat"><span class="fa fa-fw fa-cutlery"></span>
-              <md-button ng-click="feedPet()" class="inline-button md-primary">Feed Pet</md-button>
-            </div>
-            <div class="vital-stat"><span class="fa fa-fw fa-shield"></span>
-              <select ng-model="pet.professionName" ng-options="val for val in availablePetClasses()" ng-change="changePetClass()"></select>
-            </div>
-          </div>
-        </md-content>
+          </md-content>
+        </md-card-content>
       </md-card>
       <md-card layout="column" class="inner-card">
-        <md-toolbar class="md-theme-light-blue">
-          <div class="md-toolbar-tools">
-            <h3>Miscellaneous</h3>
-          </div>
-        </md-toolbar>
-        <md-content class="card-padding">
-          <div ng-if="!pet"><span>No Pets Purchased</span></div>
-          <div layout="column" ng-if="pet">
-            <div><span class="fa fa-fw fa-clock-o"></span><span>&nbsp;{{pet.creator.name}} originally found this pet <span am-time-ago='pet.createdAt'></span>
-                <md-tooltip>{{pet.createdAt | amDateFormat:'dddd, MMMM Do YYYY, h:mm:ss a'}}</md-tooltip></span></div>
-            <div><span class="fa fa-fw fa-{{getTypeIcon(pet)}}"></span><span>&nbsp;{{pet._configCache.category}}</span></div>
-            <div><span class="fa fa-fw fa-{{getGenderFor(pet)}}"></span><span>&nbsp;{{pet.gender}}</span></div>
-            <div><span class="fa fa-fw fa-link"></span><span>&nbsp;Max Item Score: {{pet._baseStats.itemFindRange | number:0}}</span></div>
-            <div ng-if="pet.nextItemFind"><span class="fa fa-fw fa-refresh"></span><span>&nbsp;Next item find <span am-time-ago='pet.nextItemFind'></span></span></div>
-          </div>
-        </md-content>
+        <md-card-content layout="column" class="is-flex auto-flex">
+          <md-toolbar class="md-theme-light-blue">
+            <div class="md-toolbar-tools">
+              <h3>Miscellaneous</h3>
+            </div>
+          </md-toolbar>
+          <md-content class="card-padding">
+            <div ng-if="!pet"><span>No Pets Purchased</span></div>
+            <div layout="column" ng-if="pet">
+              <div><span class="fa fa-fw fa-clock-o"></span><span>&nbsp;{{pet.creator.name}} originally found this pet <span am-time-ago='pet.createdAt'></span>
+                  <md-tooltip>{{pet.createdAt | amDateFormat:'dddd, MMMM Do YYYY, h:mm:ss a'}}</md-tooltip></span></div>
+              <div><span class="fa fa-fw fa-{{getTypeIcon(pet)}}"></span><span>&nbsp;{{pet._configCache.category}}</span></div>
+              <div><span class="fa fa-fw fa-{{getGenderFor(pet)}}"></span><span>&nbsp;{{pet.gender}}</span></div>
+              <div><span class="fa fa-fw fa-link"></span><span>&nbsp;Max Item Score: {{pet._baseStats.itemFindRange | number:0}}</span></div>
+              <div ng-if="pet.nextItemFind"><span class="fa fa-fw fa-refresh"></span><span>&nbsp;Next item find <span am-time-ago='pet.nextItemFind'></span></span></div>
+            </div>
+          </md-content>
+        </md-card-content>
       </md-card>
     </div>
     <div flex="30" layout="column">
       <md-card layout="column" class="is-flex auto-flex inner-card">
-        <md-toolbar ng-if="availablePets().length !== 0" class="md-theme-light-blue">
-          <div class="md-toolbar-tools">
-            <h3>Unpurchased Pets</h3>
-          </div>
-        </md-toolbar>
-        <md-content style="flex-basis:60px;height:60px" layout="column" ng-if="availablePets().length !== 0" class="is-flex auto-flex card-padding">
-          <div style="align-items:center" flex="100" ng-repeat="pet in availablePets()" layout="row" class="is-flex auto-flex adventure-log-item">
-            <div flex="10" ng-class="{'text-green hover-cursor animated-hover': canBuyPet(pet), 'text-red': !canBuyPet(pet)}" class="vertical-center text-center faa-parent"><span ng-click="tryToBuyPet(pet)" class="fa fa-fw fa-lg icon-money faa-shake"></span></div>
-            <div flex="90">Unlock {{pet.type}} - {{pet.cost | number:0}} gold</div>
-          </div>
-        </md-content>
-        <md-toolbar ng-if="pets.length" class="md-theme-light-blue">
-          <div class="md-toolbar-tools">
-            <h3>Your Pets</h3>
-          </div>
-        </md-toolbar>
-        <md-content style="flex-basis:60px;height:60px" layout="column" ng-if="pets.length" class="is-flex auto-flex">
-          <div style="align-items:center" flex="100" ng-repeat="pet in getPetsInOrder()" layout="row" class="is-flex auto-flex adventure-log-item">
-            <div flex="10" class="vertical-center text-center faa-parent animated-hover hover-cursor"><span ng-class="{'text-green': pet.isActive, 'text-gray': !pet.isActive}" ng-click="doPetSwap(pet.createdAt)" class="fa fa-fw fa-lg fa-certificate faa-spin"></span></div>
-            <div flex="90">
-              <div>{{pet.name}}, the {{pet.type}}</div>
-              <div>Level {{pet.level.__current}} {{pet.professionName}}</div>
-              <div>Inventory {{pet.inventory.length}}/{{pet._configCache.scale.inventory[pet.scaleLevel.inventory]}}</div>
+        <md-card-content layout="column" class="is-flex auto-flex">
+          <md-toolbar ng-if="availablePets().length !== 0" class="md-theme-light-blue">
+            <div class="md-toolbar-tools">
+              <h3>Unpurchased Pets</h3>
             </div>
-          </div>
-        </md-content>
+          </md-toolbar>
+          <md-content style="flex-basis:60px;height:60px" layout="column" ng-if="availablePets().length !== 0" class="is-flex auto-flex card-padding">
+            <div style="align-items:center" flex="100" ng-repeat="pet in availablePets()" layout="row" class="is-flex auto-flex adventure-log-item">
+              <div flex="10" ng-class="{'text-green hover-cursor animated-hover': canBuyPet(pet), 'text-red': !canBuyPet(pet)}" class="vertical-center text-center faa-parent"><span ng-click="tryToBuyPet(pet)" class="fa fa-fw fa-lg icon-money faa-shake"></span></div>
+              <div flex="90">Unlock {{pet.type}} - {{pet.cost | number:0}} gold</div>
+            </div>
+          </md-content>
+          <md-toolbar ng-if="pets.length" class="md-theme-light-blue">
+            <div class="md-toolbar-tools">
+              <h3>Your Pets</h3>
+            </div>
+          </md-toolbar>
+          <md-content style="flex-basis:60px;height:60px" layout="column" ng-if="pets.length" class="is-flex auto-flex">
+            <div style="align-items:center" flex="100" ng-repeat="pet in getPetsInOrder()" layout="row" class="is-flex auto-flex adventure-log-item">
+              <div flex="10" class="vertical-center text-center faa-parent animated-hover hover-cursor"><span ng-class="{'text-green': pet.isActive, 'text-gray': !pet.isActive}" ng-click="doPetSwap(pet.createdAt)" class="fa fa-fw fa-lg fa-certificate faa-spin"></span></div>
+              <div flex="90">
+                <div>{{pet.name}}, the {{pet.type}}</div>
+                <div>Level {{pet.level.__current}} {{pet.professionName}}</div>
+                <div>Inventory {{pet.inventory.length}}/{{pet._configCache.scale.inventory[pet.scaleLevel.inventory]}}</div>
+              </div>
+            </div>
+          </md-content>
+        </md-card-content>
       </md-card>
     </div>
     <div flex="40" layout="column">
       <md-card layout="column" class="is-flex auto-flex inner-card">
-        <md-toolbar class="md-theme-light-blue">
-          <div class="md-toolbar-tools">
-            <h3>Upgrade Levels</h3>
-          </div>
-        </md-toolbar>
-        <md-content style="flex-basis:20px;height:20px" layout="column" class="is-flex auto-flex card-padding">
-          <div ng-if="!pet">No Pets Purchased</div>
-          <table ng-if="pet">
-            <tr>
-              <th>Stat</th>
-              <th>Level</th>
-              <th>Gift</th>
-              <th></th>
-            </tr>
-            <tr ng-repeat="(stat, level) in pet.scaleLevel">
-              <td>{{petUpgradeData[stat].stat}}</td>
-              <td><span>{{pet.scaleLevel[stat]+1}}/{{pet._configCache.scale[stat].length}}</span></td>
-              <td><span>{{petUpgradeData[stat].gift.split('%gift').join(formatGift(stat, pet._configCache.scale[stat][pet.scaleLevel[stat]]))}}</span></td>
-              <td>
-                <md-button ng-disabled="pet.scaleLevel[stat]+1 === pet._configCache.scale[stat].length" ng-click="upgradeStat(stat)" class="inline-button md-accent">Upgrade
-                  <md-tooltip>Next Level Cost: {{pet._configCache.scaleCost[stat][pet.scaleLevel[stat]+1] | number:0}} gold</md-tooltip>
-                </md-button>
-              </td>
-            </tr>
-          </table>
-        </md-content>
+        <md-card-content layout="column" class="is-flex auto-flex">
+          <md-toolbar class="md-theme-light-blue">
+            <div class="md-toolbar-tools">
+              <h3>Upgrade Levels</h3>
+            </div>
+          </md-toolbar>
+          <md-content style="flex-basis:20px;height:20px" layout="column" class="is-flex auto-flex card-padding">
+            <div ng-if="!pet">No Pets Purchased</div>
+            <table ng-if="pet">
+              <tr>
+                <th>Stat</th>
+                <th>Level</th>
+                <th>Gift</th>
+                <th></th>
+              </tr>
+              <tr ng-repeat="(stat, level) in pet.scaleLevel">
+                <td>{{petUpgradeData[stat].stat}}</td>
+                <td><span>{{pet.scaleLevel[stat]+1}}/{{pet._configCache.scale[stat].length}}</span></td>
+                <td><span>{{petUpgradeData[stat].gift.split('%gift').join(formatGift(stat, pet._configCache.scale[stat][pet.scaleLevel[stat]]))}}</span></td>
+                <td>
+                  <md-button ng-disabled="pet.scaleLevel[stat]+1 === pet._configCache.scale[stat].length" ng-click="upgradeStat(stat)" class="inline-button md-accent">Upgrade
+                    <md-tooltip>Next Level Cost: {{pet._configCache.scaleCost[stat][pet.scaleLevel[stat]+1] | number:0}} gold</md-tooltip>
+                  </md-button>
+                </td>
+              </tr>
+            </table>
+          </md-content>
+        </md-card-content>
       </md-card>
     </div>
   </div>
@@ -304,9 +334,18 @@
       </md-subheader>
       <div layout="row">
         <div></div>
-        <md-text-float label="Name" ng-model="newPet.name"></md-text-float>
-        <md-text-float label="First Attribute" ng-model="newPet.attr1"></md-text-float>
-        <md-text-float label="Second Attribute" ng-model="newPet.attr2"></md-text-float>
+        <md-input-container>
+          <label>Name</label>
+          <input ng-model="newPet.name"/>
+        </md-input-container>
+        <md-input-container>
+          <label>First Attribute</label>
+          <input ng-model="newPet.attr1"/>
+        </md-input-container>
+        <md-input-container>
+          <label>Second Attribute</label>
+          <input ng-model="newPet.attr2"/>
+        </md-input-container>
       </div>
     </md-content>
     <div layout="row" class="md-actions">
@@ -361,39 +400,43 @@
     </div>
     <div flex="30" layout="column" ng-if="currentBattle">
       <md-card layout="column" class="inner-card">
-        <md-toolbar class="md-theme-light-blue">
-          <div class="md-toolbar-tools">
-            <h3>Teams ({{currentBattle.name}})</h3>
-          </div>
-        </md-toolbar>
-        <md-content class="card-padding">
-          <div layout="column">
-            <div ng-repeat="team in currentBattle.teams">
-              <h3>Team "{{team.name}}"</h3>
-              <table>
-                <tr ng-repeat="member in team.members">
-                  <td>{{member.name}}</td>
-                  <td>{{member.level}}</td>
-                  <td>{{member.profession}}</td>
-                </tr>
-              </table>
+        <md-card-content>
+          <md-toolbar class="md-theme-light-blue">
+            <div class="md-toolbar-tools">
+              <h3>Teams ({{currentBattle.name}})</h3>
             </div>
-          </div>
-        </md-content>
+          </md-toolbar>
+          <md-content class="card-padding">
+            <div layout="column">
+              <div ng-repeat="team in currentBattle.teams">
+                <h3>Team "{{team.name}}"</h3>
+                <table>
+                  <tr ng-repeat="member in team.members">
+                    <td>{{member.name}}</td>
+                    <td>{{member.level}}</td>
+                    <td>{{member.profession}}</td>
+                  </tr>
+                </table>
+              </div>
+            </div>
+          </md-content>
+        </md-card-content>
       </md-card>
     </div>
     <div flex="70" layout="column" ng-if="currentBattle">
       <md-card layout="column" class="is-flex auto-flex inner-card">
-        <md-toolbar class="md-theme-light-blue">
-          <div class="md-toolbar-tools">
-            <h3>Combat Log ({{currentBattle.name}})</h3>
-          </div>
-        </md-toolbar>
-        <md-content style="flex-basis:40px" layout="column" class="is-flex auto-flex">
-          <div style="margin-top:40px;padding-left:10px;align-items:center" flex="100" ng-repeat="message in currentBattle.messages track by $index" layout="row" class="is-flex top-margin-5">
-            <htmldiv content="filterMessage(message)"></htmldiv>
-          </div>
-        </md-content>
+        <md-card-content>
+          <md-toolbar class="md-theme-light-blue">
+            <div class="md-toolbar-tools">
+              <h3>Combat Log ({{currentBattle.name}})</h3>
+            </div>
+          </md-toolbar>
+          <md-content style="flex-basis:40px" layout="column" class="is-flex auto-flex">
+            <div style="margin-top:40px;padding-left:10px;align-items:center" flex="100" ng-repeat="message in currentBattle.messages track by $index" layout="row" class="is-flex top-margin-5">
+              <htmldiv content="filterMessage(message)"></htmldiv>
+            </div>
+          </md-content>
+        </md-card-content>
       </md-card>
     </div>
   </div>
@@ -460,99 +503,116 @@
   <div layout="row" class="tab-containment is-flex auto-flex wrap-container has-height">
     <div flex="25" layout="column">
       <md-card layout="column" class="inner-card">
-        <md-toolbar class="md-theme-light-blue">
-          <div class="md-toolbar-tools">
-            <h3>Player Options</h3>
-          </div>
-        </md-toolbar>
-        <md-content class="card-padding">
-          <div class="vital-stat"><span class="fa fa-fw fa-sign-out fa-lg vertical-center"></span><span>&nbsp;</span><small><a ng-click="logout()" class="inline-link">Log Out</a></small></div>
-          <div class="vital-stat"><span class="fa fa-fw fa-paper-plane fa-lg vertical-center"></span><span>&nbsp;</span><small><a ng-click="openSubmissionWindow()" class="inline-link">Submit New Content</a></small></div>
-          <div ng-if="player.isContentModerator" class="vital-stat"><span class="fa fa-fw fa-bullhorn fa-lg vertical-center"></span><span>&nbsp;</span><small><a ng-click="openModerationWindow()" class="inline-link">Moderate Content ({{customContentList.length}} items)</a></small></div>
-        </md-content>
+        <md-card-content>
+          <md-toolbar class="md-theme-light-blue">
+            <div class="md-toolbar-tools">
+              <h3>Player Options</h3>
+            </div>
+          </md-toolbar>
+          <md-content class="card-padding">
+            <div class="vital-stat"><span class="fa fa-fw fa-sign-out fa-lg vertical-center"></span><span>&nbsp;</span><small><a ng-click="logout()" class="inline-link">Log Out</a></small></div>
+            <div class="vital-stat"><span class="fa fa-fw fa-paper-plane fa-lg vertical-center"></span><span>&nbsp;</span><small><a ng-click="openSubmissionWindow()" class="inline-link">Submit New Content</a></small></div>
+            <div ng-if="player.isContentModerator" class="vital-stat"><span class="fa fa-fw fa-bullhorn fa-lg vertical-center"></span><span>&nbsp;</span><small></small><a ng-click="openModerationWindow()" class="inline-link">Moderate Content ({{customContentList.length}} items)</a></div>
+          </md-content>
+        </md-card-content>
       </md-card>
       <md-card layout="column" class="inner-card">
-        <md-toolbar class="md-theme-light-blue">
-          <div class="md-toolbar-tools">
-            <h3><a href="https://github.com/IdleLands/IdleLands/wiki/PushBullet-Integration" target="_blank" class="fa fa-question-circle">&nbsp;PushBullet</a></h3>
-          </div>
-        </md-toolbar>
-        <md-content class="card-padding"><a href="href" editable-text="player.pushbulletApiKey">{{player.pushbulletApiKey || 'No PushBullet API key set'}}</a></md-content>
+        <md-card-content>
+          <md-toolbar class="md-theme-light-blue">
+            <div class="md-toolbar-tools">
+              <h3><a href="https://github.com/IdleLands/IdleLands/wiki/PushBullet-Integration" target="_blank" class="fa fa-question-circle">&nbsp;PushBullet</a></h3>
+            </div>
+          </md-toolbar>
+          <md-content class="card-padding"><a href="href" editable-text="player.pushbulletApiKey">{{player.pushbulletApiKey || 'No PushBullet API key set'}}</a></md-content>
+        </md-card-content>
       </md-card>
       <md-card layout="column" class="inner-card">
-        <md-toolbar class="md-theme-light-blue">
-          <div class="md-toolbar-tools">
-            <h3><a href="https://github.com/IdleLands/IdleLands/wiki/Gender" target="_blank" class="fa fa-question-circle">&nbsp;Gender</a></h3>
-          </div>
-        </md-toolbar>
-        <md-content class="card-padding"><a href="href" editable-text="player.gender">{{player.gender || 'No gender specified'}}</a>
-          <md-radio-group ng-model="player.gender">
-            <md-radio-button value="female">Female</md-radio-button>
-            <md-radio-button value="male">Male</md-radio-button>
-            <md-radio-button value="glowcloud">Glowcloud</md-radio-button>
-            <md-radio-button value="not a bear">Bear</md-radio-button>
-            <md-radio-button value="astroentity">Astronomical Entity</md-radio-button>
-            <md-radio-button value="secret">A Secret to Everybody</md-radio-button>
-          </md-radio-group>
-        </md-content>
+        <md-card-content>
+          <md-toolbar class="md-theme-light-blue">
+            <div class="md-toolbar-tools">
+              <h3><a href="https://github.com/IdleLands/IdleLands/wiki/Gender" target="_blank" class="fa fa-question-circle">&nbsp;Gender</a></h3>
+            </div>
+          </md-toolbar>
+          <md-content class="card-padding"><a href="href" editable-text="player.gender">{{player.gender || 'No gender specified'}}</a>
+            <md-radio-group ng-model="player.gender">
+              <md-radio-button value="female">Female</md-radio-button>
+              <md-radio-button value="male">Male</md-radio-button>
+              <md-radio-button value="glowcloud">Glowcloud</md-radio-button>
+              <md-radio-button value="not a bear">Bear</md-radio-button>
+              <md-radio-button value="astroentity">Astronomical Entity</md-radio-button>
+              <md-radio-button value="secret">A Secret to Everybody</md-radio-button>
+            </md-radio-group>
+          </md-content>
+        </md-card-content>
       </md-card>
     </div>
     <div flex="60" layout="column">
       <md-card layout="column" class="inner-card">
-        <md-toolbar class="md-theme-light-blue">
-          <div class="md-toolbar-tools">
-            <h3><a href="https://github.com/IdleLands/IdleLands/wiki/Priority-Points" target="_blank" class="fa fa-question-circle">&nbsp;Priority Points</a></h3>
-          </div>
-        </md-toolbar>
-        <md-content class="card-padding">
-          <div layout="row" class="wrap-container">
-            <md-text-float label="{{stat}}" type="number" ng-model="player.priorityPoints[stat]" flex="33" ng-repeat="(stat,val) in player.priorityPoints track by $index"></md-text-float>
-          </div>
-        </md-content>
+        <md-card-content>
+          <md-toolbar class="md-theme-light-blue">
+            <div class="md-toolbar-tools">
+              <h3><a href="https://github.com/IdleLands/IdleLands/wiki/Priority-Points" target="_blank" class="fa fa-question-circle">&nbsp;Priority Points</a></h3>
+            </div>
+          </md-toolbar>
+          <md-content class="card-padding">
+            <div layout="row" class="wrap-container">
+              <md-input-container flex="33" ng-repeat="(stat,val) in player.priorityPoints track by $index">
+                <label>{{stat}}</label>
+                <input type="number" ng-model="player.priorityPoints[stat]"/>
+              </md-input-container>
+            </div>
+          </md-content>
+        </md-card-content>
       </md-card>
       <md-card layout="column" class="inner-card">
-        <md-toolbar class="md-theme-light-blue">
-          <div class="md-toolbar-tools">
-            <h3><a href="https://github.com/IdleLands/IdleLands/wiki/Player-Strings" target="_blank" class="fa fa-question-circle">&nbsp;Custom Strings</a></h3>
-          </div>
-        </md-toolbar>
-        <md-content class="card-padding">
-          <table>
-            <tr ng-repeat="key in strings.keys track by $index">
-              <td width="15%"><span href="href" editable-text="strings.keys[$index]">{{strings.keys[$index] || 'Add new...'}}</span></td>
-              <td width="65%"><span href="href" editable-text="strings.values[$index]" ng-if="strings.keys[$index]">{{strings.values[$index] || '(not set)'}}</span></td>
-              <td width="10%" class="text-right"><span ng-if="strings.keys[$index]" ng-click="removeString(strings.keys[$index], $index)" class="fa fa-large fa-trash text-red hover-cursor"></span></td>
-            </tr>
-          </table>
-        </md-content>
+        <md-card-content>
+          <md-toolbar class="md-theme-light-blue">
+            <div class="md-toolbar-tools">
+              <h3><a href="https://github.com/IdleLands/IdleLands/wiki/Player-Strings" target="_blank" class="fa fa-question-circle">&nbsp;Custom Strings</a></h3>
+            </div>
+          </md-toolbar>
+          <md-content class="card-padding">
+            <table>
+              <tr ng-repeat="key in strings.keys track by $index">
+                <td width="15%"><span href="href" editable-text="strings.keys[$index]">{{strings.keys[$index] || 'Add new...'}}</span></td>
+                <td width="65%"><span href="href" editable-text="strings.values[$index]" ng-if="strings.keys[$index]">{{strings.values[$index] || '(not set)'}}</span></td>
+                <td width="10%" class="text-right"><span ng-if="strings.keys[$index]" ng-click="removeString(strings.keys[$index], $index)" class="fa fa-large fa-trash text-red hover-cursor"></span></td>
+              </tr>
+            </table>
+          </md-content>
+        </md-card-content>
       </md-card>
     </div>
     <div flex="15" layout="column">
       <md-card layout="column" class="inner-card">
-        <md-toolbar class="md-theme-light-blue">
-          <div class="md-toolbar-tools">
-            <h3>Scrollback.io</h3>
-          </div>
-        </md-toolbar>
-        <md-content class="card-padding">
-          <md-switch ng-model="options.scrollback" ng-true-value="'true'" ng-false-value="'false'">Use Chat</md-switch>
-        </md-content>
+        <md-card-content>
+          <md-toolbar class="md-theme-light-blue">
+            <div class="md-toolbar-tools">
+              <h3>Scrollback.io</h3>
+            </div>
+          </md-toolbar>
+          <md-content class="card-padding">
+            <md-switch ng-model="options.scrollback" ng-true-value="'true'" ng-false-value="'false'">Use Chat</md-switch>
+          </md-content>
+        </md-card-content>
       </md-card>
       <md-card layout="column" class="inner-card">
-        <md-toolbar class="md-theme-light-blue">
-          <div class="md-toolbar-tools">
-            <h3>External Links</h3>
-          </div>
-        </md-toolbar>
-        <md-content class="card-padding">
-          <div>
-            <div class="vital-stat"><span class="fa fa-fw fa-question fa-lg vertical-center"></span><span>&nbsp;</span><small><a target="_blank" href="https://github.com/IdleLands/IdleLands/wiki/New-Player-Guide#faq" class="inline-link">FAQ</a></small></div>
-            <div class="vital-stat"><span class="fa fa-fw fa-bar-chart fa-lg vertical-center"></span><span>&nbsp;</span><small><a target="_blank" href="http://idle.land/s/analytics/{{player.name}}" class="inline-link">Your Analytics</a></small></div>
-            <div class="vital-stat"><span class="fa fa-fw fa-reddit fa-lg vertical-center"></span><span>&nbsp;</span><small><a target="_blank" href="http://reddit.com/r/idle_lands" class="inline-link">/r/idle_lands</a></small></div>
-            <div class="vital-stat"><span class="fa fa-fw fa-github fa-lg vertical-center"></span><span>&nbsp;</span><small><a target="_blank" href="https://github.com/IdleLands/IdleLands" class="inline-link">IdleLands @ GitHub</a></small></div>
-            <div class="vital-stat"><span class="fa fa-fw fa-thumbs-up fa-lg vertical-center"></span><span>&nbsp;</span><small><a target="_blank" href="http://idle.land/s/thanks" class="inline-link">Special Thanks</a></small></div>
-          </div>
-        </md-content>
+        <md-card-content>
+          <md-toolbar class="md-theme-light-blue">
+            <div class="md-toolbar-tools">
+              <h3>External Links</h3>
+            </div>
+          </md-toolbar>
+          <md-content class="card-padding">
+            <div>
+              <div class="vital-stat"><span class="fa fa-fw fa-question fa-lg vertical-center"></span><span>&nbsp;</span><small><a target="_blank" href="https://github.com/IdleLands/IdleLands/wiki/New-Player-Guide#faq" class="inline-link">FAQ</a></small></div>
+              <div class="vital-stat"><span class="fa fa-fw fa-bar-chart fa-lg vertical-center"></span><span>&nbsp;</span><small><a target="_blank" href="http://idle.land/s/analytics/{{player.name}}" class="inline-link">Your Analytics</a></small></div>
+              <div class="vital-stat"><span class="fa fa-fw fa-reddit fa-lg vertical-center"></span><span>&nbsp;</span><small><a target="_blank" href="http://reddit.com/r/idle_lands" class="inline-link">/r/idle_lands</a></small></div>
+              <div class="vital-stat"><span class="fa fa-fw fa-github fa-lg vertical-center"></span><span>&nbsp;</span><small><a target="_blank" href="https://github.com/IdleLands/IdleLands" class="inline-link">IdleLands @ GitHub</a></small></div>
+              <div class="vital-stat"><span class="fa fa-fw fa-thumbs-up fa-lg vertical-center"></span><span>&nbsp;</span><small><a target="_blank" href="http://idle.land/s/thanks" class="inline-link">Special Thanks</a></small></div>
+            </div>
+          </md-content>
+        </md-card-content>
       </md-card>
     </div>
   </div>
@@ -606,8 +666,14 @@
       <div layout="row">
         <div></div>
         <select ng-model="data.type" ng-options="obj.type group by obj.folder for obj in types" style="margin:15px"></select>
-        <md-text-float label="Name of Object" ng-model="data._name" ng-if="data.type.requiresName"></md-text-float>
-        <md-text-float label="Custom Content" ng-model="data.content" class="extended-input"></md-text-float>
+        <md-input-container ng-if="data.type.requiresName">
+          <label>Name of Object</label>
+          <input ng-model="data._name"/>
+        </md-input-container>
+        <md-input-container class="extended-input">
+          <label>Custom Content</label>
+          <input ng-model="data.content"/>
+        </md-input-container>
       </div>
     </md-content>
     <div layout="row" class="md-actions">
@@ -624,103 +690,113 @@
   <div layout="row" class="tab-containment is-flex auto-flex wrap-container">
     <div flex="25" layout="column">
       <md-card layout="column" class="inner-card">
-        <md-toolbar class="md-theme-light-blue">
-          <div class="md-toolbar-tools">
-            <h3>Vitals</h3>
-          </div>
-        </md-toolbar>
-        <md-content class="card-padding">
-          <div layout="row">
-            <div flex="33" class="vital-stat"><span class="fa fa-fw fa-heart fa-lg text-red vertical-center">
-                <md-tooltip>Max HP</md-tooltip></span><span>&nbsp;</span><small>{{player.hp.maximum | number:0}}</small></div>
-            <div flex="33" class="vital-stat"><span class="fa fa-fw fa-magic fa-lg text-blue vertical-center">
-                <md-tooltip>Max MP</md-tooltip></span><span>&nbsp;</span><small>{{player.mp.maximum | number:0}}</small></div>
-            <div flex="33" class="vital-stat"><span class="fa fa-fw fa-asterisk fa-lg text-yellow vertical-center">
-                <md-tooltip>Special Stat</md-tooltip></span><span>&nbsp;</span><small>{{player.special.name || 'None'}}</small></div>
-          </div>
-          <div layout="row">
-            <div flex="100" class="vital-stat"><span class="fa fa-fw icon-money fa-lg text-gold vertical-center">
-                <md-tooltip>Gold</md-tooltip></span><span>&nbsp;</span><small>{{player.gold.__current | number:0}}</small></div>
-          </div>
-          <div layout="row" class="wrap-container">
-            <div ng-repeat="stat in equipmentStatArray" flex="25" class="vital-stat"><span class="fa fa-fw fa-lg vertical-center {{stat.fa}}">
-                <md-tooltip>{{stat.name}}</md-tooltip></span><span>&nbsp;</span><small class="{{valueToColor(player._statCache[stat.name])}}">{{player._statCache[stat.name] | number:0}}</small></div>
-          </div>
-        </md-content>
+        <md-card-content>
+          <md-toolbar class="md-theme-light-blue">
+            <div class="md-toolbar-tools">
+              <h3>Vitals</h3>
+            </div>
+          </md-toolbar>
+          <md-content class="card-padding">
+            <div layout="row">
+              <div flex="33" class="vital-stat"><span class="fa fa-fw fa-heart fa-lg text-red vertical-center">
+                  <md-tooltip>Max HP</md-tooltip></span><span>&nbsp;</span><small>{{player.hp.maximum | number:0}}</small></div>
+              <div flex="33" class="vital-stat"><span class="fa fa-fw fa-magic fa-lg text-blue vertical-center">
+                  <md-tooltip>Max MP</md-tooltip></span><span>&nbsp;</span><small>{{player.mp.maximum | number:0}}</small></div>
+              <div flex="33" class="vital-stat"><span class="fa fa-fw fa-asterisk fa-lg text-yellow vertical-center">
+                  <md-tooltip>Special Stat</md-tooltip></span><span>&nbsp;</span><small>{{player.special.name || 'None'}}</small></div>
+            </div>
+            <div layout="row">
+              <div flex="100" class="vital-stat"><span class="fa fa-fw icon-money fa-lg text-gold vertical-center">
+                  <md-tooltip>Gold</md-tooltip></span><span>&nbsp;</span><small>{{player.gold.__current | number:0}}</small></div>
+            </div>
+            <div layout="row" class="wrap-container">
+              <div ng-repeat="stat in equipmentStatArray" flex="25" class="vital-stat"><span class="fa fa-fw fa-lg vertical-center {{stat.fa}}">
+                  <md-tooltip>{{stat.name}}</md-tooltip></span><span>&nbsp;</span><small class="{{valueToColor(player._statCache[stat.name])}}">{{player._statCache[stat.name] | number:0}}</small></div>
+            </div>
+          </md-content>
+        </md-card-content>
+      </md-card>
+      <md-card layout="column" ng-if="_.size(player.foundPets) &gt; 0" class="inner-card">
+        <md-card-content>
+          <md-toolbar class="md-theme-light-blue">
+            <div class="md-toolbar-tools">
+              <h3>Pet Information</h3>
+            </div>
+          </md-toolbar>
+          <md-content class="card-padding">
+            <div layout="column">
+              <div class="vital-stat"><span class="fa fa-fw fa-dashboard"></span>
+                <md-button ng-click="toPetView()" class="inline-button md-raised md-accent">Swap to Pet View</md-button>
+              </div>
+              <div class="vital-stat"><span class="fa fa-fw fa-paw"></span><span>&nbsp;{{boughtPets()}}/{{_.size(player.foundPets)}} Pets</span></div>
+            </div>
+          </md-content>
+        </md-card-content>
       </md-card>
       <md-card layout="column" class="inner-card">
-        <md-toolbar class="md-theme-light-blue">
-          <div class="md-toolbar-tools">
-            <h3>Pet Information</h3>
-          </div>
-        </md-toolbar>
-        <md-content class="card-padding">
-          <div layout="column">
-            <div class="vital-stat"><span class="fa fa-fw fa-dashboard"></span>
-              <md-button ng-click="toPetView()" class="inline-button md-raised md-accent">Swap to Pet View</md-button>
+        <md-card-content>
+          <md-toolbar class="md-theme-light-blue">
+            <div class="md-toolbar-tools">
+              <h3>Miscellaneous</h3>
             </div>
-            <div class="vital-stat"><span class="fa fa-fw fa-paw"></span><span>&nbsp;{{boughtPets()}}/{{_.size(player.foundPets)}} Pets</span></div>
-          </div>
-        </md-content>
-      </md-card>
-      <md-card layout="column" class="inner-card">
-        <md-toolbar class="md-theme-light-blue">
-          <div class="md-toolbar-tools">
-            <h3>Miscellaneous</h3>
-          </div>
-        </md-toolbar>
-        <md-content class="card-padding">
-          <div layout="column">
-            <div class="vital-stat"><span class="fa fa-fw fa-institution"></span>
-              <md-button ng-disabled="praying" ng-click="pray()" class="inline-button md-raised md-accent md-hue-2">{{prayText}}
-                <md-tooltip>Praying raises Superstition by 1</md-tooltip>
-              </md-button>
+          </md-toolbar>
+          <md-content class="card-padding">
+            <div layout="column">
+              <div class="vital-stat"><span class="fa fa-fw fa-institution"></span>
+                <md-button ng-disabled="praying" ng-click="pray()" class="inline-button md-raised md-accent md-hue-2">{{prayText}}
+                  <md-tooltip>Praying raises Superstition by 1</md-tooltip>
+                </md-button>
+              </div>
+              <div class="vital-stat"><span class="fa fa-fw fa-globe"></span><span>&nbsp;{{player.map}} ~ {{player.x}}, {{player.y}}</span></div>
+              <div class="vital-stat"><span class="fa fa-fw fa-map-marker"></span><span>&nbsp;{{player.mapRegion}}</span></div>
+              <div ng-if="player.shop" class="vital-stat"><span class="fa fa-fw icon-money faa-tada animated"></span><span>&nbsp;In shop: {{player.shop.region}}!</span></div>
+              <div class="vital-stat"><span class="fa fa-fw fa-users"></span><span>&nbsp;{{player.partyName || 'No party'}}</span></div>
+              <div class="vital-stat"><span class="fa fa-fw fa-sitemap"></span><span>&nbsp;{{player.guild || 'No guild'}}</span></div>
+              <div><span class="fa fa-fw fa-clock-o"></span><span>&nbsp;Started&nbsp;</span><span am-time-ago="player.registrationDate">
+                  <md-tooltip>{{player.registrationDate | amDateFormat:'dddd, MMMM Do YYYY, h:mm:ss a'}}</md-tooltip></span></div>
             </div>
-            <div class="vital-stat"><span class="fa fa-fw fa-globe"></span><span>&nbsp;{{player.map}} ~ {{player.x}}, {{player.y}}</span></div>
-            <div class="vital-stat"><span class="fa fa-fw fa-map-marker"></span><span>&nbsp;{{player.mapRegion}}</span></div>
-            <div ng-if="player.shop" class="vital-stat"><span class="fa fa-fw icon-money faa-tada animated"></span><span>&nbsp;In shop: {{player.shop.region}}!</span></div>
-            <div class="vital-stat"><span class="fa fa-fw fa-users"></span><span>&nbsp;{{player.partyName || 'No party'}}</span></div>
-            <div class="vital-stat"><span class="fa fa-fw fa-sitemap"></span><span>&nbsp;{{player.guild || 'No guild'}}</span></div>
-            <div><span class="fa fa-fw fa-clock-o"></span><span>&nbsp;Started&nbsp;</span><span am-time-ago="player.registrationDate">
-                <md-tooltip>{{player.registrationDate | amDateFormat:'dddd, MMMM Do YYYY, h:mm:ss a'}}</md-tooltip></span></div>
-          </div>
-        </md-content>
+          </md-content>
+        </md-card-content>
       </md-card>
     </div>
     <div flex="55" layout="column">
       <md-card layout="column" class="is-flex auto-flex inner-card">
-        <md-toolbar class="md-theme-light-blue">
-          <div class="md-toolbar-tools">
-            <h3>Adventure Log</h3>
-          </div>
-        </md-toolbar>
-        <md-content style="flex-basis:80px;height:80px" layout="column" class="is-flex auto-flex">
-          <div flex="100" ng-repeat="event in player.recentEvents | reverse" layout="row" class="is-flex auto-flex adventure-log-item">
-            <div flex="10" class="fa-stack vertical-center"><span ng-repeat="item in $parent.eventTypeToIcon[event.type]" ng-click="clickOnEvent(event.extra)" ng-class="{'hover-cursor': event.extra.battleId}" class="fa fa-fw fa-stack-2x {{item}}"></span></div>
-            <div flex="90"><small am-time-ago="event.createdAt"></small>
-              <div>{{event.message}}</div>
+        <md-card-content layout="column" class="is-flex auto-flex">
+          <md-toolbar class="md-theme-light-blue">
+            <div class="md-toolbar-tools">
+              <h3>Adventure Log</h3>
             </div>
-          </div>
-        </md-content>
+          </md-toolbar>
+          <md-content style="flex-basis:80px;height:80px" layout="column" class="is-flex auto-flex">
+            <div flex="100" ng-repeat="event in player.recentEvents | reverse" layout="row" class="is-flex auto-flex adventure-log-item">
+              <div flex="10" class="fa-stack vertical-center"><span ng-repeat="item in $parent.eventTypeToIcon[event.type]" ng-click="clickOnEvent(event.extra)" ng-class="{'hover-cursor': event.extra.battleId}" class="fa fa-fw fa-stack-2x {{item}}"></span></div>
+              <div flex="90"><small am-time-ago="event.createdAt"></small>
+                <div>{{event.message}}</div>
+              </div>
+            </div>
+          </md-content>
+        </md-card-content>
       </md-card>
     </div>
     <div flex="20" layout="column">
       <md-card layout="column" class="is-flex auto-flex inner-card">
-        <md-toolbar class="md-theme-light-blue">
-          <div class="md-toolbar-tools">
-            <h3><a href="http://idlelands.github.io/IdleLands/#!/Player/Personalities" target="_blank" class="fa fa-question-circle">&nbsp;Your Personalities</a></h3>
-          </div>
-        </md-toolbar>
-        <md-content style="flex-basis:50px;height:50px" layout="column" class="is-flex auto-flex">
-          <div ng-repeat="personality in player.achievements | filter:{type:'personality'}" class="is-flex auto-flex adventure-log-item">
-            <div flex="30">
-              <md-switch ng-model="personalityToggle[personality._personality]" aria-label="{{personality._personality}}" class="personality-switch"></md-switch>
+        <md-card-content layout="column" class="is-flex auto-flex">
+          <md-toolbar class="md-theme-light-blue">
+            <div class="md-toolbar-tools">
+              <h3><a href="http://idlelands.github.io/IdleLands/#!/Player/Personalities" target="_blank" class="fa fa-question-circle">&nbsp;Your Personalities</a></h3>
             </div>
-            <div flex="70">
-              <div style="margin-top:10px">{{personality._personality}}</div>
+          </md-toolbar>
+          <md-content style="flex-basis:50px;height:50px" layout="column" class="is-flex auto-flex">
+            <div ng-repeat="personality in player.achievements | filter:{type:'personality'}" class="is-flex auto-flex adventure-log-item">
+              <div flex="30">
+                <md-switch ng-model="personalityToggle[personality._personality]" aria-label="{{personality._personality}}" class="personality-switch"></md-switch>
+              </div>
+              <div flex="70">
+                <div style="margin-top:10px">{{personality._personality}}</div>
+              </div>
             </div>
-          </div>
-        </md-content>
+          </md-content>
+        </md-card-content>
       </md-card>
     </div>
   </div>
@@ -769,70 +845,82 @@
   <div layout="row" class="flex-scroll has-height">
     <div flex="25">
       <md-card class="inner-card">
-        <md-toolbar class="md-theme-light-blue">
-          <div class="md-toolbar-tools">
-            <h3>Calculated Statistics</h3>
-          </div>
-        </md-toolbar>
-        <md-content class="card-padding">
-          <statistics-tree root="player.statistics" stats="statisticsKeys['calculated']" family="'calculated'"></statistics-tree>
-        </md-content>
+        <md-card-content>
+          <md-toolbar class="md-theme-light-blue">
+            <div class="md-toolbar-tools">
+              <h3>Calculated Statistics</h3>
+            </div>
+          </md-toolbar>
+          <md-content class="card-padding">
+            <statistics-tree root="player.statistics" stats="statisticsKeys['calculated']" family="'calculated'"></statistics-tree>
+          </md-content>
+        </md-card-content>
       </md-card>
     </div>
     <div flex="25">
       <md-card class="inner-card">
-        <md-toolbar class="md-theme-light-blue">
-          <div class="md-toolbar-tools">
-            <h3>Combat Statistics</h3>
-          </div>
-        </md-toolbar>
-        <md-content class="card-padding">
-          <statistics-tree root="player.statistics" stats="statisticsKeys['combat self']" family="'combat self'"></statistics-tree>
-        </md-content>
+        <md-card-content>
+          <md-toolbar class="md-theme-light-blue">
+            <div class="md-toolbar-tools">
+              <h3>Combat Statistics</h3>
+            </div>
+          </md-toolbar>
+          <md-content class="card-padding">
+            <statistics-tree root="player.statistics" stats="statisticsKeys['combat self']" family="'combat self'"></statistics-tree>
+          </md-content>
+        </md-card-content>
       </md-card>
     </div>
     <div flex="25">
       <md-card ng-if="showPermStats" class="inner-card">
-        <md-toolbar class="md-theme-light-blue">
-          <div class="md-toolbar-tools">
-            <h3>Special Statistics</h3>
-          </div>
-        </md-toolbar>
-        <md-content class="card-padding">
-          <statistics-tree root="player.permanentAchievements" stats="permanentStatisticsKeys" family="''"></statistics-tree>
-        </md-content>
+        <md-card-content>
+          <md-toolbar class="md-theme-light-blue">
+            <div class="md-toolbar-tools">
+              <h3>Special Statistics</h3>
+            </div>
+          </md-toolbar>
+          <md-content class="card-padding">
+            <statistics-tree root="player.permanentAchievements" stats="permanentStatisticsKeys" family="''"></statistics-tree>
+          </md-content>
+        </md-card-content>
       </md-card>
       <md-card class="inner-card">
-        <md-toolbar class="md-theme-light-blue">
-          <div class="md-toolbar-tools">
-            <h3>Event Statistics</h3>
-          </div>
-        </md-toolbar>
-        <md-content class="card-padding">
-          <statistics-tree root="player.statistics" stats="statisticsKeys['event']" family="'event'"></statistics-tree>
-        </md-content>
+        <md-card-content>
+          <md-toolbar class="md-theme-light-blue">
+            <div class="md-toolbar-tools">
+              <h3>Event Statistics</h3>
+            </div>
+          </md-toolbar>
+          <md-content class="card-padding">
+            <statistics-tree root="player.statistics" stats="statisticsKeys['event']" family="'event'"></statistics-tree>
+          </md-content>
+        </md-card-content>
       </md-card>
     </div>
     <div flex="25">
       <md-card class="inner-card">
-        <md-toolbar class="md-theme-light-blue">
-          <div class="md-toolbar-tools">
-            <h3>Exploration Statistics</h3>
-          </div>
-        </md-toolbar>
-        <md-content class="card-padding">
-          <statistics-tree root="player.statistics" stats="statisticsKeys['explore']" family="'explore'"></statistics-tree>
-        </md-content>
+        <md-card-content>
+          <md-toolbar class="md-theme-light-blue">
+            <div class="md-toolbar-tools">
+              <h3>Exploration Statistics</h3>
+            </div>
+          </md-toolbar>
+          <md-content class="card-padding">
+            <statistics-tree root="player.statistics" stats="statisticsKeys['explore']" family="'explore'"></statistics-tree>
+          </md-content>
+        </md-card-content>
       </md-card>
       <md-card class="inner-card">
-        <md-toolbar class="md-theme-light-blue">
-          <div class="md-toolbar-tools">
-            <h3>Player Statistics</h3>
-          </div>
-        </md-toolbar>
-        <md-content class="card-padding">
-          <statistics-tree root="player.statistics" stats="statisticsKeys['player']" family="'player'"></statistics-tree>
-        </md-content>
+        <md-card-content>
+          <md-toolbar class="md-theme-light-blue">
+            <div class="md-toolbar-tools">
+              <h3>Player Statistics</h3>
+            </div>
+          </md-toolbar>
+          <md-content class="card-padding">
+            <statistics-tree root="player.statistics" stats="statisticsKeys['player']" family="'player'"></statistics-tree>
+          </md-content>
+        </md-card-content>
       </md-card>
     </div>
   </div>

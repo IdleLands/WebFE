@@ -56595,7 +56595,7 @@ if (typeof module !== "undefined" && typeof exports !== "undefined" && module.ex
     angular.module("ui.router.state").filter("isState", $IsStateFilter).filter("includedByState", $IncludedByStateFilter);
 })(window, window.angular);
 
-angular.module("ngMaterial", [ "ng", "ngAnimate", "ngAria", "material.core", "material.core.theming", "material.components.backdrop", "material.components.bottomSheet", "material.components.button", "material.components.card", "material.components.content", "material.components.checkbox", "material.components.dialog", "material.components.divider", "material.components.icon", "material.components.list", "material.components.progressCircular", "material.components.progressLinear", "material.components.radioButton", "material.components.sidenav", "material.components.slider", "material.components.sticky", "material.components.subheader", "material.components.switch", "material.components.swipe", "material.components.tabs", "material.components.textField", "material.components.toast", "material.components.toolbar", "material.components.tooltip", "material.components.whiteframe" ]);
+angular.module("ngMaterial", [ "ng", "ngAnimate", "ngAria", "material.core", "material.core.theming", "material.components.backdrop", "material.components.bottomSheet", "material.components.button", "material.components.card", "material.components.checkbox", "material.components.content", "material.components.dialog", "material.components.divider", "material.components.icon", "material.components.input", "material.components.list", "material.components.progressCircular", "material.components.progressLinear", "material.components.radioButton", "material.components.sidenav", "material.components.slider", "material.components.sticky", "material.components.subheader", "material.components.swipe", "material.components.switch", "material.components.tabs", "material.components.textField", "material.components.toast", "material.components.toolbar", "material.components.tooltip", "material.components.whiteframe" ]);
 
 (function() {
     "use strict";
@@ -56673,45 +56673,155 @@ angular.module("ngMaterial", [ "ng", "ngAnimate", "ngAria", "material.core", "ma
     MdConstantFactory.$inject = [ "$$rAF", "$sniffer" ];
 })();
 
+(function() {
+    angular.module("material.core").config([ "$provide", function($provide) {
+        $provide.decorator("$mdUtil", [ "$delegate", function($delegate) {
+            $delegate.iterator = Iterator;
+            return $delegate;
+        } ]);
+    } ]);
+    function Iterator(items, reloop) {
+        var trueFn = function() {
+            return true;
+        };
+        reloop = !!reloop;
+        var _items = items || [];
+        return {
+            items: getItems,
+            count: count,
+            inRange: inRange,
+            contains: contains,
+            indexOf: indexOf,
+            itemAt: itemAt,
+            findBy: findBy,
+            add: add,
+            remove: remove,
+            first: first,
+            last: last,
+            next: angular.bind(null, findSubsequentItem, false),
+            previous: angular.bind(null, findSubsequentItem, true),
+            hasPrevious: hasPrevious,
+            hasNext: hasNext
+        };
+        function getItems() {
+            return [].concat(_items);
+        }
+        function count() {
+            return _items.length;
+        }
+        function inRange(index) {
+            return _items.length && index > -1 && index < _items.length;
+        }
+        function hasNext(item) {
+            return item ? inRange(indexOf(item) + 1) : false;
+        }
+        function hasPrevious(item) {
+            return item ? inRange(indexOf(item) - 1) : false;
+        }
+        function itemAt(index) {
+            return inRange(index) ? _items[index] : null;
+        }
+        function findBy(key, val) {
+            return _items.filter(function(item) {
+                return item[key] === val;
+            });
+        }
+        function add(item, index) {
+            if (!item) return -1;
+            if (!angular.isNumber(index)) {
+                index = _items.length;
+            }
+            _items.splice(index, 0, item);
+            return indexOf(item);
+        }
+        function remove(item) {
+            if (contains(item)) {
+                _items.splice(indexOf(item), 1);
+            }
+        }
+        function indexOf(item) {
+            return _items.indexOf(item);
+        }
+        function contains(item) {
+            return item && indexOf(item) > -1;
+        }
+        function first() {
+            return _items.length ? _items[0] : null;
+        }
+        function last() {
+            return _items.length ? _items[_items.length - 1] : null;
+        }
+        function findSubsequentItem(backwards, item, validate, limit) {
+            validate = validate || trueFn;
+            var curIndex = indexOf(item);
+            if (!inRange(curIndex)) {
+                return null;
+            }
+            var nextIndex = curIndex + (backwards ? -1 : 1);
+            var foundItem = null;
+            if (inRange(nextIndex)) {
+                foundItem = _items[nextIndex];
+            } else if (reloop) {
+                foundItem = backwards ? last() : first();
+                nextIndex = indexOf(foundItem);
+            }
+            if (foundItem === null || nextIndex === limit) {
+                return null;
+            }
+            if (angular.isUndefined(limit)) {
+                limit = nextIndex;
+            }
+            return validate(foundItem) ? foundItem : findSubsequentItem(backwards, foundItem, validate, limit);
+        }
+    }
+})();
+
 angular.module("material.core").factory("$mdMedia", mdMediaFactory);
 
-function mdMediaFactory($window, $mdUtil, $timeout, $mdConstant) {
-    var cache = $mdUtil.cacheFactory("$mdMedia", {
+function mdMediaFactory($mdConstant, $mdUtil, $rootScope, $window) {
+    var queriesCache = $mdUtil.cacheFactory("$mdMedia:queries", {
+        capacity: 15
+    });
+    var resultsCache = $mdUtil.cacheFactory("$mdMedia:results", {
         capacity: 15
     });
     angular.element($window).on("resize", updateAll);
     return $mdMedia;
     function $mdMedia(query) {
-        query = validate(query);
-        var result;
-        if (!angular.isDefined(result = cache.get(query))) {
-            return add(query);
+        var validated = queriesCache.get(query);
+        if (angular.isUndefined(validated)) {
+            validated = queriesCache.put(query, validate(query));
+        }
+        var result = resultsCache.get(validated);
+        if (angular.isUndefined(result)) {
+            result = add(validated);
         }
         return result;
     }
     function validate(query) {
-        return $mdConstant.MEDIA[query] || (query.charAt(0) != "(" ? "(" + query + ")" : query);
+        return $mdConstant.MEDIA[query] || (query.charAt(0) !== "(" ? "(" + query + ")" : query);
     }
     function add(query) {
-        return cache.put(query, !!$window.matchMedia(query).matches);
+        return resultsCache.put(query, !!$window.matchMedia(query).matches);
     }
     function updateAll() {
-        var keys = cache.keys();
-        if (keys.length) {
-            for (var i = 0, ii = keys.length; i < ii; i++) {
-                cache.put(keys[i], !!$window.matchMedia(keys[i]).matches);
+        var keys = resultsCache.keys();
+        var len = keys.length;
+        if (len) {
+            for (var i = 0; i < len; i++) {
+                add(keys[i]);
             }
-            $timeout(angular.noop);
+            $rootScope.$evalAsync();
         }
     }
 }
 
-mdMediaFactory.$inject = [ "$window", "$mdUtil", "$timeout", "$mdConstant" ];
+mdMediaFactory.$inject = [ "$mdConstant", "$mdUtil", "$rootScope", "$window" ];
 
 (function() {
     "use strict";
     var nextUniqueId = [ "0", "0", "0" ];
-    angular.module("material.core").factory("$mdUtil", [ "$cacheFactory", "$document", function($cacheFactory, $document) {
+    angular.module("material.core").factory("$mdUtil", [ "$cacheFactory", "$document", "$timeout", function($cacheFactory, $document, $timeout) {
         var Util;
         return Util = {
             now: window.performance ? angular.bind(window.performance, window.performance.now) : Date.now,
@@ -56720,21 +56830,15 @@ mdMediaFactory.$inject = [ "$window", "$mdUtil", "$timeout", "$mdConstant" ];
                 var node = element[0];
                 offsetParent = offsetParent || node.offsetParent || document.body;
                 offsetParent = offsetParent[0] || offsetParent;
-                var rect = {
-                    left: 0,
-                    top: 0,
-                    width: node.offsetWidth,
-                    height: node.offsetHeight
+                var nodeRect = node.getBoundingClientRect();
+                var parentRect = offsetParent.getBoundingClientRect();
+                return {
+                    left: nodeRect.left - parentRect.left + offsetParent.scrollLeft,
+                    top: nodeRect.top - parentRect.top + offsetParent.scrollTop,
+                    width: nodeRect.width,
+                    height: nodeRect.height
                 };
-                var current = node;
-                while (current && current !== offsetParent) {
-                    rect.left += current.offsetLeft;
-                    rect.top += current.offsetTop;
-                    current = current.parentNode;
-                }
-                return rect;
             },
-            iterator: iterator,
             fakeNgModel: function() {
                 return {
                     $setViewValue: function(value) {
@@ -56751,16 +56855,15 @@ mdMediaFactory.$inject = [ "$window", "$mdUtil", "$timeout", "$mdConstant" ];
                 };
             },
             cacheFactory: cacheFactory,
-            debounce: function debounce(func, wait, immediate) {
-                var timeout;
+            debounce: function(func, wait, scope, invokeApply) {
+                var timer;
                 return function debounced() {
-                    var context = this, args = arguments;
-                    clearTimeout(timeout);
-                    timeout = setTimeout(function() {
-                        timeout = null;
-                        if (!immediate) func.apply(context, args);
-                    }, wait);
-                    if (immediate && !timeout) func.apply(context, args);
+                    var context = scope, args = Array.prototype.slice.call(arguments);
+                    $timeout.cancel(timer);
+                    timer = $timeout(function() {
+                        timer = undefined;
+                        func.apply(context, args);
+                    }, wait || 10, invokeApply);
                 };
             },
             throttle: function throttle(func, delay) {
@@ -56769,7 +56872,7 @@ mdMediaFactory.$inject = [ "$window", "$mdUtil", "$timeout", "$mdConstant" ];
                     var context = this;
                     var args = arguments;
                     var now = Util.now();
-                    if (!recent || recent - now > delay) {
+                    if (!recent || now - recent > delay) {
                         func.apply(context, args);
                         recent = now;
                     }
@@ -56821,96 +56924,17 @@ mdMediaFactory.$inject = [ "$window", "$mdUtil", "$timeout", "$mdConstant" ];
                 } else {
                     parent.$$childHead = parent.$$childTail = child;
                 }
+            },
+            getClosest: function getClosest(el, tagName) {
+                tagName = tagName.toUpperCase();
+                do {
+                    if (el.nodeName === tagName) {
+                        return el;
+                    }
+                } while (el = el.parentNode);
+                return null;
             }
         };
-        function iterator(items, reloop) {
-            var trueFn = function() {
-                return true;
-            };
-            reloop = !!reloop;
-            var _items = items || [];
-            return {
-                items: getItems,
-                count: count,
-                inRange: inRange,
-                contains: contains,
-                indexOf: indexOf,
-                itemAt: itemAt,
-                findBy: findBy,
-                add: add,
-                remove: remove,
-                first: first,
-                last: last,
-                next: next,
-                previous: previous,
-                hasPrevious: hasPrevious,
-                hasNext: hasNext
-            };
-            function getItems() {
-                return [].concat(_items);
-            }
-            function count() {
-                return _items.length;
-            }
-            function inRange(index) {
-                return _items.length && index > -1 && index < _items.length;
-            }
-            function hasNext(item) {
-                return item ? inRange(indexOf(item) + 1) : false;
-            }
-            function hasPrevious(item) {
-                return item ? inRange(indexOf(item) - 1) : false;
-            }
-            function itemAt(index) {
-                return inRange(index) ? _items[index] : null;
-            }
-            function findBy(key, val) {
-                return _items.filter(function(item) {
-                    return item[key] === val;
-                });
-            }
-            function add(item, index) {
-                if (!item) return -1;
-                if (!angular.isNumber(index)) {
-                    index = _items.length;
-                }
-                _items.splice(index, 0, item);
-                return indexOf(item);
-            }
-            function remove(item) {
-                if (contains(item)) {
-                    _items.splice(indexOf(item), 1);
-                }
-            }
-            function indexOf(item) {
-                return _items.indexOf(item);
-            }
-            function contains(item) {
-                return item && indexOf(item) > -1;
-            }
-            function next(item, validate) {
-                validate = validate || trueFn;
-                if (contains(item)) {
-                    var index = indexOf(item) + 1, found = inRange(index) ? _items[index] : reloop ? first() : null;
-                    return validate(found) ? found : next(found, validate);
-                }
-                return null;
-            }
-            function previous(item, validate) {
-                validate = validate || trueFn;
-                if (contains(item)) {
-                    var index = indexOf(item) - 1, found = inRange(index) ? _items[index] : reloop ? last() : null;
-                    return validate(found) ? found : previous(found, validate);
-                }
-                return null;
-            }
-            function first() {
-                return _items.length ? _items[0] : null;
-            }
-            function last() {
-                return _items.length ? _items[_items.length - 1] : null;
-            }
-        }
         function attachDragBehavior(scope, element, options) {
             var drag;
             var previousDrag;
@@ -56992,6 +57016,16 @@ mdMediaFactory.$inject = [ "$window", "$mdUtil", "$timeout", "$mdConstant" ];
             cache.remove = function(k) {
                 delete keys[k];
                 return cache._remove(k);
+            };
+            cache._removeAll = cache.removeAll;
+            cache.removeAll = function() {
+                keys = {};
+                return cache._removeAll();
+            };
+            cache._destroy = cache.destroy;
+            cache.destroy = function() {
+                keys = {};
+                return cache._destroy();
             };
             cache.keys = function() {
                 return Object.keys(keys);
@@ -57127,6 +57161,274 @@ mdMediaFactory.$inject = [ "$window", "$mdUtil", "$timeout", "$mdConstant" ];
 
 (function() {
     "use strict";
+    angular.module("material.core").provider("$$interimElement", InterimElementProvider);
+    function InterimElementProvider() {
+        createInterimElementProvider.$get = InterimElementFactory;
+        InterimElementFactory.$inject = [ "$document", "$q", "$rootScope", "$timeout", "$rootElement", "$animate", "$interpolate", "$mdCompiler", "$mdTheming" ];
+        return createInterimElementProvider;
+        function createInterimElementProvider(interimFactoryName) {
+            var EXPOSED_METHODS = [ "onHide", "onShow", "onRemove" ];
+            var providerConfig = {
+                presets: {}
+            };
+            var provider = {
+                setDefaults: setDefaults,
+                addPreset: addPreset,
+                $get: factory
+            };
+            provider.addPreset("build", {
+                methods: [ "controller", "controllerAs", "resolve", "template", "templateUrl", "themable", "transformTemplate", "parent" ]
+            });
+            factory.$inject = [ "$$interimElement", "$animate", "$injector" ];
+            return provider;
+            function setDefaults(definition) {
+                providerConfig.optionsFactory = definition.options;
+                providerConfig.methods = (definition.methods || []).concat(EXPOSED_METHODS);
+                return provider;
+            }
+            function addPreset(name, definition) {
+                definition = definition || {};
+                definition.methods = definition.methods || [];
+                definition.options = definition.options || function() {
+                    return {};
+                };
+                if (/^cancel|hide|show$/.test(name)) {
+                    throw new Error("Preset '" + name + "' in " + interimFactoryName + " is reserved!");
+                }
+                if (definition.methods.indexOf("_options") > -1) {
+                    throw new Error("Method '_options' in " + interimFactoryName + " is reserved!");
+                }
+                providerConfig.presets[name] = {
+                    methods: definition.methods.concat(EXPOSED_METHODS),
+                    optionsFactory: definition.options,
+                    argOption: definition.argOption
+                };
+                if (definition.argOption) {}
+                return provider;
+            }
+            function factory($$interimElement, $animate, $injector) {
+                var defaultMethods;
+                var defaultOptions;
+                var interimElementService = $$interimElement();
+                var publicService = {
+                    hide: interimElementService.hide,
+                    cancel: interimElementService.cancel,
+                    show: showInterimElement
+                };
+                defaultMethods = providerConfig.methods || [];
+                defaultOptions = invokeFactory(providerConfig.optionsFactory, {});
+                angular.forEach(providerConfig.presets, function(definition, name) {
+                    var presetDefaults = invokeFactory(definition.optionsFactory, {});
+                    var presetMethods = (definition.methods || []).concat(defaultMethods);
+                    angular.extend(presetDefaults, {
+                        $type: name
+                    });
+                    function Preset(opts) {
+                        this._options = angular.extend({}, presetDefaults, opts);
+                    }
+                    angular.forEach(presetMethods, function(name) {
+                        Preset.prototype[name] = function(value) {
+                            this._options[name] = value;
+                            return this;
+                        };
+                    });
+                    if (definition.argOption) {
+                        var methodName = "show" + name.charAt(0).toUpperCase() + name.slice(1);
+                        publicService[methodName] = function(arg) {
+                            var config = publicService[name](arg);
+                            return publicService.show(config);
+                        };
+                    }
+                    publicService[name] = function(arg) {
+                        if (arguments.length && definition.argOption && !angular.isObject(arg) && !angular.isArray(arg)) {
+                            return new Preset()[definition.argOption](arg);
+                        } else {
+                            return new Preset(arg);
+                        }
+                    };
+                });
+                return publicService;
+                function showInterimElement(opts) {
+                    if (opts && opts._options) opts = opts._options;
+                    return interimElementService.show(angular.extend({}, defaultOptions, opts));
+                }
+                function invokeFactory(factory, defaultVal) {
+                    var locals = {};
+                    locals[interimFactoryName] = publicService;
+                    return $injector.invoke(factory || function() {
+                        return defaultVal;
+                    }, {}, locals);
+                }
+            }
+        }
+        function InterimElementFactory($document, $q, $rootScope, $timeout, $rootElement, $animate, $interpolate, $mdCompiler, $mdTheming) {
+            var startSymbol = $interpolate.startSymbol(), endSymbol = $interpolate.endSymbol(), usesStandardSymbols = startSymbol === "{{" && endSymbol === "}}", processTemplate = usesStandardSymbols ? angular.identity : replaceInterpolationSymbols;
+            return function createInterimElementService() {
+                var stack = [];
+                var service;
+                return service = {
+                    show: show,
+                    hide: hide,
+                    cancel: cancel
+                };
+                function show(options) {
+                    if (stack.length) {
+                        service.cancel();
+                    }
+                    var interimElement = new InterimElement(options);
+                    stack.push(interimElement);
+                    return interimElement.show().then(function() {
+                        return interimElement.deferred.promise;
+                    });
+                }
+                function hide(response) {
+                    var interimElement = stack.shift();
+                    interimElement && interimElement.remove().then(function() {
+                        interimElement.deferred.resolve(response);
+                    });
+                    return interimElement ? interimElement.deferred.promise : $q.when(response);
+                }
+                function cancel(reason) {
+                    var interimElement = stack.shift();
+                    interimElement && interimElement.remove().then(function() {
+                        interimElement.deferred.reject(reason);
+                    });
+                    return interimElement ? interimElement.deferred.promise : $q.reject(reason);
+                }
+                function InterimElement(options) {
+                    var self;
+                    var hideTimeout, element;
+                    options = options || {};
+                    options = angular.extend({
+                        scope: options.scope || $rootScope.$new(options.isolateScope),
+                        onShow: function(scope, element, options) {
+                            return $animate.enter(element, options.parent);
+                        },
+                        onRemove: function(scope, element, options) {
+                            return element && $animate.leave(element) || $q.when();
+                        }
+                    }, options);
+                    if (options.template) {
+                        options.template = processTemplate(options.template);
+                    }
+                    return self = {
+                        options: options,
+                        deferred: $q.defer(),
+                        show: function() {
+                            return $mdCompiler.compile(options).then(function(compileData) {
+                                angular.extend(compileData.locals, self.options);
+                                if (angular.isString(options.parent)) {
+                                    options.parent = angular.element($document[0].querySelector(options.parent));
+                                } else if (!options.parent) {
+                                    options.parent = $rootElement.find("body");
+                                    if (!options.parent.length) options.parent = $rootElement;
+                                }
+                                element = compileData.link(options.scope);
+                                if (options.themable) $mdTheming(element);
+                                var ret = options.onShow(options.scope, element, options);
+                                return $q.when(ret).then(function() {
+                                    (options.onComplete || angular.noop)(options.scope, element, options);
+                                    startHideTimeout();
+                                });
+                                function startHideTimeout() {
+                                    if (options.hideDelay) {
+                                        hideTimeout = $timeout(service.cancel, options.hideDelay);
+                                    }
+                                }
+                            });
+                        },
+                        cancelTimeout: function() {
+                            if (hideTimeout) {
+                                $timeout.cancel(hideTimeout);
+                                hideTimeout = undefined;
+                            }
+                        },
+                        remove: function() {
+                            self.cancelTimeout();
+                            var ret = options.onRemove(options.scope, element, options);
+                            return $q.when(ret).then(function() {
+                                options.scope.$destroy();
+                            });
+                        }
+                    };
+                }
+            };
+            function replaceInterpolationSymbols(text) {
+                if (!text || !angular.isString(text)) return text;
+                return text.replace(/\{\{/g, startSymbol).replace(/}}/g, endSymbol);
+            }
+        }
+    }
+})();
+
+(function() {
+    "use strict";
+    angular.module("material.core").factory("$mdComponentRegistry", ComponentRegistry);
+    function ComponentRegistry($log, $q) {
+        var self;
+        var instances = [];
+        var pendings = {};
+        return self = {
+            notFoundError: function(handle) {
+                $log.error("No instance found for handle", handle);
+            },
+            getInstances: function() {
+                return instances;
+            },
+            get: function(handle) {
+                if (!isValidID(handle)) return null;
+                var i, j, instance;
+                for (i = 0, j = instances.length; i < j; i++) {
+                    instance = instances[i];
+                    if (instance.$$mdHandle === handle) {
+                        return instance;
+                    }
+                }
+                return null;
+            },
+            register: function(instance, handle) {
+                if (!handle) return angular.noop;
+                instance.$$mdHandle = handle;
+                instances.push(instance);
+                resolveWhen();
+                return deregister;
+                function deregister() {
+                    var index = instances.indexOf(instance);
+                    if (index !== -1) {
+                        instances.splice(index, 1);
+                    }
+                }
+                function resolveWhen() {
+                    var dfd = pendings[handle];
+                    if (dfd) {
+                        dfd.resolve(instance);
+                        delete pendings[handle];
+                    }
+                }
+            },
+            when: function(handle) {
+                if (isValidID(handle)) {
+                    var deferred = $q.defer();
+                    var instance = self.get(handle);
+                    if (instance) {
+                        deferred.resolve(instance);
+                    } else {
+                        pendings[handle] = deferred;
+                    }
+                    return deferred.promise;
+                }
+                return $q.reject("Invalid `md-component-id` value.");
+            }
+        };
+        function isValidID(handle) {
+            return handle && handle != "";
+        }
+    }
+    ComponentRegistry.$inject = [ "$log", "$q" ];
+})();
+
+(function() {
+    "use strict";
     angular.module("material.core").factory("$mdInkRipple", InkRippleService).directive("mdInkRipple", InkRippleDirective).directive("mdNoInk", attrNoDirective()).directive("mdNoBar", attrNoDirective()).directive("mdNoStretch", attrNoDirective());
     function InkRippleDirective($mdInkRipple) {
         return {
@@ -57184,6 +57486,7 @@ mdMediaFactory.$inject = [ "$window", "$mdUtil", "$timeout", "$mdConstant" ];
                 isMenuItem: false
             }, options);
             var rippleContainer, rippleSize, controller = element.controller("mdInkRipple") || {}, counter = 0, ripples = [], states = [], isActiveExpr = element.attr("md-highlight"), isActive = false, isHeld = false, node = element[0], hammertime = new Hammer(node), color = parseColor(element.attr("md-ink-ripple")) || parseColor($window.getComputedStyle(options.colorElement[0]).color || "rgb(0, 0, 0)");
+            scope._onInput = onInput;
             options.mousedown && hammertime.on("hammer.input", onInput);
             controller.createRipple = createRipple;
             if (isActiveExpr) {
@@ -57332,7 +57635,7 @@ mdMediaFactory.$inject = [ "$window", "$mdUtil", "$timeout", "$mdConstant" ];
                 }
                 function getRippleContainer() {
                     if (rippleContainer) return rippleContainer;
-                    var container = rippleContainer = angular.element('<div class="md-ripple-container">');
+                    var container = rippleContainer = angular.element('<div class="md-ripple-container"></div>');
                     element.append(container);
                     return container;
                 }
@@ -57354,7 +57657,7 @@ mdMediaFactory.$inject = [ "$window", "$mdUtil", "$timeout", "$mdConstant" ];
                     var parent = node.parentNode;
                     var grandparent = parent && parent.parentNode;
                     var ancestor = grandparent && grandparent.parentNode;
-                    return !node.hasAttribute("disabled") && !(parent && parent.hasAttribute("disabled")) && !(grandparent && grandparent.hasAttribute("disabled")) && !(ancestor && ancestor.hasAttribute("disabled"));
+                    return !node.hasAttribute("disabled") && !(parent && parent.hasAttribute && parent.hasAttribute("disabled")) && !(grandparent && grandparent.hasAttribute("disabled")) && !(ancestor && ancestor.hasAttribute("disabled"));
                 }
             }
         }
@@ -57366,200 +57669,6 @@ mdMediaFactory.$inject = [ "$window", "$mdUtil", "$timeout", "$mdConstant" ];
                 controller: angular.noop
             };
         };
-    }
-})();
-
-(function() {
-    "use strict";
-    angular.module("material.core").provider("$$interimElement", InterimElementProvider);
-    function InterimElementProvider() {
-        createInterimElementProvider.$get = InterimElementFactory;
-        InterimElementFactory.$inject = [ "$document", "$q", "$rootScope", "$timeout", "$rootElement", "$animate", "$interpolate", "$mdCompiler", "$mdTheming" ];
-        return createInterimElementProvider;
-        function createInterimElementProvider(interimFactoryName) {
-            var EXPOSED_METHODS = [ "onHide", "onShow", "onRemove" ];
-            var providerConfig = {
-                presets: {}
-            };
-            var provider = {
-                setDefaults: setDefaults,
-                addPreset: addPreset,
-                $get: factory
-            };
-            provider.addPreset("build", {
-                methods: [ "controller", "controllerAs", "resolve", "template", "templateUrl", "themable", "transformTemplate", "parent" ]
-            });
-            factory.$inject = [ "$$interimElement", "$animate", "$injector" ];
-            return provider;
-            function setDefaults(definition) {
-                providerConfig.optionsFactory = definition.options;
-                providerConfig.methods = (definition.methods || []).concat(EXPOSED_METHODS);
-                return provider;
-            }
-            function addPreset(name, definition) {
-                definition = definition || {};
-                definition.methods = definition.methods || [];
-                definition.options = definition.options || function() {
-                    return {};
-                };
-                if (/^cancel|hide|show$/.test(name)) {
-                    throw new Error("Preset '" + name + "' in " + interimFactoryName + " is reserved!");
-                }
-                if (definition.methods.indexOf("_options") > -1) {
-                    throw new Error("Method '_options' in " + interimFactoryName + " is reserved!");
-                }
-                providerConfig.presets[name] = {
-                    methods: definition.methods.concat(EXPOSED_METHODS),
-                    optionsFactory: definition.options,
-                    argOption: definition.argOption
-                };
-                return provider;
-            }
-            function factory($$interimElement, $animate, $injector) {
-                var defaultMethods;
-                var defaultOptions;
-                var interimElementService = $$interimElement();
-                var publicService = {
-                    hide: interimElementService.hide,
-                    cancel: interimElementService.cancel,
-                    show: showInterimElement
-                };
-                defaultMethods = providerConfig.methods || [];
-                defaultOptions = invokeFactory(providerConfig.optionsFactory, {});
-                angular.forEach(providerConfig.presets, function(definition, name) {
-                    var presetDefaults = invokeFactory(definition.optionsFactory, {});
-                    var presetMethods = (definition.methods || []).concat(defaultMethods);
-                    angular.extend(presetDefaults, {
-                        $type: name
-                    });
-                    function Preset(opts) {
-                        this._options = angular.extend({}, presetDefaults, opts);
-                    }
-                    angular.forEach(presetMethods, function(name) {
-                        Preset.prototype[name] = function(value) {
-                            this._options[name] = value;
-                            return this;
-                        };
-                    });
-                    publicService[name] = function(arg) {
-                        if (arguments.length && definition.argOption && !angular.isObject(arg) && !angular.isArray(arg)) {
-                            return new Preset()[definition.argOption](arg);
-                        } else {
-                            return new Preset(arg);
-                        }
-                    };
-                });
-                return publicService;
-                function showInterimElement(opts) {
-                    if (opts && opts._options) opts = opts._options;
-                    return interimElementService.show(angular.extend({}, defaultOptions, opts));
-                }
-                function invokeFactory(factory, defaultVal) {
-                    var locals = {};
-                    locals[interimFactoryName] = publicService;
-                    return $injector.invoke(factory || function() {
-                        return defaultVal;
-                    }, {}, locals);
-                }
-            }
-        }
-        function InterimElementFactory($document, $q, $rootScope, $timeout, $rootElement, $animate, $interpolate, $mdCompiler, $mdTheming) {
-            var startSymbol = $interpolate.startSymbol(), endSymbol = $interpolate.endSymbol(), usesStandardSymbols = startSymbol === "{{" && endSymbol === "}}", processTemplate = usesStandardSymbols ? angular.identity : replaceInterpolationSymbols;
-            return function createInterimElementService() {
-                var stack = [];
-                var service;
-                return service = {
-                    show: show,
-                    hide: hide,
-                    cancel: cancel
-                };
-                function show(options) {
-                    if (stack.length) {
-                        service.cancel();
-                    }
-                    var interimElement = new InterimElement(options);
-                    stack.push(interimElement);
-                    return interimElement.show().then(function() {
-                        return interimElement.deferred.promise;
-                    });
-                }
-                function hide(response) {
-                    var interimElement = stack.shift();
-                    interimElement && interimElement.remove().then(function() {
-                        interimElement.deferred.resolve(response);
-                    });
-                    return interimElement ? interimElement.deferred.promise : $q.when(response);
-                }
-                function cancel(reason) {
-                    var interimElement = stack.shift();
-                    interimElement && interimElement.remove().then(function() {
-                        interimElement.deferred.reject(reason);
-                    });
-                    return interimElement ? interimElement.deferred.promise : $q.reject(reason);
-                }
-                function InterimElement(options) {
-                    var self;
-                    var hideTimeout, element;
-                    options = options || {};
-                    options = angular.extend({
-                        scope: options.scope || $rootScope.$new(options.isolateScope),
-                        onShow: function(scope, element, options) {
-                            return $animate.enter(element, options.parent);
-                        },
-                        onRemove: function(scope, element, options) {
-                            return element && $animate.leave(element) || $q.when();
-                        }
-                    }, options);
-                    if (options.template) {
-                        options.template = processTemplate(options.template);
-                    }
-                    return self = {
-                        options: options,
-                        deferred: $q.defer(),
-                        show: function() {
-                            return $mdCompiler.compile(options).then(function(compileData) {
-                                angular.extend(compileData.locals, self.options);
-                                if (angular.isString(options.parent)) {
-                                    options.parent = angular.element($document[0].querySelector(options.parent));
-                                } else if (!options.parent) {
-                                    options.parent = $rootElement.find("body");
-                                    if (!options.parent.length) options.parent = $rootElement;
-                                }
-                                element = compileData.link(options.scope);
-                                if (options.themable) $mdTheming(element);
-                                var ret = options.onShow(options.scope, element, options);
-                                return $q.when(ret).then(function() {
-                                    (options.onComplete || angular.noop)(options.scope, element, options);
-                                    startHideTimeout();
-                                });
-                                function startHideTimeout() {
-                                    if (options.hideDelay) {
-                                        hideTimeout = $timeout(service.cancel, options.hideDelay);
-                                    }
-                                }
-                            });
-                        },
-                        cancelTimeout: function() {
-                            if (hideTimeout) {
-                                $timeout.cancel(hideTimeout);
-                                hideTimeout = undefined;
-                            }
-                        },
-                        remove: function() {
-                            self.cancelTimeout();
-                            var ret = options.onRemove(options.scope, element, options);
-                            return $q.when(ret).then(function() {
-                                options.scope.$destroy();
-                            });
-                        }
-                    };
-                }
-            };
-            function replaceInterpolationSymbols(text) {
-                if (!text || !angular.isString(text)) return text;
-                return text.replace(/\{\{/g, startSymbol).replace(/}}/g, endSymbol);
-            }
-        }
     }
 })();
 
@@ -57584,7 +57693,7 @@ mdMediaFactory.$inject = [ "$window", "$mdUtil", "$timeout", "$mdConstant" ];
         "3": "rgba(255,255,255,0.3)",
         "4": "rgba(255,255,255,0.12)"
     };
-    var DARK_SHADOW = "1px 1px 0px rgba(black, 0.4), -1px -1px 0px rgba(black, 0.4)";
+    var DARK_SHADOW = "1px 1px 0px rgba(0,0,0,0.4), -1px -1px 0px rgba(0,0,0,0.4)";
     var LIGHT_SHADOW = "";
     var DARK_CONTRAST_COLOR = colorToRgbaArray("rgba(0,0,0,0.87)");
     var LIGHT_CONTRAST_COLOR = colorToRgbaArray("rgb(255,255,255)");
@@ -57592,9 +57701,9 @@ mdMediaFactory.$inject = [ "$window", "$mdUtil", "$timeout", "$mdConstant" ];
     var DEFAULT_COLOR_TYPE = "primary";
     var LIGHT_DEFAULT_HUES = {
         accent: {
-            "default": "400",
-            "hue-1": "300",
-            "hue-2": "800",
+            "default": "A700",
+            "hue-1": "A200",
+            "hue-2": "A400",
             "hue-3": "A100"
         }
     };
@@ -57908,7 +58017,7 @@ mdMediaFactory.$inject = [ "$window", "$mdUtil", "$timeout", "$mdConstant" ];
             });
         }
         if (clr.charAt(0) == "#") clr = clr.substring(1);
-        if (!/^([a-f0-9]{3}){1,2}$/g.test(clr)) return;
+        if (!/^([a-fA-F0-9]{3}){1,2}$/g.test(clr)) return;
         var dig = clr.length / 3;
         var red = clr.substr(0, dig);
         var grn = clr.substr(dig, dig);
@@ -58085,7 +58194,9 @@ mdMediaFactory.$inject = [ "$window", "$mdUtil", "$timeout", "$mdConstant" ];
                 $mdAria.expect(element, "aria-label");
             }
             if (isAnchor(attr)) {
-                scope.$watch(attr.ngDisabled, function(isDisabled) {
+                scope.$watch(function() {
+                    return attr.ngDisabled;
+                }, function(isDisabled) {
                     element.attr("tabindex", isDisabled ? -1 : 0);
                 });
             }
@@ -58106,26 +58217,6 @@ mdMediaFactory.$inject = [ "$window", "$mdUtil", "$timeout", "$mdConstant" ];
         };
     }
     mdCardDirective.$inject = [ "$mdTheming" ];
-})();
-
-(function() {
-    "use strict";
-    angular.module("material.components.content", [ "material.core" ]).directive("mdContent", mdContentDirective);
-    function mdContentDirective($mdTheming) {
-        return {
-            restrict: "E",
-            controller: [ "$scope", "$element", ContentController ],
-            link: function($scope, $element, $attr) {
-                $mdTheming($element);
-                $scope.$broadcast("$mdContentLoaded", $element);
-            }
-        };
-        function ContentController($scope, $element) {
-            this.$scope = $scope;
-            this.$element = $element;
-        }
-    }
-    mdContentDirective.$inject = [ "$mdTheming" ];
 })();
 
 (function() {
@@ -58189,6 +58280,26 @@ mdMediaFactory.$inject = [ "$window", "$mdUtil", "$timeout", "$mdConstant" ];
 
 (function() {
     "use strict";
+    angular.module("material.components.content", [ "material.core" ]).directive("mdContent", mdContentDirective);
+    function mdContentDirective($mdTheming) {
+        return {
+            restrict: "E",
+            controller: [ "$scope", "$element", ContentController ],
+            link: function($scope, $element, $attr) {
+                $mdTheming($element);
+                $scope.$broadcast("$mdContentLoaded", $element);
+            }
+        };
+        function ContentController($scope, $element) {
+            this.$scope = $scope;
+            this.$element = $element;
+        }
+    }
+    mdContentDirective.$inject = [ "$mdTheming" ];
+})();
+
+(function() {
+    "use strict";
     angular.module("material.components.dialog", [ "material.core", "material.components.backdrop" ]).directive("mdDialog", MdDialogDirective).provider("$mdDialog", MdDialogProvider);
     function MdDialogDirective($$rAF, $mdTheming) {
         return {
@@ -58210,7 +58321,7 @@ mdMediaFactory.$inject = [ "$window", "$mdUtil", "$timeout", "$mdConstant" ];
         advancedDialogOptions.$inject = [ "$mdDialog" ];
         dialogDefaultOptions.$inject = [ "$timeout", "$rootElement", "$compile", "$animate", "$mdAria", "$document", "$mdUtil", "$mdConstant", "$mdTheming", "$$rAF", "$q", "$mdDialog" ];
         return $$interimElementProvider("$mdDialog").setDefaults({
-            methods: [ "hasBackdrop", "clickOutsideToClose", "escapeToClose", "targetEvent" ],
+            methods: [ "disableParentScroll", "hasBackdrop", "clickOutsideToClose", "escapeToClose", "targetEvent" ],
             options: dialogDefaultOptions
         }).addPreset("alert", {
             methods: [ "title", "content", "ariaLabel", "ok" ],
@@ -58243,6 +58354,7 @@ mdMediaFactory.$inject = [ "$window", "$mdUtil", "$timeout", "$mdConstant" ];
                 clickOutsideToClose: true,
                 escapeToClose: true,
                 targetEvent: null,
+                disableParentScroll: true,
                 transformTemplate: function(template) {
                     return '<div class="md-dialog-container">' + template + "</div>";
                 }
@@ -58257,7 +58369,11 @@ mdMediaFactory.$inject = [ "$window", "$mdUtil", "$timeout", "$mdConstant" ];
                     $mdTheming.inherit(options.backdrop, options.parent);
                     $animate.enter(options.backdrop, options.parent);
                 }
-                return dialogPopIn(element, options.parent, options.popInTarget.length && options.popInTarget).then(function() {
+                if (options.disableParentScroll) {
+                    options.oldOverflowStyle = options.parent.css("overflow");
+                    options.parent.css("overflow", "hidden");
+                }
+                return dialogPopIn(element, options.parent, options.popInTarget && options.popInTarget.length && options.popInTarget).then(function() {
                     if (options.escapeToClose) {
                         options.rootElementKeyupCallback = function(e) {
                             if (e.keyCode === $mdConstant.KEY_CODE.ESCAPE) {
@@ -58289,13 +58405,17 @@ mdMediaFactory.$inject = [ "$window", "$mdUtil", "$timeout", "$mdConstant" ];
                 if (options.backdrop) {
                     $animate.leave(options.backdrop);
                 }
+                if (options.disableParentScroll) {
+                    options.parent.css("overflow", options.oldOverflowStyle);
+                    $document[0].removeEventListener("scroll", options.captureScroll, true);
+                }
                 if (options.escapeToClose) {
                     $rootElement.off("keyup", options.rootElementKeyupCallback);
                 }
                 if (options.clickOutsideToClose) {
                     element.off("click", options.dialogClickOutsideCallback);
                 }
-                return dialogPopOut(element, options.parent, options.popInTarget.length && options.popInTarget).then(function() {
+                return dialogPopOut(element, options.parent, options.popInTarget && options.popInTarget.length && options.popInTarget).then(function() {
                     options.scope.$destroy();
                     element.remove();
                     options.popInTarget && options.popInTarget.focus();
@@ -58384,6 +58504,131 @@ mdMediaFactory.$inject = [ "$window", "$mdUtil", "$timeout", "$mdConstant" ];
             }
         };
     }
+})();
+
+(function() {
+    angular.module("material.components.input", [ "material.core" ]).directive("mdInputContainer", mdInputContainerDirective).directive("label", labelDirective).directive("input", inputTextareaDirective).directive("textarea", inputTextareaDirective);
+    function mdInputContainerDirective($mdTheming) {
+        ContainerCtrl.$inject = [ "$scope", "$element", "$mdUtil" ];
+        return {
+            restrict: "E",
+            link: postLink,
+            controller: ContainerCtrl
+        };
+        function postLink(scope, element, attr) {
+            $mdTheming(element);
+        }
+        function ContainerCtrl($scope, $element, $mdUtil) {
+            var self = this;
+            self.setFocused = function(isFocused) {
+                $element.toggleClass("md-input-focused", !!isFocused);
+            };
+            self.setHasValue = function(hasValue) {
+                $element.toggleClass("md-input-has-value", !!hasValue);
+            };
+            $scope.$watch(function() {
+                return self.label && self.input;
+            }, function(hasLabelAndInput) {
+                if (hasLabelAndInput && !self.label.attr("for")) {
+                    self.label.attr("for", self.input.attr("id"));
+                }
+            });
+        }
+    }
+    mdInputContainerDirective.$inject = [ "$mdTheming" ];
+    function labelDirective() {
+        return {
+            restrict: "E",
+            require: "^?mdInputContainer",
+            link: function(scope, element, attr, containerCtrl) {
+                if (!containerCtrl) return;
+                containerCtrl.label = element;
+                scope.$on("$destroy", function() {
+                    containerCtrl.label = null;
+                });
+            }
+        };
+    }
+    function inputTextareaDirective($mdUtil, $window) {
+        return {
+            restrict: "E",
+            require: [ "^?mdInputContainer", "?ngModel" ],
+            compile: compile
+        };
+        function compile(element) {
+            element.addClass("md-input");
+            return postLink;
+        }
+        function postLink(scope, element, attr, ctrls) {
+            var containerCtrl = ctrls[0];
+            var ngModelCtrl = ctrls[1];
+            if (!containerCtrl) return;
+            if (element[0].tagName.toLowerCase() === "textarea") {
+                setupTextarea();
+            }
+            if (containerCtrl.input) {
+                throw new Error("<md-input-container> can only have *one* <input> or <textarea> child element!");
+            }
+            if (!element.attr("id")) {
+                element.attr("id", "input_" + $mdUtil.nextUid());
+            }
+            containerCtrl.input = element;
+            if (ngModelCtrl) {
+                ngModelCtrl.$formatters.push(checkHasValue);
+                ngModelCtrl.$parsers.push(checkHasValue);
+            } else {
+                element.on("input", function() {
+                    containerCtrl.setHasValue(("" + element.val()).length > 0);
+                });
+                containerCtrl.setHasValue(("" + element.val()).length > 0);
+            }
+            function checkHasValue(value) {
+                containerCtrl.setHasValue(!ngModelCtrl.$isEmpty(value));
+                return value;
+            }
+            element.on("focus", function(e) {
+                containerCtrl.setFocused(true);
+            }).on("blur", function(e) {
+                containerCtrl.setFocused(false);
+            });
+            scope.$on("$destroy", function() {
+                containerCtrl.setFocused(false);
+                containerCtrl.setHasValue(false);
+                containerCtrl.input = null;
+            });
+            function setupTextarea() {
+                var node = element[0];
+                if (ngModelCtrl) {
+                    ngModelCtrl.$formatters.push(growTextarea);
+                    ngModelCtrl.$parsers.push(growTextarea);
+                } else {
+                    element.on("input", growTextarea);
+                    growTextarea();
+                }
+                element.on("keyup", growTextarea);
+                element.on("scroll", onScroll);
+                angular.element($window).on("resize", growTextarea);
+                scope.$on("$destroy", function() {
+                    angular.element($window).off("resize", growTextarea);
+                });
+                function growTextarea(value) {
+                    node.style.height = "auto";
+                    var line = node.scrollHeight - node.offsetHeight;
+                    node.scrollTop = 0;
+                    height = node.offsetHeight + (line > 0 ? line : 0);
+                    node.style.height = height + "px";
+                    return value;
+                }
+                function onScroll(e) {
+                    node.scrollTop = 0;
+                    var line = node.scrollHeight - node.offsetHeight;
+                    height = node.offsetHeight + line;
+                    node.style.height = height + "px";
+                }
+            }
+        }
+    }
+    inputTextareaDirective.$inject = [ "$mdUtil", "$window" ];
 })();
 
 (function() {
@@ -58539,12 +58784,25 @@ mdMediaFactory.$inject = [ "$window", "$mdUtil", "$timeout", "$mdConstant" ];
             var rgCtrl = ctrls[0];
             var ngModelCtrl = ctrls[1] || $mdUtil.fakeNgModel();
             function keydownListener(ev) {
-                if (ev.keyCode === $mdConstant.KEY_CODE.LEFT_ARROW || ev.keyCode === $mdConstant.KEY_CODE.UP_ARROW) {
+                switch (ev.keyCode) {
+                  case $mdConstant.KEY_CODE.LEFT_ARROW:
+                  case $mdConstant.KEY_CODE.UP_ARROW:
                     ev.preventDefault();
                     rgCtrl.selectPrevious();
-                } else if (ev.keyCode === $mdConstant.KEY_CODE.RIGHT_ARROW || ev.keyCode === $mdConstant.KEY_CODE.DOWN_ARROW) {
+                    break;
+
+                  case $mdConstant.KEY_CODE.RIGHT_ARROW:
+                  case $mdConstant.KEY_CODE.DOWN_ARROW:
                     ev.preventDefault();
                     rgCtrl.selectNext();
+                    break;
+
+                  case $mdConstant.KEY_CODE.ENTER:
+                    var form = angular.element($mdUtil.getClosest(element[0], "form"));
+                    if (form.length > 0) {
+                        form.triggerHandler("submit");
+                    }
+                    break;
                 }
             }
             rgCtrl.init(ngModelCtrl);
@@ -58598,8 +58856,11 @@ mdMediaFactory.$inject = [ "$window", "$mdUtil", "$timeout", "$mdConstant" ];
         function changeSelectedButton(parent, increment) {
             var buttons = $mdUtil.iterator(Array.prototype.slice.call(parent[0].querySelectorAll("md-radio-button")), true);
             if (buttons.count()) {
+                var validate = function(button) {
+                    return !angular.element(button).attr("disabled");
+                };
                 var selected = parent[0].querySelector("md-radio-button.md-checked");
-                var target = buttons[increment < 0 ? "previous" : "next"](selected) || buttons.first();
+                var target = buttons[increment < 0 ? "previous" : "next"](selected, validate) || buttons.first();
                 angular.element(target).triggerHandler("click");
             }
         }
@@ -58630,7 +58891,7 @@ mdMediaFactory.$inject = [ "$window", "$mdUtil", "$timeout", "$mdConstant" ];
                 });
             }
             function render() {
-                var checked = rgCtrl.getViewValue() === attr.value;
+                var checked = rgCtrl.getViewValue() == attr.value;
                 if (checked === lastChecked) {
                     return;
                 }
@@ -58662,26 +58923,10 @@ mdMediaFactory.$inject = [ "$window", "$mdUtil", "$timeout", "$mdConstant" ];
 
 (function() {
     "use strict";
-    angular.module("material.components.sidenav", [ "material.core", "material.components.backdrop" ]).factory("$mdSidenav", mdSidenavService).directive("mdSidenav", mdSidenavDirective).controller("$mdSidenavController", mdSidenavController).factory("$mdComponentRegistry", mdComponentRegistry);
-    function mdSidenavController($scope, $element, $attrs, $timeout, $mdSidenav, $mdComponentRegistry) {
-        var self = this;
-        self.destroy = $mdComponentRegistry.register(self, $attrs.mdComponentId);
-        self.isOpen = function() {
-            return !!$scope.isOpen;
-        };
-        self.toggle = function() {
-            $scope.isOpen = !$scope.isOpen;
-        };
-        self.open = function() {
-            $scope.isOpen = true;
-        };
-        self.close = function() {
-            $scope.isOpen = false;
-        };
-    }
-    mdSidenavController.$inject = [ "$scope", "$element", "$attrs", "$timeout", "$mdSidenav", "$mdComponentRegistry" ];
-    function mdSidenavService($mdComponentRegistry) {
+    angular.module("material.components.sidenav", [ "material.core", "material.components.backdrop" ]).factory("$mdSidenav", SidenavService).directive("mdSidenav", SidenavDirective).controller("$mdSidenavController", SidenavController);
+    function SidenavService($mdComponentRegistry, $q) {
         return function(handle) {
+            var errorMsg = "SideNav '" + handle + "' is not available!";
             var instance = $mdComponentRegistry.get(handle);
             if (!instance) {
                 $mdComponentRegistry.notFoundError(handle);
@@ -58691,19 +58936,19 @@ mdMediaFactory.$inject = [ "$window", "$mdUtil", "$timeout", "$mdConstant" ];
                     return instance && instance.isOpen();
                 },
                 toggle: function() {
-                    instance && instance.toggle();
+                    return instance ? instance.toggle() : $q.reject(errorMsg);
                 },
                 open: function() {
-                    instance && instance.open();
+                    return instance ? instance.open() : $q.reject(errorMsg);
                 },
                 close: function() {
-                    instance && instance.close();
+                    return instance ? instance.close() : $q.reject(errorMsg);
                 }
             };
         };
     }
-    mdSidenavService.$inject = [ "$mdComponentRegistry" ];
-    function mdSidenavDirective($timeout, $animate, $parse, $mdMedia, $mdConstant, $compile, $mdTheming) {
+    SidenavService.$inject = [ "$mdComponentRegistry", "$q" ];
+    function SidenavDirective($timeout, $animate, $parse, $mdMedia, $mdConstant, $compile, $mdTheming, $q, $document) {
         return {
             restrict: "E",
             scope: {
@@ -58717,77 +58962,91 @@ mdMediaFactory.$inject = [ "$window", "$mdUtil", "$timeout", "$mdConstant" ];
             }
         };
         function postLink(scope, element, attr, sidenavCtrl) {
+            var triggeringElement = null;
+            var promise = $q.when(true);
             var isLockedOpenParsed = $parse(attr.mdIsLockedOpen);
-            var backdrop = $compile('<md-backdrop class="md-sidenav-backdrop md-opaque ng-enter">')(scope);
-            $mdTheming.inherit(backdrop, element);
-            element.on("$destroy", sidenavCtrl.destroy);
-            scope.$watch("isOpen", setOpen);
-            scope.$watch(function() {
+            var isLocked = function() {
                 return isLockedOpenParsed(scope.$parent, {
                     $media: $mdMedia
                 });
-            }, function(isLocked) {
-                element.toggleClass("md-locked-open", !!isLocked);
+            };
+            var backdrop = $compile('<md-backdrop class="md-sidenav-backdrop md-opaque ng-enter">')(scope);
+            element.on("$destroy", sidenavCtrl.destroy);
+            $mdTheming.inherit(backdrop, element);
+            scope.$watch(isLocked, updateIsLocked);
+            scope.$watch("isOpen", updateIsOpen);
+            sidenavCtrl.$toggleOpen = toggleOpen;
+            function updateIsLocked(isLocked, oldValue) {
+                if (isLocked === oldValue) {
+                    element.toggleClass("md-locked-open", !!isLocked);
+                } else {
+                    $animate[isLocked ? "addClass" : "removeClass"](element, "md-locked-open");
+                }
                 backdrop.toggleClass("md-locked-open", !!isLocked);
-            });
-            function setOpen(isOpen) {
+            }
+            function updateIsOpen(isOpen) {
                 var parent = element.parent();
                 parent[isOpen ? "on" : "off"]("keydown", onKeyDown);
-                $animate[isOpen ? "enter" : "leave"](backdrop, parent);
                 backdrop[isOpen ? "on" : "off"]("click", close);
-                $animate[isOpen ? "removeClass" : "addClass"](element, "md-closed").then(function() {
+                if (isOpen) {
+                    triggeringElement = $document[0].activeElement;
+                }
+                return promise = $q.all([ $animate[isOpen ? "enter" : "leave"](backdrop, parent), $animate[isOpen ? "removeClass" : "addClass"](element, "md-closed").then(function() {
                     if (scope.isOpen) {
                         element.focus();
                     }
-                });
+                }) ]);
             }
-            function onKeyDown(ev) {
-                if (ev.keyCode === $mdConstant.KEY_CODE.ESCAPE) {
-                    close();
-                    ev.preventDefault();
-                    ev.stopPropagation();
+            function toggleOpen(isOpen) {
+                if (scope.isOpen == isOpen) {
+                    return $q.when(true);
+                } else {
+                    var deferred = $q.defer();
+                    scope.isOpen = isOpen;
+                    $timeout(function() {
+                        promise.then(function(result) {
+                            if (!scope.isOpen) {
+                                triggeringElement && triggeringElement.focus();
+                                triggeringElement = null;
+                            }
+                            deferred.resolve(result);
+                        });
+                    }, 0, false);
+                    return deferred.promise;
                 }
             }
-            function close() {
-                $timeout(function() {
-                    sidenavCtrl.close();
-                });
+            function onKeyDown(ev) {
+                var isEscape = ev.keyCode === $mdConstant.KEY_CODE.ESCAPE;
+                return isEscape ? close(ev) : $q.when(true);
+            }
+            function close(ev) {
+                ev.preventDefault();
+                ev.stopPropagation();
+                return sidenavCtrl.close();
             }
         }
     }
-    mdSidenavDirective.$inject = [ "$timeout", "$animate", "$parse", "$mdMedia", "$mdConstant", "$compile", "$mdTheming" ];
-    function mdComponentRegistry($log) {
-        var instances = [];
-        return {
-            notFoundError: function(handle) {
-                $log.error("No instance found for handle", handle);
-            },
-            getInstances: function() {
-                return instances;
-            },
-            get: function(handle) {
-                var i, j, instance;
-                for (i = 0, j = instances.length; i < j; i++) {
-                    instance = instances[i];
-                    if (instance.$$mdHandle === handle) {
-                        return instance;
-                    }
-                }
-                return null;
-            },
-            register: function(instance, handle) {
-                instance.$$mdHandle = handle;
-                instances.push(instance);
-                return function deregister() {
-                    var index = instances.indexOf(instance);
-                    if (index !== -1) {
-                        instances.splice(index, 1);
-                    }
-                };
-            }
+    SidenavDirective.$inject = [ "$timeout", "$animate", "$parse", "$mdMedia", "$mdConstant", "$compile", "$mdTheming", "$q", "$document" ];
+    function SidenavController($scope, $element, $attrs, $mdComponentRegistry, $q) {
+        var self = this;
+        self.$toggleOpen = function() {
+            return $q.when($scope.isOpen);
         };
+        self.isOpen = function() {
+            return !!$scope.isOpen;
+        };
+        self.open = function() {
+            return self.$toggleOpen(true);
+        };
+        self.close = function() {
+            return self.$toggleOpen(false);
+        };
+        self.toggle = function() {
+            return self.$toggleOpen(!$scope.isOpen);
+        };
+        self.destroy = $mdComponentRegistry.register(self, $attrs.mdComponentId);
     }
-    mdComponentRegistry.$inject = [ "$log" ];
+    SidenavController.$inject = [ "$scope", "$element", "$attrs", "$mdComponentRegistry", "$q" ];
 })();
 
 (function() {
@@ -58890,9 +59149,10 @@ mdMediaFactory.$inject = [ "$window", "$mdUtil", "$timeout", "$mdConstant" ];
                 if (!angular.isDefined($attrs.mdDiscrete)) return;
                 var numSteps = Math.floor((max - min) / step);
                 if (!tickCanvas) {
+                    var trackTicksStyle = $window.getComputedStyle(tickContainer[0]);
                     tickCanvas = angular.element('<canvas style="position:absolute;">');
                     tickCtx = tickCanvas[0].getContext("2d");
-                    tickCtx.fillStyle = "black";
+                    tickCtx.fillStyle = trackTicksStyle.backgroundColor || "black";
                     tickContainer.append(tickCanvas);
                 }
                 var dimensions = getSliderDimensions();
@@ -59261,62 +59521,6 @@ mdMediaFactory.$inject = [ "$window", "$mdUtil", "$timeout", "$mdConstant" ];
 
 (function() {
     "use strict";
-    angular.module("material.components.switch", [ "material.core", "material.components.checkbox" ]).directive("mdSwitch", MdSwitch);
-    function MdSwitch(mdCheckboxDirective, $mdTheming, $mdUtil, $document, $mdConstant, $parse, $$rAF) {
-        var checkboxDirective = mdCheckboxDirective[0];
-        return {
-            restrict: "E",
-            transclude: true,
-            template: '<div class="md-container">' + '<div class="md-bar"></div>' + '<div class="md-thumb-container">' + '<div class="md-thumb" md-ink-ripple md-ink-ripple-checkbox></div>' + "</div>" + "</div>" + '<div ng-transclude class="md-label">' + "</div>",
-            require: "?ngModel",
-            compile: compile
-        };
-        function compile(element, attr) {
-            var checkboxLink = checkboxDirective.compile(element, attr);
-            return function(scope, element, attr, ngModel) {
-                ngModel = ngModel || $mdUtil.fakeNgModel();
-                var disabledGetter = $parse(attr.ngDisabled);
-                var thumbContainer = angular.element(element[0].querySelector(".md-thumb-container"));
-                var switchContainer = angular.element(element[0].querySelector(".md-container"));
-                $$rAF(function() {
-                    element.addClass("transition");
-                });
-                attr.mdNoClick = true;
-                checkboxLink(scope, element, attr, ngModel);
-                $mdUtil.attachDragBehavior(scope, switchContainer);
-                switchContainer.on("$md.dragstart", onDragStart).on("$md.drag", onDrag).on("$md.dragend", onDragEnd);
-                function onDragStart(ev, drag) {
-                    if (disabledGetter(scope)) return ev.preventDefault();
-                    drag.width = thumbContainer.prop("offsetWidth");
-                    element.removeClass("transition");
-                }
-                function onDrag(ev, drag) {
-                    var percent = drag.distance / drag.width;
-                    var translate = ngModel.$viewValue ? 1 - percent : -percent;
-                    translate = Math.max(0, Math.min(1, translate));
-                    thumbContainer.css($mdConstant.CSS.TRANSFORM, "translate3d(" + 100 * translate + "%,0,0)");
-                    drag.translate = translate;
-                }
-                function onDragEnd(ev, drag) {
-                    if (disabledGetter(scope)) return false;
-                    element.addClass("transition");
-                    thumbContainer.css($mdConstant.CSS.TRANSFORM, "");
-                    var isChanged = Math.abs(drag.distance || 0) < 2 || (ngModel.$viewValue ? drag.translate < .5 : drag.translate > .5);
-                    if (isChanged) {
-                        scope.$apply(function() {
-                            ngModel.$setViewValue(!ngModel.$viewValue);
-                            ngModel.$render();
-                        });
-                    }
-                }
-            };
-        }
-    }
-    MdSwitch.$inject = [ "mdCheckboxDirective", "$mdTheming", "$mdUtil", "$document", "$mdConstant", "$parse", "$$rAF" ];
-})();
-
-(function() {
-    "use strict";
     angular.module("material.components.swipe", []).factory("$mdSwipe", MdSwipeFactory).directive("mdSwipeLeft", MdSwipeLeftDirective).directive("mdSwipeRight", MdSwipeRightDirective);
     function MdSwipeFactory() {
         var attachNoop = function() {
@@ -59399,13 +59603,70 @@ mdMediaFactory.$inject = [ "$window", "$mdUtil", "$timeout", "$mdConstant" ];
 
 (function() {
     "use strict";
+    angular.module("material.components.switch", [ "material.core", "material.components.checkbox" ]).directive("mdSwitch", MdSwitch);
+    function MdSwitch(mdCheckboxDirective, $mdTheming, $mdUtil, $document, $mdConstant, $parse, $$rAF) {
+        var checkboxDirective = mdCheckboxDirective[0];
+        return {
+            restrict: "E",
+            transclude: true,
+            template: '<div class="md-container">' + '<div class="md-bar"></div>' + '<div class="md-thumb-container">' + '<div class="md-thumb" md-ink-ripple md-ink-ripple-checkbox></div>' + "</div>" + "</div>" + '<div ng-transclude class="md-label">' + "</div>",
+            require: "?ngModel",
+            compile: compile
+        };
+        function compile(element, attr) {
+            var checkboxLink = checkboxDirective.compile(element, attr);
+            element.addClass("md-dragging");
+            return function(scope, element, attr, ngModel) {
+                ngModel = ngModel || $mdUtil.fakeNgModel();
+                var disabledGetter = $parse(attr.ngDisabled);
+                var thumbContainer = angular.element(element[0].querySelector(".md-thumb-container"));
+                var switchContainer = angular.element(element[0].querySelector(".md-container"));
+                $$rAF(function() {
+                    element.removeClass("md-dragging");
+                });
+                attr.mdNoClick = true;
+                checkboxLink(scope, element, attr, ngModel);
+                $mdUtil.attachDragBehavior(scope, switchContainer);
+                switchContainer.on("$md.dragstart", onDragStart).on("$md.drag", onDrag).on("$md.dragend", onDragEnd);
+                function onDragStart(ev, drag) {
+                    if (disabledGetter(scope)) return ev.preventDefault();
+                    drag.width = thumbContainer.prop("offsetWidth");
+                    element.addClass("md-dragging");
+                }
+                function onDrag(ev, drag) {
+                    var percent = drag.distance / drag.width;
+                    var translate = ngModel.$viewValue ? 1 - percent : -percent;
+                    translate = Math.max(0, Math.min(1, translate));
+                    thumbContainer.css($mdConstant.CSS.TRANSFORM, "translate3d(" + 100 * translate + "%,0,0)");
+                    drag.translate = translate;
+                }
+                function onDragEnd(ev, drag) {
+                    if (disabledGetter(scope)) return false;
+                    element.removeClass("md-dragging");
+                    thumbContainer.css($mdConstant.CSS.TRANSFORM, "");
+                    var isChanged = Math.abs(drag.distance || 0) < 2 || (ngModel.$viewValue ? drag.translate < .5 : drag.translate > .5);
+                    if (isChanged) {
+                        scope.$apply(function() {
+                            ngModel.$setViewValue(!ngModel.$viewValue);
+                            ngModel.$render();
+                        });
+                    }
+                }
+            };
+        }
+    }
+    MdSwitch.$inject = [ "mdCheckboxDirective", "$mdTheming", "$mdUtil", "$document", "$mdConstant", "$parse", "$$rAF" ];
+})();
+
+(function() {
+    "use strict";
     angular.module("material.components.tabs", [ "material.core" ]);
 })();
 
 (function() {
     "use strict";
     angular.module("material.components.textField", [ "material.core" ]).directive("mdInputGroup", mdInputGroupDirective).directive("mdInput", mdInputDirective).directive("mdTextFloat", mdTextFloatDirective);
-    function mdTextFloatDirective($mdTheming, $mdUtil, $parse) {
+    function mdTextFloatDirective($mdTheming, $mdUtil, $parse, $log) {
         return {
             restrict: "E",
             replace: true,
@@ -59415,6 +59676,7 @@ mdMediaFactory.$inject = [ "$window", "$mdUtil", "$timeout", "$mdConstant" ];
                 value: "=ngModel"
             },
             compile: function(element, attr) {
+                $log.warn("<md-text-float> is deprecated. Please use `<md-input-container>` and `<input>`." + "More information at http://material.angularjs.org/#/api/material.components.input/directive/mdInputContainer");
                 if (angular.isUndefined(attr.mdFid)) {
                     attr.mdFid = $mdUtil.nextUid();
                 }
@@ -59432,11 +59694,12 @@ mdMediaFactory.$inject = [ "$window", "$mdUtil", "$timeout", "$mdConstant" ];
             template: '<md-input-group tabindex="-1">' + ' <label for="{{fid}}" >{{label}}</label>' + ' <md-input id="{{fid}}" ng-disabled="isDisabled()" ng-model="value" type="{{inputType}}"></md-input>' + "</md-input-group>"
         };
     }
-    mdTextFloatDirective.$inject = [ "$mdTheming", "$mdUtil", "$parse" ];
-    function mdInputGroupDirective() {
+    mdTextFloatDirective.$inject = [ "$mdTheming", "$mdUtil", "$parse", "$log" ];
+    function mdInputGroupDirective($log) {
         return {
             restrict: "CE",
             controller: [ "$element", function($element) {
+                $log.warn("<md-input-group> is deprecated. Please use `<md-input-container>` and `<input>`." + "More information at http://material.angularjs.org/#/api/material.components.input/directive/mdInputContainer");
                 this.setFocused = function(isFocused) {
                     $element.toggleClass("md-input-focused", !!isFocused);
                 };
@@ -59446,7 +59709,8 @@ mdMediaFactory.$inject = [ "$window", "$mdUtil", "$timeout", "$mdConstant" ];
             } ]
         };
     }
-    function mdInputDirective($mdUtil) {
+    mdInputGroupDirective.$inject = [ "$log" ];
+    function mdInputDirective($mdUtil, $log) {
         return {
             restrict: "E",
             replace: true,
@@ -59454,6 +59718,7 @@ mdMediaFactory.$inject = [ "$window", "$mdUtil", "$timeout", "$mdConstant" ];
             require: [ "^?mdInputGroup", "?ngModel" ],
             link: function(scope, element, attr, ctrls) {
                 if (!ctrls[0]) return;
+                $log.warn("<md-input> is deprecated. Please use `<md-input-container>` and `<input>`." + "More information at http://material.angularjs.org/#/api/material.components.input/directive/mdInputContainer");
                 var inputGroupCtrl = ctrls[0];
                 var ngModelCtrl = ctrls[1];
                 scope.$watch(scope.isDisabled, function(isDisabled) {
@@ -59486,7 +59751,7 @@ mdMediaFactory.$inject = [ "$window", "$mdUtil", "$timeout", "$mdConstant" ];
             }
         };
     }
-    mdInputDirective.$inject = [ "$mdUtil" ];
+    mdInputDirective.$inject = [ "$mdUtil", "$log" ];
 })();
 
 (function() {
@@ -59844,7 +60109,9 @@ mdMediaFactory.$inject = [ "$window", "$mdUtil", "$timeout", "$mdConstant" ];
                     return watcher || scope.$watch(function() {
                         $timeout(function() {
                             if (element[0].offsetParent) {
-                                watcher();
+                                if (angular.isFunction(watcher)) {
+                                    watcher();
+                                }
                                 debouncedUpdatePagination();
                                 watcher = null;
                             }
@@ -59964,7 +60231,7 @@ mdMediaFactory.$inject = [ "$window", "$mdUtil", "$timeout", "$mdConstant" ];
 (function() {
     "use strict";
     angular.module("material.components.tabs").controller("$mdTab", TabItemController);
-    function TabItemController($scope, $element, $attrs, $compile, $animate, $mdUtil, $parse) {
+    function TabItemController($scope, $element, $attrs, $compile, $animate, $mdUtil, $parse, $timeout) {
         var self = this;
         self.contentContainer = angular.element('<div class="md-tab-content ng-hide">');
         self.hammertime = new Hammer(self.contentContainer[0]);
@@ -59978,13 +60245,17 @@ mdMediaFactory.$inject = [ "$window", "$mdUtil", "$timeout", "$mdConstant" ];
         function isDisabled() {
             return disabledParsed($scope.$parent);
         }
-        function onAdd(contentArea) {
+        function onAdd(contentArea, shouldDisconnectScope) {
             if (self.content.length) {
                 self.contentContainer.append(self.content);
                 self.contentScope = $scope.$parent.$new();
                 contentArea.append(self.contentContainer);
                 $compile(self.contentContainer)(self.contentScope);
-                $mdUtil.disconnectScope(self.contentScope);
+                if (shouldDisconnectScope === true) {
+                    $timeout(function() {
+                        $mdUtil.disconnectScope(self.contentScope);
+                    }, 0, false);
+                }
             }
         }
         function onRemove() {
@@ -59994,26 +60265,31 @@ mdMediaFactory.$inject = [ "$window", "$mdUtil", "$timeout", "$mdConstant" ];
                 self.contentScope = null;
             });
         }
-        function onSelect() {
+        function toggleAnimationClass(rightToLeft) {
+            self.contentContainer[rightToLeft ? "addClass" : "removeClass"]("md-transition-rtl");
+        }
+        function onSelect(rightToLeft) {
             $mdUtil.reconnectScope(self.contentScope);
             self.hammertime.on("swipeleft swiperight", $scope.onSwipe);
             $element.addClass("active");
             $element.attr("aria-selected", true);
             $element.attr("tabIndex", 0);
+            toggleAnimationClass(rightToLeft);
             $animate.removeClass(self.contentContainer, "ng-hide");
             $scope.onSelect();
         }
-        function onDeselect() {
+        function onDeselect(rightToLeft) {
             $mdUtil.disconnectScope(self.contentScope);
             self.hammertime.off("swipeleft swiperight", $scope.onSwipe);
             $element.removeClass("active");
             $element.attr("aria-selected", false);
             $element.attr("tabIndex", -1);
+            toggleAnimationClass(rightToLeft);
             $animate.addClass(self.contentContainer, "ng-hide");
             $scope.onDeselect();
         }
     }
-    TabItemController.$inject = [ "$scope", "$element", "$attrs", "$compile", "$animate", "$mdUtil", "$parse" ];
+    TabItemController.$inject = [ "$scope", "$element", "$attrs", "$compile", "$animate", "$mdUtil", "$parse", "$timeout" ];
 })();
 
 (function() {
@@ -60168,10 +60444,10 @@ mdMediaFactory.$inject = [ "$window", "$mdUtil", "$timeout", "$mdConstant" ];
         var self = this;
         self.$element = $element;
         self.scope = $scope;
-        self.contentArea = angular.element($element[0].querySelector(".md-tabs-content"));
-        self.inRange = tabsList.inRange;
-        self.indexOf = tabsList.indexOf;
-        self.itemAt = tabsList.itemAt;
+        var contentArea = self.contentArea = angular.element($element[0].querySelector(".md-tabs-content"));
+        var inRange = self.inRange = tabsList.inRange;
+        var indexOf = self.indexOf = tabsList.indexOf;
+        var itemAt = self.itemAt = tabsList.itemAt;
         self.count = tabsList.count;
         self.getSelectedItem = getSelectedItem;
         self.getSelectedIndex = getSelectedIndex;
@@ -60184,32 +60460,34 @@ mdMediaFactory.$inject = [ "$window", "$mdUtil", "$timeout", "$mdConstant" ];
         self.next = next;
         self.previous = previous;
         $scope.$on("$destroy", function() {
-            self.deselect(self.getSelectedItem());
+            deselect(getSelectedItem());
             for (var i = tabsList.count() - 1; i >= 0; i--) {
-                self.remove(tabsList[i], true);
+                remove(tabsList[i], true);
             }
         });
         function getSelectedItem() {
-            return self.itemAt($scope.selectedIndex);
+            return itemAt($scope.selectedIndex);
         }
         function getSelectedIndex() {
             return $scope.selectedIndex;
         }
         function add(tab, index) {
             tabsList.add(tab, index);
-            tab.onAdd(self.contentArea);
             if ($scope.selectedIndex === -1 || !angular.isNumber($scope.selectedIndex) || $scope.selectedIndex === self.indexOf(tab)) {
+                tab.onAdd(self.contentArea, false);
                 self.select(tab);
+            } else {
+                tab.onAdd(self.contentArea, true);
             }
             $scope.$broadcast("$mdTabsChanged");
         }
         function remove(tab, noReselect) {
             if (!tabsList.contains(tab)) return;
-            if (noReselect) {} else if (self.getSelectedItem() === tab) {
+            if (noReselect) {} else if (getSelectedItem() === tab) {
                 if (tabsList.count() > 1) {
-                    self.select(self.previous() || self.next());
+                    select(previous() || next());
                 } else {
-                    self.deselect(tab);
+                    deselect(tab);
                 }
             }
             tabsList.remove(tab);
@@ -60217,36 +60495,39 @@ mdMediaFactory.$inject = [ "$window", "$mdUtil", "$timeout", "$mdConstant" ];
             $scope.$broadcast("$mdTabsChanged");
         }
         function move(tab, toIndex) {
-            var isSelected = self.getSelectedItem() === tab;
+            var isSelected = getSelectedItem() === tab;
             tabsList.remove(tab);
             tabsList.add(tab, toIndex);
-            if (isSelected) self.select(tab);
+            if (isSelected) select(tab);
             $scope.$broadcast("$mdTabsChanged");
         }
-        function select(tab) {
+        function select(tab, rightToLeft) {
             if (!tab || tab.isSelected || tab.isDisabled()) return;
             if (!tabsList.contains(tab)) return;
-            self.deselect(self.getSelectedItem());
-            $scope.selectedIndex = self.indexOf(tab);
+            if (!angular.isDefined(rightToLeft)) {
+                rightToLeft = indexOf(tab) < $scope.selectedIndex;
+            }
+            deselect(getSelectedItem(), rightToLeft);
+            $scope.selectedIndex = indexOf(tab);
             tab.isSelected = true;
-            tab.onSelect();
+            tab.onSelect(rightToLeft);
             $scope.$broadcast("$mdTabsChanged");
         }
         function focus(tab) {
             self.tabToFocus = tab;
         }
-        function deselect(tab) {
+        function deselect(tab, rightToLeft) {
             if (!tab || !tab.isSelected) return;
             if (!tabsList.contains(tab)) return;
             $scope.selectedIndex = -1;
             tab.isSelected = false;
-            tab.onDeselect();
+            tab.onDeselect(rightToLeft);
         }
         function next(tab, filterFn) {
-            return tabsList.next(tab || self.getSelectedItem(), filterFn || isTabEnabled);
+            return tabsList.next(tab || getSelectedItem(), filterFn || isTabEnabled);
         }
         function previous(tab, filterFn) {
-            return tabsList.previous(tab || self.getSelectedItem(), filterFn || isTabEnabled);
+            return tabsList.previous(tab || getSelectedItem(), filterFn || isTabEnabled);
         }
         function isTabEnabled(tab) {
             return tab && !tab.isDisabled();
@@ -60283,13 +60564,15 @@ mdMediaFactory.$inject = [ "$window", "$mdUtil", "$timeout", "$mdConstant" ];
             }
             function watchSelected() {
                 scope.$watch("selectedIndex", function watchSelectedIndex(newIndex, oldIndex) {
-                    tabsCtrl.deselect(tabsCtrl.itemAt(oldIndex));
+                    if (oldIndex == newIndex) return;
+                    var rightToLeft = oldIndex > newIndex;
+                    tabsCtrl.deselect(tabsCtrl.itemAt(oldIndex), rightToLeft);
                     if (tabsCtrl.inRange(newIndex)) {
                         var newTab = tabsCtrl.itemAt(newIndex);
                         while (newTab && newTab.isDisabled()) {
                             newTab = newIndex > oldIndex ? tabsCtrl.next(newTab) : tabsCtrl.previous(newTab);
                         }
-                        tabsCtrl.select(newTab);
+                        tabsCtrl.select(newTab, rightToLeft);
                     }
                 });
             }
@@ -60298,7 +60581,7 @@ mdMediaFactory.$inject = [ "$window", "$mdUtil", "$timeout", "$mdConstant" ];
     TabsDirective.$inject = [ "$mdTheming" ];
 })();
 
-angular.module("material.core").constant("$MD_THEME_CSS", "md-backdrop.md-opaque.md-THEME_NAME-theme {  background-color: '{{foreground-4-0.5}}';  position: absolute; }md-bottom-sheet.md-THEME_NAME-theme {  background-color: '{{background-50}}';  border-top-color: '{{background-300}}'; }  md-bottom-sheet.md-THEME_NAME-theme.md-list md-item {    color: '{{foreground-1}}'; }  md-bottom-sheet.md-THEME_NAME-theme .md-subheader {    background-color: '{{background-50}}'; }  md-bottom-sheet.md-THEME_NAME-theme .md-subheader {    color: '{{foreground-1}}'; }.md-button.md-THEME_NAME-theme {  border-radius: 3px; }  .md-button.md-THEME_NAME-theme:not([disabled]):hover, .md-button.md-THEME_NAME-theme:not([disabled]):focus {    background-color: '{{background-500-0.2}}'; }  .md-button.md-THEME_NAME-theme.md-primary {    color: '{{primary-color}}'; }    .md-button.md-THEME_NAME-theme.md-primary.md-raised, .md-button.md-THEME_NAME-theme.md-primary.md-fab {      color: '{{primary-contrast}}';      background-color: '{{primary-color}}'; }      .md-button.md-THEME_NAME-theme.md-primary.md-raised:not([disabled]):hover, .md-button.md-THEME_NAME-theme.md-primary.md-raised:not([disabled]):focus, .md-button.md-THEME_NAME-theme.md-primary.md-fab:not([disabled]):hover, .md-button.md-THEME_NAME-theme.md-primary.md-fab:not([disabled]):focus {        background-color: '{{primary-600}}'; }  .md-button.md-THEME_NAME-theme.md-fab {    border-radius: 50%; }  .md-button.md-THEME_NAME-theme.md-raised, .md-button.md-THEME_NAME-theme.md-fab {    color: '{{background-contrast}}';    background-color: '{{background-500-0.185}}'; }    .md-button.md-THEME_NAME-theme.md-raised:not([disabled]):hover, .md-button.md-THEME_NAME-theme.md-raised:not([disabled]):focus, .md-button.md-THEME_NAME-theme.md-fab:not([disabled]):hover, .md-button.md-THEME_NAME-theme.md-fab:not([disabled]):focus {      background-color: '{{background-500-0.3}}'; }  .md-button.md-THEME_NAME-theme.md-warn {    color: '{{warn-color}}'; }    .md-button.md-THEME_NAME-theme.md-warn.md-raised, .md-button.md-THEME_NAME-theme.md-warn.md-fab {      color: '{{warn-contrast}}';      background-color: '{{warn-color}}'; }      .md-button.md-THEME_NAME-theme.md-warn.md-raised:not([disabled]):hover, .md-button.md-THEME_NAME-theme.md-warn.md-raised:not([disabled]):focus, .md-button.md-THEME_NAME-theme.md-warn.md-fab:not([disabled]):hover, .md-button.md-THEME_NAME-theme.md-warn.md-fab:not([disabled]):focus {        background-color: '{{warn-700}}'; }  .md-button.md-THEME_NAME-theme.md-accent {    color: '{{accent-color}}'; }    .md-button.md-THEME_NAME-theme.md-accent.md-raised, .md-button.md-THEME_NAME-theme.md-accent.md-fab {      color: '{{accent-contrast}}';      background-color: '{{accent-color}}'; }      .md-button.md-THEME_NAME-theme.md-accent.md-raised:not([disabled]):hover, .md-button.md-THEME_NAME-theme.md-accent.md-raised:not([disabled]):focus, .md-button.md-THEME_NAME-theme.md-accent.md-fab:not([disabled]):hover, .md-button.md-THEME_NAME-theme.md-accent.md-fab:not([disabled]):focus {        background-color: '{{accent-700}}'; }  .md-button.md-THEME_NAME-theme[disabled], .md-button.md-THEME_NAME-theme.md-raised[disabled], .md-button.md-THEME_NAME-theme.md-fab[disabled] {    color: '{{foreground-3}}';    background-color: transparent;    cursor: not-allowed; }md-card.md-THEME_NAME-theme {  border-radius: 2px; }  md-card.md-THEME_NAME-theme .md-card-image {    border-radius: 2px 2px 0 0; }md-content.md-THEME_NAME-theme {  background-color: '{{background-hue-3}}'; }md-checkbox.md-THEME_NAME-theme .md-ripple {  color: '{{accent-600}}'; }md-checkbox.md-THEME_NAME-theme.md-checked .md-ripple {  color: '{{background-600}}'; }md-checkbox.md-THEME_NAME-theme .md-icon {  border-color: '{{foreground-2}}'; }md-checkbox.md-THEME_NAME-theme.md-checked .md-icon {  background-color: '{{accent-color-0.87}}'; }md-checkbox.md-THEME_NAME-theme.md-checked .md-icon:after {  border-color: '{{background-200}}'; }md-checkbox.md-THEME_NAME-theme:not([disabled]).md-primary .md-ripple {  color: '{{primary-600}}'; }md-checkbox.md-THEME_NAME-theme:not([disabled]).md-primary.md-checked .md-ripple {  color: '{{background-600}}'; }md-checkbox.md-THEME_NAME-theme:not([disabled]).md-primary .md-icon {  border-color: '{{foreground-2}}'; }md-checkbox.md-THEME_NAME-theme:not([disabled]).md-primary.md-checked .md-icon {  background-color: '{{primary-color-0.87}}'; }md-checkbox.md-THEME_NAME-theme:not([disabled]).md-primary.md-checked .md-icon:after {  border-color: '{{background-200}}'; }md-checkbox.md-THEME_NAME-theme:not([disabled]).md-warn .md-ripple {  color: '{{warn-600}}'; }md-checkbox.md-THEME_NAME-theme:not([disabled]).md-warn.md-checked .md-ripple {  color: '{{background-600}}'; }md-checkbox.md-THEME_NAME-theme:not([disabled]).md-warn .md-icon {  border-color: '{{foreground-2}}'; }md-checkbox.md-THEME_NAME-theme:not([disabled]).md-warn.md-checked .md-icon {  background-color: '{{warn-color-0.87}}'; }md-checkbox.md-THEME_NAME-theme:not([disabled]).md-warn.md-checked .md-icon:after {  border-color: '{{background-200}}'; }md-checkbox.md-THEME_NAME-theme[disabled] .md-icon {  border-color: '{{foreground-3}}'; }md-checkbox.md-THEME_NAME-theme[disabled].md-checked .md-icon {  background-color: '{{foreground-3}}'; }md-dialog.md-THEME_NAME-theme {  border-radius: 4px;  background-color: '{{background-hue-3}}'; }  md-dialog.md-THEME_NAME-theme.md-content-overflow .md-actions {    border-top-color: '{{foreground-4}}'; }md-divider.md-THEME_NAME-theme {  border-top-color: '{{foreground-4}}'; }md-progress-circular.md-THEME_NAME-theme {  background-color: transparent; }  md-progress-circular.md-THEME_NAME-theme .md-inner .md-gap {    border-top-color: '{{primary-color}}';    border-bottom-color: '{{primary-color}}'; }  md-progress-circular.md-THEME_NAME-theme .md-inner .md-left .md-half-circle, md-progress-circular.md-THEME_NAME-theme .md-inner .md-right .md-half-circle {    border-top-color: '{{primary-color}}'; }  md-progress-circular.md-THEME_NAME-theme .md-inner .md-right .md-half-circle {    border-right-color: '{{primary-color}}'; }  md-progress-circular.md-THEME_NAME-theme .md-inner .md-left .md-half-circle {    border-left-color: '{{primary-color}}'; }  md-progress-circular.md-THEME_NAME-theme.md-warn .md-inner .md-gap {    border-top-color: '{{warn-color}}';    border-bottom-color: '{{warn-color}}'; }  md-progress-circular.md-THEME_NAME-theme.md-warn .md-inner .md-left .md-half-circle, md-progress-circular.md-THEME_NAME-theme.md-warn .md-inner .md-right .md-half-circle {    border-top-color: '{{warn-color}}'; }  md-progress-circular.md-THEME_NAME-theme.md-warn .md-inner .md-right .md-half-circle {    border-right-color: '{{warn-color}}'; }  md-progress-circular.md-THEME_NAME-theme.md-warn .md-inner .md-left .md-half-circle {    border-left-color: '{{warn-color}}'; }  md-progress-circular.md-THEME_NAME-theme.md-accent .md-inner .md-gap {    border-top-color: '{{accent-color}}';    border-bottom-color: '{{accent-color}}'; }  md-progress-circular.md-THEME_NAME-theme.md-accent .md-inner .md-left .md-half-circle, md-progress-circular.md-THEME_NAME-theme.md-accent .md-inner .md-right .md-half-circle {    border-top-color: '{{accent-color}}'; }  md-progress-circular.md-THEME_NAME-theme.md-accent .md-inner .md-right .md-half-circle {    border-right-color: '{{accent-color}}'; }  md-progress-circular.md-THEME_NAME-theme.md-accent .md-inner .md-left .md-half-circle {    border-left-color: '{{accent-color}}'; }md-progress-linear.md-THEME_NAME-theme .md-container {  background-color: '{{primary-100}}'; }md-progress-linear.md-THEME_NAME-theme .md-bar {  background-color: '{{primary-color}}'; }md-progress-linear.md-THEME_NAME-theme.md-warn .md-container {  background-color: '{{warn-100}}'; }md-progress-linear.md-THEME_NAME-theme.md-warn .md-bar {  background-color: '{{warn-color}}'; }md-progress-linear.md-THEME_NAME-theme.md-accent .md-container {  background-color: '{{accent-100}}'; }md-progress-linear.md-THEME_NAME-theme.md-accent .md-bar {  background-color: '{{accent-color}}'; }md-progress-linear.md-THEME_NAME-theme[md-mode=buffer].md-warn .md-bar1 {  background-color: '{{warn-100}}'; }md-progress-linear.md-THEME_NAME-theme[md-mode=buffer].md-warn .md-dashed:before {  background: radial-gradient('{{warn-100}}' 0%, '{{warn-100}}' 16%, transparent 42%); }md-progress-linear.md-THEME_NAME-theme[md-mode=buffer].md-accent .md-bar1 {  background-color: '{{accent-100}}'; }md-progress-linear.md-THEME_NAME-theme[md-mode=buffer].md-accent .md-dashed:before {  background: radial-gradient('{{accent-100}}' 0%, '{{accent-100}}' 16%, transparent 42%); }md-radio-button.md-THEME_NAME-theme .md-off {  border-color: '{{foreground-2}}'; }md-radio-button.md-THEME_NAME-theme .md-on {  background-color: '{{accent-color-0.87}}'; }md-radio-button.md-THEME_NAME-theme.md-checked .md-off {  border-color: '{{accent-color-0.87}}'; }md-radio-button.md-THEME_NAME-theme.md-checked .md-ink-ripple {  color: '{{accent-color-0.87}}'; }md-radio-button.md-THEME_NAME-theme .md-container .md-ripple {  color: '{{accent-600}}'; }md-radio-button.md-THEME_NAME-theme:not([disabled]).md-warn .md-on {  background-color: '{{warn-color-0.87}}'; }md-radio-button.md-THEME_NAME-theme:not([disabled]).md-warn.md-checked .md-off {  border-color: '{{warn-color-0.87}}'; }md-radio-button.md-THEME_NAME-theme:not([disabled]).md-warn.md-checked .md-ink-ripple {  color: '{{warn-color-0.87}}'; }md-radio-button.md-THEME_NAME-theme:not([disabled]).md-warn .md-container .md-ripple {  color: '{{warn-600}}'; }md-radio-button.md-THEME_NAME-theme:not([disabled]).md-primary .md-on {  background-color: '{{primary-color-0.87}}'; }md-radio-button.md-THEME_NAME-theme:not([disabled]).md-primary.md-checked .md-off {  border-color: '{{primary-color-0.87}}'; }md-radio-button.md-THEME_NAME-theme:not([disabled]).md-primary.md-checked .md-ink-ripple {  color: '{{primary-color-0.87}}'; }md-radio-button.md-THEME_NAME-theme:not([disabled]).md-primary .md-container .md-ripple {  color: '{{primary-600}}'; }md-radio-button.md-THEME_NAME-theme[disabled] .md-container .md-off {  border-color: '{{foreground-3}}'; }md-radio-button.md-THEME_NAME-theme[disabled] .md-container .md-on {  border-color: '{{foreground-3}}'; }md-radio-group.md-THEME_NAME-theme:focus:not(:empty) {  border-color: '{{foreground-1}}'; }md-sidenav.md-THEME_NAME-theme {  background-color: '{{background-hue-3}}'; }md-slider.md-THEME_NAME-theme .md-track {  background-color: '{{foreground-3}}'; }md-slider.md-THEME_NAME-theme .md-focus-thumb {  background-color: '{{foreground-2}}'; }md-slider.md-THEME_NAME-theme .md-focus-ring {  border-color: '{{foreground-4}}'; }md-slider.md-THEME_NAME-theme .md-disabled-thumb {  border-color: '{{background-hue-3}}'; }md-slider.md-THEME_NAME-theme.md-min .md-thumb:after {  background-color: '{{background-hue-3}}'; }md-slider.md-THEME_NAME-theme .md-track.md-track-fill {  background-color: '{{primary-color}}'; }md-slider.md-THEME_NAME-theme .md-thumb:after {  border-color: '{{primary-color}}';  background-color: '{{primary-color}}'; }md-slider.md-THEME_NAME-theme .md-sign {  background-color: '{{primary-color}}'; }  md-slider.md-THEME_NAME-theme .md-sign:after {    border-top-color: '{{primary-color}}'; }md-slider.md-THEME_NAME-theme .md-thumb-text {  color: '{{primary-contrast}}'; }md-slider.md-THEME_NAME-theme.md-warn .md-track-fill {  background-color: '{{warn-color}}'; }md-slider.md-THEME_NAME-theme.md-warn .md-thumb:after {  border-color: '{{warn-color}}';  background-color: '{{warn-color}}'; }md-slider.md-THEME_NAME-theme.md-warn .md-sign {  background-color: '{{warn-color}}'; }  md-slider.md-THEME_NAME-theme.md-warn .md-sign:after {    border-top-color: '{{warn-color}}'; }md-slider.md-THEME_NAME-theme.md-warn .md-thumb-text {  color: '{{warn-contrast}}'; }md-slider.md-THEME_NAME-theme.md-accent .md-track-fill {  background-color: '{{accent-color}}'; }md-slider.md-THEME_NAME-theme.md-accent .md-thumb:after {  border-color: '{{accent-color}}';  background-color: '{{accent-color}}'; }md-slider.md-THEME_NAME-theme.md-accent .md-sign {  background-color: '{{accent-color}}'; }  md-slider.md-THEME_NAME-theme.md-accent .md-sign:after {    border-top-color: '{{accent-color}}'; }md-slider.md-THEME_NAME-theme.md-accent .md-thumb-text {  color: '{{accent-contrast}}'; }md-slider.md-THEME_NAME-theme[disabled] .md-thumb:after {  border-color: '{{foreground-3}}'; }md-slider.md-THEME_NAME-theme[disabled]:not(.md-min) .md-thumb:after {  background-color: '{{foreground-3}}'; }.md-subheader.md-THEME_NAME-theme {  color: '{{ foreground-2-0.23 }}';  background-color: '{{background-hue-3}}'; }  .md-subheader.md-THEME_NAME-theme.md-primary {    color: '{{primary-color}}'; }  .md-subheader.md-THEME_NAME-theme.md-accent {    color: '{{accent-color}}'; }  .md-subheader.md-THEME_NAME-theme.md-warn {    color: '{{warn-color}}'; }md-switch.md-THEME_NAME-theme .md-thumb {  background-color: '{{background-50}}'; }md-switch.md-THEME_NAME-theme .md-bar {  background-color: '{{background-500}}'; }md-switch.md-THEME_NAME-theme.md-checked .md-thumb {  background-color: '{{accent-color}}'; }md-switch.md-THEME_NAME-theme.md-checked .md-bar {  background-color: '{{accent-color-0.5}}'; }md-switch.md-THEME_NAME-theme.md-checked.md-primary .md-thumb {  background-color: '{{primary-color}}'; }md-switch.md-THEME_NAME-theme.md-checked.md-primary .md-bar {  background-color: '{{primary-color-0.5}}'; }md-switch.md-THEME_NAME-theme.md-checked.md-warn .md-thumb {  background-color: '{{warn-color}}'; }md-switch.md-THEME_NAME-theme.md-checked.md-warn .md-bar {  background-color: '{{warn-color-0.5}}'; }md-switch.md-THEME_NAME-theme[disabled] .md-thumb {  background-color: '{{background-400}}'; }md-switch.md-THEME_NAME-theme[disabled] .md-bar {  background-color: '{{foreground-4}}'; }md-switch.md-THEME_NAME-theme:focus .md-label:not(:empty) {  border-color: '{{foreground-1}}';  border-style: dotted; }md-tabs.md-THEME_NAME-theme .md-header {  background-color: '{{primary-color}}'; }md-tabs.md-THEME_NAME-theme.md-accent .md-header {  background-color: '{{accent-color}}'; }md-tabs.md-THEME_NAME-theme.md-accent md-tab:not([disabled]) {  color: '{{accent-100}}'; }  md-tabs.md-THEME_NAME-theme.md-accent md-tab:not([disabled]).active {    color: '{{accent-contrast}}'; }md-tabs.md-THEME_NAME-theme.md-warn .md-header {  background-color: '{{warn-color}}'; }md-tabs.md-THEME_NAME-theme.md-warn md-tab:not([disabled]) {  color: '{{warn-100}}'; }  md-tabs.md-THEME_NAME-theme.md-warn md-tab:not([disabled]).active {    color: '{{warn-contrast}}'; }md-tabs.md-THEME_NAME-theme md-tabs-ink-bar {  color: white;  background: white; }md-tabs.md-THEME_NAME-theme md-tab {  color: '{{primary-100}}'; }  md-tabs.md-THEME_NAME-theme md-tab.active {    color: '{{primary-contrast}}'; }  md-tabs.md-THEME_NAME-theme md-tab[disabled] {    color: '{{foreground-4}}'; }  md-tabs.md-THEME_NAME-theme md-tab:focus {    color: '{{primary-contrast}}';    background-color: rgba(255, 255, 255, 0.1); }  md-tabs.md-THEME_NAME-theme md-tab .md-ripple-container {    color: white; }md-input-group.md-THEME_NAME-theme input, md-input-group.md-THEME_NAME-theme textarea {  text-shadow: '{{foreground-shadow}}'; }  md-input-group.md-THEME_NAME-theme input:-ms-input-placeholder, md-input-group.md-THEME_NAME-theme textarea:-ms-input-placeholder {    color: '{{foreground-3}}'; }  md-input-group.md-THEME_NAME-theme input::-webkit-input-placeholder, md-input-group.md-THEME_NAME-theme textarea::-webkit-input-placeholder {    color: '{{foreground-3}}'; }md-input-group.md-THEME_NAME-theme label {  text-shadow: '{{foreground-shadow}}';  color: '{{foreground-3}}'; }md-input-group.md-THEME_NAME-theme input, md-input-group.md-THEME_NAME-theme textarea {  color: '{{foreground-1}}';  border-color: '{{foreground-4}}'; }md-input-group.md-THEME_NAME-theme.md-input-focused input, md-input-group.md-THEME_NAME-theme.md-input-focused textarea {  border-color: '{{primary-500}}'; }md-input-group.md-THEME_NAME-theme.md-input-focused label {  color: '{{primary-500}}'; }md-input-group.md-THEME_NAME-theme.md-input-focused.md-accent input, md-input-group.md-THEME_NAME-theme.md-input-focused.md-accent textarea {  border-color: '{{accent-500}}'; }md-input-group.md-THEME_NAME-theme.md-input-focused.md-accent label {  color: '{{accent-500}}'; }md-input-group.md-THEME_NAME-theme.md-input-has-value:not(.md-input-focused) label {  color: '{{foreground-2}}'; }md-input-group.md-THEME_NAME-theme[disabled] input, md-input-group.md-THEME_NAME-theme[disabled] textarea {  border-bottom-color: '{{foreground-4}}';  color: '{{foreground-3}}'; }md-toast.md-THEME_NAME-theme {  background-color: '{{foreground-1}}';  color: '{{background-50}}'; }  md-toast.md-THEME_NAME-theme .md-button {    color: '{{background-50}}'; }  md-toast.md-THEME_NAME-theme .md-action {    color: '{{primary-A200}}'; }    md-toast.md-THEME_NAME-theme .md-action.md-accent {      color: '{{accent-A200}}'; }    md-toast.md-THEME_NAME-theme .md-action.md-warn {      color: '{{warn-A200}}'; }md-toolbar.md-THEME_NAME-theme {  background-color: '{{primary-color}}';  color: '{{primary-contrast}}'; }  md-toolbar.md-THEME_NAME-theme .md-button {    color: '{{primary-contrast}}'; }  md-toolbar.md-THEME_NAME-theme.md-accent {    background-color: '{{accent-color}}';    color: '{{accent-contrast}}'; }  md-toolbar.md-THEME_NAME-theme.md-warn {    background-color: '{{warn-color}}';    color: '{{warn-contrast}}'; }md-tooltip.md-THEME_NAME-theme {  color: '{{background-A100}}'; }  md-tooltip.md-THEME_NAME-theme .md-background {    background-color: '{{foreground-2}}'; }");
+angular.module("material.core").constant("$MD_THEME_CSS", "md-backdrop.md-opaque.md-THEME_NAME-theme {  background-color: '{{foreground-4-0.5}}';  position: absolute; }md-bottom-sheet.md-THEME_NAME-theme {  background-color: '{{background-50}}';  border-top-color: '{{background-300}}'; }  md-bottom-sheet.md-THEME_NAME-theme.md-list md-item {    color: '{{foreground-1}}'; }  md-bottom-sheet.md-THEME_NAME-theme .md-subheader {    background-color: '{{background-50}}'; }  md-bottom-sheet.md-THEME_NAME-theme .md-subheader {    color: '{{foreground-1}}'; }.md-button.md-THEME_NAME-theme {  border-radius: 3px; }  .md-button.md-THEME_NAME-theme:not([disabled]):hover, .md-button.md-THEME_NAME-theme:not([disabled]):focus {    background-color: '{{background-500-0.2}}'; }  .md-button.md-THEME_NAME-theme.md-primary {    color: '{{primary-color}}'; }    .md-button.md-THEME_NAME-theme.md-primary.md-raised, .md-button.md-THEME_NAME-theme.md-primary.md-fab {      color: '{{primary-contrast}}';      background-color: '{{primary-color}}'; }      .md-button.md-THEME_NAME-theme.md-primary.md-raised:not([disabled]):hover, .md-button.md-THEME_NAME-theme.md-primary.md-raised:not([disabled]):focus, .md-button.md-THEME_NAME-theme.md-primary.md-fab:not([disabled]):hover, .md-button.md-THEME_NAME-theme.md-primary.md-fab:not([disabled]):focus {        background-color: '{{primary-600}}'; }  .md-button.md-THEME_NAME-theme.md-fab {    border-radius: 50%; }  .md-button.md-THEME_NAME-theme.md-raised, .md-button.md-THEME_NAME-theme.md-fab {    color: '{{background-contrast}}';    background-color: '{{background-500-0.185}}'; }    .md-button.md-THEME_NAME-theme.md-raised:not([disabled]):hover, .md-button.md-THEME_NAME-theme.md-raised:not([disabled]):focus, .md-button.md-THEME_NAME-theme.md-fab:not([disabled]):hover, .md-button.md-THEME_NAME-theme.md-fab:not([disabled]):focus {      background-color: '{{background-500-0.3}}'; }  .md-button.md-THEME_NAME-theme.md-warn {    color: '{{warn-color}}'; }    .md-button.md-THEME_NAME-theme.md-warn.md-raised, .md-button.md-THEME_NAME-theme.md-warn.md-fab {      color: '{{warn-contrast}}';      background-color: '{{warn-color}}'; }      .md-button.md-THEME_NAME-theme.md-warn.md-raised:not([disabled]):hover, .md-button.md-THEME_NAME-theme.md-warn.md-raised:not([disabled]):focus, .md-button.md-THEME_NAME-theme.md-warn.md-fab:not([disabled]):hover, .md-button.md-THEME_NAME-theme.md-warn.md-fab:not([disabled]):focus {        background-color: '{{warn-700}}'; }  .md-button.md-THEME_NAME-theme.md-accent {    color: '{{accent-color}}'; }    .md-button.md-THEME_NAME-theme.md-accent.md-raised, .md-button.md-THEME_NAME-theme.md-accent.md-fab {      color: '{{accent-contrast}}';      background-color: '{{accent-color}}'; }      .md-button.md-THEME_NAME-theme.md-accent.md-raised:not([disabled]):hover, .md-button.md-THEME_NAME-theme.md-accent.md-raised:not([disabled]):focus, .md-button.md-THEME_NAME-theme.md-accent.md-fab:not([disabled]):hover, .md-button.md-THEME_NAME-theme.md-accent.md-fab:not([disabled]):focus {        background-color: '{{accent-700}}'; }  .md-button.md-THEME_NAME-theme[disabled], .md-button.md-THEME_NAME-theme.md-raised[disabled], .md-button.md-THEME_NAME-theme.md-fab[disabled] {    color: '{{foreground-3}}';    background-color: transparent;    cursor: not-allowed; }md-card.md-THEME_NAME-theme {  border-radius: 2px; }  md-card.md-THEME_NAME-theme .md-card-image {    border-radius: 2px 2px 0 0; }md-checkbox.md-THEME_NAME-theme .md-ripple {  color: '{{accent-600}}'; }md-checkbox.md-THEME_NAME-theme.md-checked .md-ripple {  color: '{{background-600}}'; }md-checkbox.md-THEME_NAME-theme .md-icon {  border-color: '{{foreground-2}}'; }md-checkbox.md-THEME_NAME-theme.md-checked .md-icon {  background-color: '{{accent-color-0.87}}'; }md-checkbox.md-THEME_NAME-theme.md-checked .md-icon:after {  border-color: '{{background-200}}'; }md-checkbox.md-THEME_NAME-theme:not([disabled]).md-primary .md-ripple {  color: '{{primary-600}}'; }md-checkbox.md-THEME_NAME-theme:not([disabled]).md-primary.md-checked .md-ripple {  color: '{{background-600}}'; }md-checkbox.md-THEME_NAME-theme:not([disabled]).md-primary .md-icon {  border-color: '{{foreground-2}}'; }md-checkbox.md-THEME_NAME-theme:not([disabled]).md-primary.md-checked .md-icon {  background-color: '{{primary-color-0.87}}'; }md-checkbox.md-THEME_NAME-theme:not([disabled]).md-primary.md-checked .md-icon:after {  border-color: '{{background-200}}'; }md-checkbox.md-THEME_NAME-theme:not([disabled]).md-warn .md-ripple {  color: '{{warn-600}}'; }md-checkbox.md-THEME_NAME-theme:not([disabled]).md-warn.md-checked .md-ripple {  color: '{{background-600}}'; }md-checkbox.md-THEME_NAME-theme:not([disabled]).md-warn .md-icon {  border-color: '{{foreground-2}}'; }md-checkbox.md-THEME_NAME-theme:not([disabled]).md-warn.md-checked .md-icon {  background-color: '{{warn-color-0.87}}'; }md-checkbox.md-THEME_NAME-theme:not([disabled]).md-warn.md-checked .md-icon:after {  border-color: '{{background-200}}'; }md-checkbox.md-THEME_NAME-theme[disabled] .md-icon {  border-color: '{{foreground-3}}'; }md-checkbox.md-THEME_NAME-theme[disabled].md-checked .md-icon {  background-color: '{{foreground-3}}'; }md-content.md-THEME_NAME-theme {  background-color: '{{background-hue-3}}'; }md-dialog.md-THEME_NAME-theme {  border-radius: 4px;  background-color: '{{background-hue-3}}'; }  md-dialog.md-THEME_NAME-theme.md-content-overflow .md-actions {    border-top-color: '{{foreground-4}}'; }md-divider.md-THEME_NAME-theme {  border-top-color: '{{foreground-4}}'; }md-input-container.md-THEME_NAME-theme .md-input {  color: '{{foreground-1}}';  border-color: '{{foreground-4}}';  text-shadow: '{{foreground-shadow}}'; }  md-input-container.md-THEME_NAME-theme .md-input::-webkit-input-placeholder, md-input-container.md-THEME_NAME-theme .md-input::-moz-placeholder, md-input-container.md-THEME_NAME-theme .md-input:-moz-placeholder, md-input-container.md-THEME_NAME-theme .md-input:-ms-input-placeholder {    color: '{{foreground-3}}'; }md-input-container.md-THEME_NAME-theme label {  text-shadow: '{{foreground-shadow}}';  color: '{{foreground-3}}'; }md-input-container.md-THEME_NAME-theme.md-input-focused .md-input {  border-color: '{{primary-500}}'; }md-input-container.md-THEME_NAME-theme.md-input-focused label {  color: '{{primary-500}}'; }md-input-container.md-THEME_NAME-theme.md-input-focused.md-accent .md-input {  border-color: '{{accent-500}}'; }md-input-container.md-THEME_NAME-theme.md-input-focused.md-accent label {  color: '{{accent-500}}'; }md-input-container.md-THEME_NAME-theme.md-input-focused.md-warn .md-input {  border-color: '{{warn-500}}'; }md-input-container.md-THEME_NAME-theme.md-input-focused.md-warn label {  color: '{{warn-500}}'; }md-input-container.md-THEME_NAME-theme.md-input-has-value:not(.md-input-focused) label {  color: '{{foreground-2}}'; }md-input-container.md-THEME_NAME-theme .md-input[disabled] {  border-bottom-color: transparent;  color: '{{foreground-3}}';  background-image: linear-gradient(to right, '{{foreground-4}}' 0%, '{{foreground-4}}' 33%, transparent 0%); }md-progress-circular.md-THEME_NAME-theme {  background-color: transparent; }  md-progress-circular.md-THEME_NAME-theme .md-inner .md-gap {    border-top-color: '{{primary-color}}';    border-bottom-color: '{{primary-color}}'; }  md-progress-circular.md-THEME_NAME-theme .md-inner .md-left .md-half-circle, md-progress-circular.md-THEME_NAME-theme .md-inner .md-right .md-half-circle {    border-top-color: '{{primary-color}}'; }  md-progress-circular.md-THEME_NAME-theme .md-inner .md-right .md-half-circle {    border-right-color: '{{primary-color}}'; }  md-progress-circular.md-THEME_NAME-theme .md-inner .md-left .md-half-circle {    border-left-color: '{{primary-color}}'; }  md-progress-circular.md-THEME_NAME-theme.md-warn .md-inner .md-gap {    border-top-color: '{{warn-color}}';    border-bottom-color: '{{warn-color}}'; }  md-progress-circular.md-THEME_NAME-theme.md-warn .md-inner .md-left .md-half-circle, md-progress-circular.md-THEME_NAME-theme.md-warn .md-inner .md-right .md-half-circle {    border-top-color: '{{warn-color}}'; }  md-progress-circular.md-THEME_NAME-theme.md-warn .md-inner .md-right .md-half-circle {    border-right-color: '{{warn-color}}'; }  md-progress-circular.md-THEME_NAME-theme.md-warn .md-inner .md-left .md-half-circle {    border-left-color: '{{warn-color}}'; }  md-progress-circular.md-THEME_NAME-theme.md-accent .md-inner .md-gap {    border-top-color: '{{accent-color}}';    border-bottom-color: '{{accent-color}}'; }  md-progress-circular.md-THEME_NAME-theme.md-accent .md-inner .md-left .md-half-circle, md-progress-circular.md-THEME_NAME-theme.md-accent .md-inner .md-right .md-half-circle {    border-top-color: '{{accent-color}}'; }  md-progress-circular.md-THEME_NAME-theme.md-accent .md-inner .md-right .md-half-circle {    border-right-color: '{{accent-color}}'; }  md-progress-circular.md-THEME_NAME-theme.md-accent .md-inner .md-left .md-half-circle {    border-left-color: '{{accent-color}}'; }md-progress-linear.md-THEME_NAME-theme .md-container {  background-color: '{{primary-100}}'; }md-progress-linear.md-THEME_NAME-theme .md-bar {  background-color: '{{primary-color}}'; }md-progress-linear.md-THEME_NAME-theme.md-warn .md-container {  background-color: '{{warn-100}}'; }md-progress-linear.md-THEME_NAME-theme.md-warn .md-bar {  background-color: '{{warn-color}}'; }md-progress-linear.md-THEME_NAME-theme.md-accent .md-container {  background-color: '{{accent-100}}'; }md-progress-linear.md-THEME_NAME-theme.md-accent .md-bar {  background-color: '{{accent-color}}'; }md-progress-linear.md-THEME_NAME-theme[md-mode=buffer].md-warn .md-bar1 {  background-color: '{{warn-100}}'; }md-progress-linear.md-THEME_NAME-theme[md-mode=buffer].md-warn .md-dashed:before {  background: radial-gradient('{{warn-100}}' 0%, '{{warn-100}}' 16%, transparent 42%); }md-progress-linear.md-THEME_NAME-theme[md-mode=buffer].md-accent .md-bar1 {  background-color: '{{accent-100}}'; }md-progress-linear.md-THEME_NAME-theme[md-mode=buffer].md-accent .md-dashed:before {  background: radial-gradient('{{accent-100}}' 0%, '{{accent-100}}' 16%, transparent 42%); }md-radio-button.md-THEME_NAME-theme .md-off {  border-color: '{{foreground-2}}'; }md-radio-button.md-THEME_NAME-theme .md-on {  background-color: '{{accent-color-0.87}}'; }md-radio-button.md-THEME_NAME-theme.md-checked .md-off {  border-color: '{{accent-color-0.87}}'; }md-radio-button.md-THEME_NAME-theme.md-checked .md-ink-ripple {  color: '{{accent-color-0.87}}'; }md-radio-button.md-THEME_NAME-theme .md-container .md-ripple {  color: '{{accent-600}}'; }md-radio-button.md-THEME_NAME-theme:not([disabled]).md-warn .md-on {  background-color: '{{warn-color-0.87}}'; }md-radio-button.md-THEME_NAME-theme:not([disabled]).md-warn.md-checked .md-off {  border-color: '{{warn-color-0.87}}'; }md-radio-button.md-THEME_NAME-theme:not([disabled]).md-warn.md-checked .md-ink-ripple {  color: '{{warn-color-0.87}}'; }md-radio-button.md-THEME_NAME-theme:not([disabled]).md-warn .md-container .md-ripple {  color: '{{warn-600}}'; }md-radio-button.md-THEME_NAME-theme:not([disabled]).md-primary .md-on {  background-color: '{{primary-color-0.87}}'; }md-radio-button.md-THEME_NAME-theme:not([disabled]).md-primary.md-checked .md-off {  border-color: '{{primary-color-0.87}}'; }md-radio-button.md-THEME_NAME-theme:not([disabled]).md-primary.md-checked .md-ink-ripple {  color: '{{primary-color-0.87}}'; }md-radio-button.md-THEME_NAME-theme:not([disabled]).md-primary .md-container .md-ripple {  color: '{{primary-600}}'; }md-radio-button.md-THEME_NAME-theme[disabled] .md-container .md-off {  border-color: '{{foreground-3}}'; }md-radio-button.md-THEME_NAME-theme[disabled] .md-container .md-on {  border-color: '{{foreground-3}}'; }md-radio-group.md-THEME_NAME-theme:focus:not(:empty) {  border-color: '{{foreground-1}}'; }md-sidenav.md-THEME_NAME-theme {  background-color: '{{background-hue-3}}'; }md-slider.md-THEME_NAME-theme .md-track {  background-color: '{{foreground-3}}'; }md-slider.md-THEME_NAME-theme .md-track-ticks {  background-color: '{{foreground-4}}'; }md-slider.md-THEME_NAME-theme .md-focus-thumb {  background-color: '{{foreground-2}}'; }md-slider.md-THEME_NAME-theme .md-focus-ring {  border-color: '{{foreground-4}}'; }md-slider.md-THEME_NAME-theme .md-disabled-thumb {  border-color: '{{background-hue-3}}'; }md-slider.md-THEME_NAME-theme.md-min .md-thumb:after {  background-color: '{{background-hue-3}}'; }md-slider.md-THEME_NAME-theme .md-track.md-track-fill {  background-color: '{{primary-color}}'; }md-slider.md-THEME_NAME-theme .md-thumb:after {  border-color: '{{primary-color}}';  background-color: '{{primary-color}}'; }md-slider.md-THEME_NAME-theme .md-sign {  background-color: '{{primary-color}}'; }  md-slider.md-THEME_NAME-theme .md-sign:after {    border-top-color: '{{primary-color}}'; }md-slider.md-THEME_NAME-theme .md-thumb-text {  color: '{{primary-contrast}}'; }md-slider.md-THEME_NAME-theme.md-warn .md-track-fill {  background-color: '{{warn-color}}'; }md-slider.md-THEME_NAME-theme.md-warn .md-thumb:after {  border-color: '{{warn-color}}';  background-color: '{{warn-color}}'; }md-slider.md-THEME_NAME-theme.md-warn .md-sign {  background-color: '{{warn-color}}'; }  md-slider.md-THEME_NAME-theme.md-warn .md-sign:after {    border-top-color: '{{warn-color}}'; }md-slider.md-THEME_NAME-theme.md-warn .md-thumb-text {  color: '{{warn-contrast}}'; }md-slider.md-THEME_NAME-theme.md-accent .md-track-fill {  background-color: '{{accent-color}}'; }md-slider.md-THEME_NAME-theme.md-accent .md-thumb:after {  border-color: '{{accent-color}}';  background-color: '{{accent-color}}'; }md-slider.md-THEME_NAME-theme.md-accent .md-sign {  background-color: '{{accent-color}}'; }  md-slider.md-THEME_NAME-theme.md-accent .md-sign:after {    border-top-color: '{{accent-color}}'; }md-slider.md-THEME_NAME-theme.md-accent .md-thumb-text {  color: '{{accent-contrast}}'; }md-slider.md-THEME_NAME-theme[disabled] .md-thumb:after {  border-color: '{{foreground-3}}'; }md-slider.md-THEME_NAME-theme[disabled]:not(.md-min) .md-thumb:after {  background-color: '{{foreground-3}}'; }.md-subheader.md-THEME_NAME-theme {  color: '{{ foreground-2-0.23 }}';  background-color: '{{background-hue-3}}'; }  .md-subheader.md-THEME_NAME-theme.md-primary {    color: '{{primary-color}}'; }  .md-subheader.md-THEME_NAME-theme.md-accent {    color: '{{accent-color}}'; }  .md-subheader.md-THEME_NAME-theme.md-warn {    color: '{{warn-color}}'; }md-switch.md-THEME_NAME-theme .md-thumb {  background-color: '{{background-50}}'; }md-switch.md-THEME_NAME-theme .md-bar {  background-color: '{{background-500}}'; }md-switch.md-THEME_NAME-theme.md-checked .md-thumb {  background-color: '{{accent-color}}'; }md-switch.md-THEME_NAME-theme.md-checked .md-bar {  background-color: '{{accent-color-0.5}}'; }md-switch.md-THEME_NAME-theme.md-checked.md-primary .md-thumb {  background-color: '{{primary-color}}'; }md-switch.md-THEME_NAME-theme.md-checked.md-primary .md-bar {  background-color: '{{primary-color-0.5}}'; }md-switch.md-THEME_NAME-theme.md-checked.md-warn .md-thumb {  background-color: '{{warn-color}}'; }md-switch.md-THEME_NAME-theme.md-checked.md-warn .md-bar {  background-color: '{{warn-color-0.5}}'; }md-switch.md-THEME_NAME-theme[disabled] .md-thumb {  background-color: '{{background-400}}'; }md-switch.md-THEME_NAME-theme[disabled] .md-bar {  background-color: '{{foreground-4}}'; }md-switch.md-THEME_NAME-theme:focus .md-label:not(:empty) {  border-color: '{{foreground-1}}';  border-style: dotted; }md-tabs.md-THEME_NAME-theme .md-header {  background-color: '{{primary-color}}'; }md-tabs.md-THEME_NAME-theme.md-accent .md-header {  background-color: '{{accent-color}}'; }md-tabs.md-THEME_NAME-theme.md-accent md-tab:not([disabled]) {  color: '{{accent-100}}'; }  md-tabs.md-THEME_NAME-theme.md-accent md-tab:not([disabled]).active {    color: '{{accent-contrast}}'; }md-tabs.md-THEME_NAME-theme.md-warn .md-header {  background-color: '{{warn-color}}'; }md-tabs.md-THEME_NAME-theme.md-warn md-tab:not([disabled]) {  color: '{{warn-100}}'; }  md-tabs.md-THEME_NAME-theme.md-warn md-tab:not([disabled]).active {    color: '{{warn-contrast}}'; }md-tabs.md-THEME_NAME-theme md-tabs-ink-bar {  color: white;  background: white; }md-tabs.md-THEME_NAME-theme md-tab {  color: '{{primary-100}}'; }  md-tabs.md-THEME_NAME-theme md-tab.active {    color: '{{primary-contrast}}'; }  md-tabs.md-THEME_NAME-theme md-tab[disabled] {    color: '{{foreground-4}}'; }  md-tabs.md-THEME_NAME-theme md-tab:focus {    color: '{{primary-contrast}}';    background-color: '{{primary-contrast-0.1}}'; }  md-tabs.md-THEME_NAME-theme md-tab .md-ripple-container {    color: white; }md-input-group.md-THEME_NAME-theme input, md-input-group.md-THEME_NAME-theme textarea {  text-shadow: '{{foreground-shadow}}'; }  md-input-group.md-THEME_NAME-theme input::-webkit-input-placeholder, md-input-group.md-THEME_NAME-theme input::-moz-placeholder, md-input-group.md-THEME_NAME-theme input:-moz-placeholder, md-input-group.md-THEME_NAME-theme input:-ms-input-placeholder, md-input-group.md-THEME_NAME-theme textarea::-webkit-input-placeholder, md-input-group.md-THEME_NAME-theme textarea::-moz-placeholder, md-input-group.md-THEME_NAME-theme textarea:-moz-placeholder, md-input-group.md-THEME_NAME-theme textarea:-ms-input-placeholder {    color: '{{foreground-3}}'; }md-input-group.md-THEME_NAME-theme label {  text-shadow: '{{foreground-shadow}}';  color: '{{foreground-3}}'; }md-input-group.md-THEME_NAME-theme input, md-input-group.md-THEME_NAME-theme textarea {  color: '{{foreground-1}}';  border-color: '{{foreground-4}}'; }md-input-group.md-THEME_NAME-theme.md-input-focused input, md-input-group.md-THEME_NAME-theme.md-input-focused textarea {  border-color: '{{primary-500}}'; }md-input-group.md-THEME_NAME-theme.md-input-focused label {  color: '{{primary-500}}'; }md-input-group.md-THEME_NAME-theme.md-input-focused.md-accent input, md-input-group.md-THEME_NAME-theme.md-input-focused.md-accent textarea {  border-color: '{{accent-500}}'; }md-input-group.md-THEME_NAME-theme.md-input-focused.md-accent label {  color: '{{accent-500}}'; }md-input-group.md-THEME_NAME-theme.md-input-has-value:not(.md-input-focused) label {  color: '{{foreground-2}}'; }md-input-group.md-THEME_NAME-theme .md-input[disabled] {  border-bottom-color: '{{foreground-4}}';  color: '{{foreground-3}}'; }md-toast.md-THEME_NAME-theme {  background-color: '{{foreground-1}}';  color: '{{background-50}}'; }  md-toast.md-THEME_NAME-theme .md-button {    color: '{{background-50}}'; }  md-toast.md-THEME_NAME-theme .md-action {    color: '{{primary-A200}}'; }    md-toast.md-THEME_NAME-theme .md-action.md-accent {      color: '{{accent-A200}}'; }    md-toast.md-THEME_NAME-theme .md-action.md-warn {      color: '{{warn-A200}}'; }md-toolbar.md-THEME_NAME-theme {  background-color: '{{primary-color}}';  color: '{{primary-contrast}}'; }  md-toolbar.md-THEME_NAME-theme .md-button {    color: '{{primary-contrast}}'; }  md-toolbar.md-THEME_NAME-theme.md-accent {    background-color: '{{accent-color}}';    color: '{{accent-contrast}}'; }  md-toolbar.md-THEME_NAME-theme.md-warn {    background-color: '{{warn-color}}';    color: '{{warn-contrast}}'; }md-tooltip.md-THEME_NAME-theme {  color: '{{background-A100}}'; }  md-tooltip.md-THEME_NAME-theme .md-background {    background-color: '{{foreground-2}}'; }");
 
 (function(window, angular, undefined) {
     "use strict";
