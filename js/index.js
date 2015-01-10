@@ -861,6 +861,9 @@
         return items;
       };
       $scope.sortPlayerItems = function() {
+        if (!$scope.player) {
+          return;
+        }
         return $scope.playerItems = (_.sortBy($scope.getEquipmentAndTotals($scope.player.equipment), function(item) {
           return item.type;
         })).concat($scope.getOverflows());
@@ -1480,23 +1483,23 @@
         }
       ];
       $scope.eventTypeToIcon = {
-        'item-mod': ['fa-legal', 'fa-magic fa-rotate-90'],
-        'item-find': ['icon-feather'],
-        'item-enchant': ['fa-magic'],
-        'item-switcheroo': ['icon-magnet'],
-        'shop': ['fa-money'],
-        'shop-fail': ['fa-money'],
-        'profession': ['fa-child'],
-        'explore': ['fa-globe'],
-        'levelup': ['icon-universal-access'],
-        'achievement': ['fa-shield'],
-        'party': ['fa-users'],
-        'exp': ['fa-support'],
-        'gold': ['icon-money'],
-        'guild': ['fa-network'],
-        'combat': ['fa-newspaper-o faa-pulse animated'],
-        'event': ['fa-gift faa-shake animated'],
-        'pet': ['fa-paw']
+        'item-mod': 'fa-legal',
+        'item-find': 'icon-feather',
+        'item-enchant': 'fa-magic',
+        'item-switcheroo': 'icon-magnet',
+        'shop': 'fa-money',
+        'shop-fail': 'fa-money',
+        'profession': 'fa-child',
+        'explore': 'fa-globe',
+        'levelup': 'icon-universal-access',
+        'achievement': 'fa-shield',
+        'party': 'fa-users',
+        'exp': 'fa-support',
+        'gold': 'icon-money',
+        'guild': 'fa-network',
+        'combat': 'fa-newspaper-o faa-pulse animated',
+        'event': 'fa-gift faa-shake animated',
+        'pet': 'fa-paw'
       };
       $scope.praying = false;
       $scope.prayText = 'Pray to RNGesus';

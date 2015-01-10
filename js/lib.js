@@ -63529,3 +63529,325 @@ angular.module("xeditable").factory("editableThemes", function() {
         angularMoment(angular, window.moment);
     }
 })();
+
+(function(window, angular, undefined) {
+    "use strict";
+    function setOneTimeBinding($scope, element, watch, watcherParser, bindingParser, done) {
+        var watchingValue = watcherParser($scope);
+        if (watchingValue !== undefined) {
+            return done(element, watcherParser == bindingParser ? watchingValue : bindingParser($scope));
+        }
+        var watcherRemover = $scope.$watch(watch, function(newValue) {
+            if (newValue == undefined) return;
+            removeWatcher();
+            return done(element, watcherParser == bindingParser ? newValue : bindingParser($scope));
+        });
+        function removeWatcher() {
+            if (watcherRemover) {
+                watcherRemover();
+            }
+        }
+        $scope.$on("$destroy", removeWatcher);
+    }
+    var once = angular.module("once", []);
+    function makeBindingDirective(definition) {
+        once.directive(definition.name, [ "$parse", function($parse) {
+            return function($scope, element, attrs) {
+                var watch = attrs.onceWaitFor || attrs[definition.name];
+                var watcherParser = $parse(watch);
+                var bindingParser = attrs.onceWaitFor ? $parse(attrs[definition.name]) : watcherParser;
+                setOneTimeBinding($scope, element, watch, watcherParser, bindingParser, definition.binding);
+            };
+        } ]);
+    }
+    var bindingsDefinitions = [ {
+        name: "onceText",
+        binding: function(element, value) {
+            element.text(value !== null ? value : "");
+        }
+    }, {
+        name: "onceHtml",
+        binding: function(element, value) {
+            element.html(value);
+        }
+    }, {
+        name: "onceSrc",
+        binding: function(element, value) {
+            element.attr("src", value);
+        }
+    }, {
+        name: "onceHref",
+        binding: function(element, value) {
+            element.attr("href", value);
+        }
+    }, {
+        name: "onceTitle",
+        binding: function(element, value) {
+            element.attr("title", value);
+        }
+    }, {
+        name: "onceAlt",
+        binding: function(element, value) {
+            element.attr("alt", value);
+        }
+    }, {
+        name: "onceId",
+        binding: function(element, value) {
+            element.attr("id", value);
+        }
+    }, {
+        name: "onceIf",
+        binding: function(element, value) {
+            if (!value) {
+                element.remove();
+            }
+        }
+    }, {
+        name: "onceClass",
+        binding: function(element, value) {
+            if (angular.isObject(value) && !angular.isArray(value)) {
+                var results = [];
+                angular.forEach(value, function(val, index) {
+                    if (val) results.push(index);
+                });
+                value = results;
+            }
+            if (value) {
+                element.addClass(angular.isArray(value) ? value.join(" ") : value);
+            }
+        }
+    }, {
+        name: "onceStyle",
+        binding: function(element, value) {
+            element.css(value);
+        }
+    }, {
+        name: "onceShow",
+        binding: function(element, value) {
+            if (value) {
+                element.css("display", "");
+            } else {
+                element.css("display", "none");
+            }
+        }
+    }, {
+        name: "onceHide",
+        binding: function(element, value) {
+            if (value) {
+                element.css("display", "none");
+            } else {
+                element.css("display", "");
+            }
+        }
+    } ];
+    angular.forEach(bindingsDefinitions, makeBindingDirective);
+    once.directive("once", function() {
+        return function($scope, element, attrs) {
+            angular.forEach(attrs, function(attr, attrName) {
+                if (!/^onceAttr[A-Z]/.test(attrName)) return;
+                var bind = function(element, value) {
+                    var dashedName = attrName.replace(/[A-Z]/g, function(match) {
+                        return "-" + match.toLowerCase();
+                    });
+                    var name = dashedName.substr(10);
+                    element.attr(name, value);
+                };
+                setOneTimeBinding($scope, element, attrs, attrName, bind);
+            });
+        };
+    });
+})(window, window.angular);
+
+angular.module("QuickList", []);
+
+angular.module("QuickList").value("quickRepeatList", {});
+
+angular.module("QuickList").directive("quickNgRepeat", [ "$parse", "$animate", "quickRepeatList", function($parse, $animate, quick_repeat_list) {
+    var NG_REMOVED = "$$NG_REMOVED";
+    var ngRepeatMinErr = "err";
+    var uid = [ "0", "0", "0" ];
+    var list_id = window.list_id = function() {
+        var i = 0;
+        return function() {
+            return "list_" + ++i;
+        };
+    }();
+    function hashKey(obj) {
+        var objType = typeof obj, key;
+        if (objType == "object" && obj !== null) {
+            if (typeof (key = obj.$$hashKey) == "function") {
+                key = obj.$$hashKey();
+            } else if (key === undefined) {
+                key = obj.$$hashKey = nextUid();
+            }
+        } else {
+            key = obj;
+        }
+        return objType + ":" + key;
+    }
+    function isWindow(obj) {
+        return obj && obj.document && obj.location && obj.alert && obj.setInterval;
+    }
+    function nextUid() {
+        var index = uid.length;
+        var digit;
+        while (index) {
+            index--;
+            digit = uid[index].charCodeAt(0);
+            if (digit == 57) {
+                uid[index] = "A";
+                return uid.join("");
+            }
+            if (digit == 90) {
+                uid[index] = "0";
+            } else {
+                uid[index] = String.fromCharCode(digit + 1);
+                return uid.join("");
+            }
+        }
+        uid.unshift("0");
+        return uid.join("");
+    }
+    function isArrayLike(obj) {
+        if (obj == null || isWindow(obj)) {
+            return false;
+        }
+        var length = obj.length;
+        if (obj.nodeType === 1 && length) {
+            return true;
+        }
+        return angular.isArray(obj) || !angular.isFunction(obj) && (length === 0 || typeof length === "number" && length > 0 && length - 1 in obj);
+    }
+    return {
+        transclude: "element",
+        priority: 1e3,
+        terminal: true,
+        compile: function(element, attr, linker) {
+            return function($scope, $element, $attr) {
+                var expression = $attr.quickNgRepeat;
+                var match = expression.match(/^\s*(.+)\s+in\s+(.*?)\s*(\s+track\s+by\s+(.+)\s*)?$/), trackByExp, trackByExpGetter, trackByIdFn, trackByIdArrayFn, trackByIdObjFn, lhs, rhs, valueIdentifier, keyIdentifier, hashFnLocals = {
+                    $id: hashKey
+                };
+                if (!match) {
+                    throw ngRepeatMinErr("iexp", "Expected expression in form of '_item_ in _collection_[ track by _id_]' but got '{0}'.", expression);
+                }
+                lhs = match[1];
+                rhs = match[2];
+                trackByExp = match[4];
+                if (trackByExp) {
+                    trackByExpGetter = $parse(trackByExp);
+                    trackByIdFn = function(key, value, index) {
+                        if (keyIdentifier) hashFnLocals[keyIdentifier] = key;
+                        hashFnLocals[valueIdentifier] = value;
+                        hashFnLocals.$index = index;
+                        return trackByExpGetter($scope, hashFnLocals);
+                    };
+                } else {
+                    trackByIdArrayFn = function(key, value) {
+                        return hashKey(value);
+                    };
+                    trackByIdObjFn = function(key) {
+                        return key;
+                    };
+                }
+                match = lhs.match(/^(?:([\$\w]+)|\(([\$\w]+)\s*,\s*([\$\w]+)\))$/);
+                if (!match) {
+                    throw ngRepeatMinErr("iidexp", "'_item_' in '_item_ in _collection_' should be an identifier or '(_key_, _value_)' expression, but got '{0}'.", lhs);
+                }
+                valueIdentifier = match[3] || match[1];
+                keyIdentifier = match[2];
+                var lastBlockMap = {};
+                var list_name = $attr.quickRepeatList || list_id();
+                $scope.$watch(rhs, quick_repeat_list[list_name] = function(collection) {
+                    var index, length, previousNode = $element[0], nextNode, nextBlockMap = {}, arrayLength, childScope, key, value, trackById, collectionKeys, block, nextBlockOrder = [];
+                    if (isArrayLike(collection)) {
+                        collectionKeys = collection;
+                        trackByIdFn = trackByIdFn || trackByIdArrayFn;
+                    } else {
+                        trackByIdFn = trackByIdFn || trackByIdObjFn;
+                        collectionKeys = [];
+                        for (key in collection) {
+                            if (collection.hasOwnProperty(key) && key.charAt(0) != "$") {
+                                collectionKeys.push(key);
+                            }
+                        }
+                        collectionKeys.sort();
+                    }
+                    arrayLength = collectionKeys.length;
+                    length = nextBlockOrder.length = collectionKeys.length;
+                    for (index = 0; index < length; index++) {
+                        key = collection === collectionKeys ? index : collectionKeys[index];
+                        value = collection[key];
+                        trackById = trackByIdFn(key, value, index);
+                        if (lastBlockMap.hasOwnProperty(trackById)) {
+                            block = lastBlockMap[trackById];
+                            delete lastBlockMap[trackById];
+                            nextBlockMap[trackById] = block;
+                            nextBlockOrder[index] = block;
+                        } else if (nextBlockMap.hasOwnProperty(trackById)) {
+                            angular.forEach(nextBlockOrder, function(block) {
+                                if (block && block.startNode) lastBlockMap[block.id] = block;
+                            });
+                            throw ngRepeatMinErr("dupes", "Duplicates in a repeater are not allowed. Use 'track by' expression to specify unique keys. Repeater: {0}, Duplicate key: {1}", expression, trackById);
+                        } else {
+                            nextBlockOrder[index] = {
+                                id: trackById
+                            };
+                            nextBlockMap[trackById] = false;
+                        }
+                    }
+                    for (key in lastBlockMap) {
+                        if (lastBlockMap.hasOwnProperty(key)) {
+                            block = lastBlockMap[key];
+                            $animate.leave(block.elements);
+                            angular.forEach(block.elements, function(element) {
+                                element[NG_REMOVED] = true;
+                            });
+                            block.scope.$destroy();
+                        }
+                    }
+                    for (index = 0, length = collectionKeys.length; index < length; index++) {
+                        key = collection === collectionKeys ? index : collectionKeys[index];
+                        value = collection[key];
+                        block = nextBlockOrder[index];
+                        if (block.startNode) {
+                            childScope = block.scope;
+                            nextNode = previousNode;
+                            do {
+                                nextNode = nextNode.nextSibling;
+                            } while (nextNode && nextNode[NG_REMOVED]);
+                            if (block.startNode == nextNode) {} else {
+                                $animate.move(block.elements, null, angular.element(previousNode));
+                            }
+                            previousNode = block.endNode;
+                        } else {
+                            childScope = $scope.$new();
+                        }
+                        childScope[valueIdentifier] = value;
+                        if (keyIdentifier) childScope[keyIdentifier] = key;
+                        childScope.$index = index;
+                        childScope.$first = index === 0;
+                        childScope.$last = index === arrayLength - 1;
+                        childScope.$middle = !(childScope.$first || childScope.$last);
+                        childScope.$odd = !(childScope.$even = index % 2 == 0);
+                        if (!block.startNode) {
+                            linker(childScope, function(clone) {
+                                $animate.enter(clone, null, angular.element(previousNode));
+                                previousNode = clone;
+                                block.scope = childScope;
+                                block.startNode = clone[0];
+                                block.elements = clone;
+                                block.endNode = clone[clone.length - 1];
+                                nextBlockMap[block.id] = block;
+                            });
+                            if (childScope.$$phase !== "$digest") {
+                                childScope.$digest();
+                            }
+                        }
+                    }
+                    lastBlockMap = nextBlockMap;
+                });
+            };
+        }
+    };
+} ]);
