@@ -6,7 +6,7 @@ script(id="player-collectibles",type="text/ng-template")
                     h3 {{collectible.name}}
                     h4
                         | Found&nbsp;
-                        span(am-time-ago="collectible.foundAt")
-                        | &nbsp;in {{collectible.map}} ({{collectible.region}})
+                        span(am-time-ago="::collectible.foundAt")
+                        | &nbsp;in {{::collectible.map}} ({{::collectible.region}})
                     p
-                        | Rarity: {{collectible.rarity || 'basic'}}
+                        | Rarity: {{::collectible.rarity || 'basic'}}

@@ -3,8 +3,8 @@ script(id="pet-inventory", type="text/ng-template")
         md-item(ng-repeat="item in petItems track by $index")
             md-item-content
                 div.md-tile-left.class-badge.text-center.align-left-list-item
-                    div(class="{{itemUtilities.classToColor(item.itemClass)}}") {{item.type}}
-                        md-tooltip {{item.itemClass}}
+                    div(class="{{itemUtilities.classToColor(item.itemClass)}}") {{::item.type}}
+                        md-tooltip {{::item.itemClass}}
                     div(ng-if="item.extraItemClass",class="{{itemUtilities.classToColor(item.extraItemClass)}}") {{item.extraText}}
 
                     div.text-center
@@ -17,19 +17,19 @@ script(id="pet-inventory", type="text/ng-template")
 
                 div.md-tile-content.item-line
                     div
-                        span.super-bold {{item.enchantLevel ? '+'+item.enchantLevel+' ' : ''}} {{item.name}}
-                        small(ng-if="item.foundAt")
+                        span.super-bold {{item.enchantLevel ? '+'+item.enchantLevel+' ' : ''}} {{::item.name}}
+                        small
                             span , found
                             span &nbsp;
-                            span(am-time-ago="item.foundAt")
+                            span(am-time-ago="::item.foundAt")
                             span , with a Player Relativity of
                             span &nbsp;{{petItemScore(item)}}%&nbsp;
                             span and an Item Relativity of
                             span &nbsp;{{itemItemScore(item)}}%
                     div.top-margin-5.wrap-container(layout="row")
-                        span(ng-repeat="stat in itemUtilities.equipmentStatArray",flex="8")
-                            span.fa.fa-fw.fa-lg(class="{{stat.fa}}")
-                                md-tooltip {{stat.name}}
+                        span(ng-repeat="stat in ::itemUtilities.equipmentStatArray",flex="8")
+                            span.fa.fa-fw.fa-lg(class="{{::stat.fa}}")
+                                md-tooltip {{::stat.name}}
                             span &nbsp;
                             small(class="{{valueToColor(item[stat.name])}}") {{item[stat.name]}}
                             small &nbsp;/&nbsp;

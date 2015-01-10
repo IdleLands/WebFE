@@ -4,8 +4,8 @@ script(id="player-achievements",type="text/ng-template")
             md-item-content
                 div.md-tile-left.text-center
                     span.fa-stack
-                        span.fa.fa-stack-2x(ng-repeat="item in $parent.achievementTypeToIcon[achievement.type]",class="{{item}}")
+                        span.fa.fa-stack-2x(ng-repeat="item in ::$parent.achievementTypeToIcon[achievement.type]",class="{{::item}}")
                 div.md-tile-content
-                    h3 {{achievement.name}}
-                    h4 {{achievement.desc}}
-                    p {{achievement.reward}}
+                    h3 {{::achievement.name}}
+                    h4 {{::achievement.desc}}
+                    p {{::achievement.reward}}

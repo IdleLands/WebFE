@@ -1,13 +1,13 @@
 script(id="pet-equipment", type="text/ng-template")
     md-list.flex-scroll.has-height
-        md-item(ng-repeat="item in petSoulEtc track by $index")
+        md-item(ng-repeat="item in ::petSoulEtc track by $index")
             md-item-content(ng-include="'pet-equipment-item'")
         md-item(ng-repeat="item in sortedPetEquipment track by $index")
             md-item-content(ng-include="'pet-equipment-item'")
 
 script(id="pet-equipment-item", type="text/ng-template")
     div.md-tile-left.class-badge.text-center.align-left-list-item
-        div(class="{{itemUtilities.classToColor(item.itemClass)}}") {{item.type}}
+        div(class="{{itemUtilities.classToColor(item.itemClass)}}") {{::item.type}}
             md-tooltip {{item.itemClass}}
         div(ng-if="item.extraItemClass",class="{{itemUtilities.classToColor(item.extraItemClass)}}") {{item.extraText}}
 
@@ -17,20 +17,20 @@ script(id="pet-equipment-item", type="text/ng-template")
 
     div.md-tile-content.item-line
         div
-            span.super-bold {{item.enchantLevel ? '+'+item.enchantLevel+' ' : ''}} {{item.name}}
-            small(ng-if="item.foundAt && !item.hideButtons")
+            span.super-bold {{item.enchantLevel ? '+'+item.enchantLevel+' ' : ''}} {{::item.name}}
+            small(ng-if="!::item.hideButtons")
                 span , found
                 span &nbsp;
-                span(am-time-ago="item.foundAt")
+                span(am-time-ago="::item.foundAt")
                 span , with a Player Relativity of
                 span &nbsp;{{petItemScore(item)}}%&nbsp;
                 span and an Item Relativity of
                 span &nbsp;{{itemItemScore(item)}}%
 
         div.top-margin-5.wrap-container(layout="row")
-            span(ng-repeat="stat in itemUtilities.equipmentStatArray",flex="8")
-                span.fa.fa-fw.fa-lg(class="{{stat.fa}}")
-                    md-tooltip {{stat.name}}
+            span(ng-repeat="stat in ::itemUtilities.equipmentStatArray",flex="8")
+                span.fa.fa-fw.fa-lg(class="{{::stat.fa}}")
+                    md-tooltip {{::stat.name}}
                 span &nbsp;
                 small(class="{{valueToColor(item[stat.name])}}") {{item[stat.name]}}
                 small &nbsp;/&nbsp;

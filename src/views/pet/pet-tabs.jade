@@ -1,7 +1,7 @@
 script(id='pet', type='text/ng-template')
    md-toolbar.md-theme-light(ng-if="pet")
       h1.md-toolbar-tools
-         span {{pet.name}}, the level {{pet.level.__current}} {{pet.type}} {{pet.professionName}} with {{pet.attrs[0]}} and {{pet.attrs[1]}}
+         span {{::pet.name}}, the level {{pet.level.__current}} {{::pet.type}} {{pet.professionName}} with {{::pet.attrs[0]}} and {{::pet.attrs[1]}}
 
    md-progress-linear.player-xp(mode="determinate",ng-value="xpPercent",md-theme="green", ng-if="pet")
 

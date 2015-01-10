@@ -48,6 +48,7 @@ angular.module 'IdleLands'
       items
 
     $scope.sortPlayerItems = ->
+      return if not $scope.player
       $scope.playerItems = (_.sortBy ($scope.getEquipmentAndTotals $scope.player.equipment), (item) -> item.type).concat $scope.getOverflows()
 
     $scope.itemItemScore = (item) ->

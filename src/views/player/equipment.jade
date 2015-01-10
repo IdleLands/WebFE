@@ -3,9 +3,9 @@ script(id="player-equipment", type="text/ng-template")
         md-item(ng-repeat="item in playerItems track by $index")
             md-item-content
                 div.md-tile-left.class-badge.text-center.align-left-list-item
-                    div(class="{{itemUtilities.classToColor(item.itemClass)}}") {{item.type}}
-                        md-tooltip {{item.itemClass}}
-                    div(ng-if="item.extraItemClass",class="{{itemUtilities.classToColor(item.extraItemClass)}}") {{item.extraText}}
+                    div(class="{{itemUtilities.classToColor(item.itemClass)}}") {{::item.type}}
+                        md-tooltip {{::item.itemClass}}
+                    div(ng-if="::item.extraItemClass",class="{{itemUtilities.classToColor(item.extraItemClass)}}") {{item.extraText}}
 
                     //equipped
                     div.text-center(ng-if="!item.extraItemClass && !item.hideButtons && item.type !== 'providence'")
@@ -14,34 +14,34 @@ script(id="player-equipment", type="text/ng-template")
 
                     //in overflow
                     div.text-center(ng-if="_.isNumber(item.overflowSlot)")
-                        span.hover-cursor.fa.fa-fw.icon-money.text-red(ng-if="item.extraItemClass",ng-click="sellItem(item)")
+                        span.hover-cursor.fa.fa-fw.icon-money.text-red(ng-if="::item.extraItemClass",ng-click="sellItem(item)")
                             md-tooltip Sell
-                        span.hover-cursor.fa.fa-fw.fa-exchange(ng-if="item.extraItemClass",ng-click="swapItem(item)")
+                        span.hover-cursor.fa.fa-fw.fa-exchange(ng-if="::item.extraItemClass",ng-click="swapItem(item)")
                             md-tooltip Swap
-                        span.hover-cursor.fa.fa-fw.fa-paw(ng-if="item.extraItemClass",ng-click="sendToPet(item)")
+                        span.hover-cursor.fa.fa-fw.fa-paw(ng-if="::item.extraItemClass",ng-click="sendToPet(item)")
                             md-tooltip Send to pet
 
                     //in shop
                     div.text-center(ng-if="_.isNumber(item.shopSlot)")
-                        span.hover-cursor.fa.fa-fw.icon-money.text-green(ng-if="item.extraItemClass",ng-click="buyItem(item)")
+                        span.hover-cursor.fa.fa-fw.icon-money.text-green(ng-if="::item.extraItemClass",ng-click="buyItem(item)")
                             md-tooltip Buy
 
                 div.md-tile-content.item-line
                     div
                         span.super-bold {{item.enchantLevel ? '+'+item.enchantLevel+' ' : ''}}
-                        span.super-bold {{item.name}}
-                        small(ng-if="item.foundAt")
+                        span.super-bold {{::item.name}}
+                        small(ng-if="::item.foundAt")
                             span , found
                             span &nbsp;
-                            span(am-time-ago="item.foundAt")
+                            span(am-time-ago="::item.foundAt")
                             span , with a Player Relativity of
                             span &nbsp;{{playerItemScore(item)}}%&nbsp;
                             span and an Item Relativity of
                             span &nbsp;{{itemItemScore(item)}}%
                     div.top-margin-5.wrap-container(layout="row")
-                        span(ng-repeat="stat in itemUtilities.equipmentStatArray",flex="8")
-                            span.fa.fa-fw.fa-lg(class="{{stat.fa}}")
-                                md-tooltip {{stat.name}}
+                        span(ng-repeat="stat in ::itemUtilities.equipmentStatArray",flex="8")
+                            span.fa.fa-fw.fa-lg(class="{{::stat.fa}}")
+                                md-tooltip {{::stat.name}}
                             span &nbsp;
                             small(class="{{valueToColor(item[stat.name])}}") {{item[stat.name]}}
                             small &nbsp;/&nbsp;
