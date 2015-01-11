@@ -2614,7 +2614,7 @@
     var toString = class2type.toString;
     var hasOwn = class2type.hasOwnProperty;
     var support = {};
-    var document = window.document, version = "2.1.1", jQuery = function(selector, context) {
+    var document = window.document, version = "2.1.3", jQuery = function(selector, context) {
         return new jQuery.fn.init(selector, context);
     }, rtrim = /^[\s\uFEFF\xA0]+|[\s\uFEFF\xA0]+$/g, rmsPrefix = /^-ms-/, rdashAlpha = /-([\da-z])/gi, fcamelCase = function(all, letter) {
         return letter.toUpperCase();
@@ -2717,7 +2717,7 @@
             return obj != null && obj === obj.window;
         },
         isNumeric: function(obj) {
-            return !jQuery.isArray(obj) && obj - parseFloat(obj) >= 0;
+            return !jQuery.isArray(obj) && obj - parseFloat(obj) + 1 >= 0;
         },
         isPlainObject: function(obj) {
             if (jQuery.type(obj) !== "object" || obj.nodeType || jQuery.isWindow(obj)) {
@@ -2886,20 +2886,20 @@
         return type === "array" || length === 0 || typeof length === "number" && length > 0 && length - 1 in obj;
     }
     var Sizzle = function(window) {
-        var i, support, Expr, getText, isXML, tokenize, compile, select, outermostContext, sortInput, hasDuplicate, setDocument, document, docElem, documentIsHTML, rbuggyQSA, rbuggyMatches, matches, contains, expando = "sizzle" + -new Date(), preferredDoc = window.document, dirruns = 0, done = 0, classCache = createCache(), tokenCache = createCache(), compilerCache = createCache(), sortOrder = function(a, b) {
+        var i, support, Expr, getText, isXML, tokenize, compile, select, outermostContext, sortInput, hasDuplicate, setDocument, document, docElem, documentIsHTML, rbuggyQSA, rbuggyMatches, matches, contains, expando = "sizzle" + 1 * new Date(), preferredDoc = window.document, dirruns = 0, done = 0, classCache = createCache(), tokenCache = createCache(), compilerCache = createCache(), sortOrder = function(a, b) {
             if (a === b) {
                 hasDuplicate = true;
             }
             return 0;
-        }, strundefined = typeof undefined, MAX_NEGATIVE = 1 << 31, hasOwn = {}.hasOwnProperty, arr = [], pop = arr.pop, push_native = arr.push, push = arr.push, slice = arr.slice, indexOf = arr.indexOf || function(elem) {
-            var i = 0, len = this.length;
+        }, MAX_NEGATIVE = 1 << 31, hasOwn = {}.hasOwnProperty, arr = [], pop = arr.pop, push_native = arr.push, push = arr.push, slice = arr.slice, indexOf = function(list, elem) {
+            var i = 0, len = list.length;
             for (;i < len; i++) {
-                if (this[i] === elem) {
+                if (list[i] === elem) {
                     return i;
                 }
             }
             return -1;
-        }, booleans = "checked|selected|async|autofocus|autoplay|controls|defer|disabled|hidden|ismap|loop|multiple|open|readonly|required|scoped", whitespace = "[\\x20\\t\\r\\n\\f]", characterEncoding = "(?:\\\\.|[\\w-]|[^\\x00-\\xa0])+", identifier = characterEncoding.replace("w", "w#"), attributes = "\\[" + whitespace + "*(" + characterEncoding + ")(?:" + whitespace + "*([*^$|!~]?=)" + whitespace + "*(?:'((?:\\\\.|[^\\\\'])*)'|\"((?:\\\\.|[^\\\\\"])*)\"|(" + identifier + "))|)" + whitespace + "*\\]", pseudos = ":(" + characterEncoding + ")(?:\\((" + "('((?:\\\\.|[^\\\\'])*)'|\"((?:\\\\.|[^\\\\\"])*)\")|" + "((?:\\\\.|[^\\\\()[\\]]|" + attributes + ")*)|" + ".*" + ")\\)|)", rtrim = new RegExp("^" + whitespace + "+|((?:^|[^\\\\])(?:\\\\.)*)" + whitespace + "+$", "g"), rcomma = new RegExp("^" + whitespace + "*," + whitespace + "*"), rcombinators = new RegExp("^" + whitespace + "*([>+~]|" + whitespace + ")" + whitespace + "*"), rattributeQuotes = new RegExp("=" + whitespace + "*([^\\]'\"]*?)" + whitespace + "*\\]", "g"), rpseudo = new RegExp(pseudos), ridentifier = new RegExp("^" + identifier + "$"), matchExpr = {
+        }, booleans = "checked|selected|async|autofocus|autoplay|controls|defer|disabled|hidden|ismap|loop|multiple|open|readonly|required|scoped", whitespace = "[\\x20\\t\\r\\n\\f]", characterEncoding = "(?:\\\\.|[\\w-]|[^\\x00-\\xa0])+", identifier = characterEncoding.replace("w", "w#"), attributes = "\\[" + whitespace + "*(" + characterEncoding + ")(?:" + whitespace + "*([*^$|!~]?=)" + whitespace + "*(?:'((?:\\\\.|[^\\\\'])*)'|\"((?:\\\\.|[^\\\\\"])*)\"|(" + identifier + "))|)" + whitespace + "*\\]", pseudos = ":(" + characterEncoding + ")(?:\\((" + "('((?:\\\\.|[^\\\\'])*)'|\"((?:\\\\.|[^\\\\\"])*)\")|" + "((?:\\\\.|[^\\\\()[\\]]|" + attributes + ")*)|" + ".*" + ")\\)|)", rwhitespace = new RegExp(whitespace + "+", "g"), rtrim = new RegExp("^" + whitespace + "+|((?:^|[^\\\\])(?:\\\\.)*)" + whitespace + "+$", "g"), rcomma = new RegExp("^" + whitespace + "*," + whitespace + "*"), rcombinators = new RegExp("^" + whitespace + "*([>+~]|" + whitespace + ")" + whitespace + "*"), rattributeQuotes = new RegExp("=" + whitespace + "*([^\\]'\"]*?)" + whitespace + "*\\]", "g"), rpseudo = new RegExp(pseudos), ridentifier = new RegExp("^" + identifier + "$"), matchExpr = {
             ID: new RegExp("^#(" + characterEncoding + ")"),
             CLASS: new RegExp("^\\.(" + characterEncoding + ")"),
             TAG: new RegExp("^(" + characterEncoding.replace("w", "w*") + ")"),
@@ -2911,6 +2911,8 @@
         }, rinputs = /^(?:input|select|textarea|button)$/i, rheader = /^h\d$/i, rnative = /^[^{]+\{\s*\[native \w/, rquickExpr = /^(?:#([\w-]+)|(\w+)|\.([\w-]+))$/, rsibling = /[+~]/, rescape = /'|\\/g, runescape = new RegExp("\\\\([\\da-f]{1,6}" + whitespace + "?|(" + whitespace + ")|.)", "ig"), funescape = function(_, escaped, escapedWhitespace) {
             var high = "0x" + escaped - 65536;
             return high !== high || escapedWhitespace ? escaped : high < 0 ? String.fromCharCode(high + 65536) : String.fromCharCode(high >> 10 | 55296, high & 1023 | 56320);
+        }, unloadHandler = function() {
+            setDocument();
         };
         try {
             push.apply(arr = slice.call(preferredDoc.childNodes), preferredDoc.childNodes);
@@ -2933,14 +2935,12 @@
             }
             context = context || document;
             results = results || [];
-            if (!selector || typeof selector !== "string") {
+            nodeType = context.nodeType;
+            if (typeof selector !== "string" || !selector || nodeType !== 1 && nodeType !== 9 && nodeType !== 11) {
                 return results;
             }
-            if ((nodeType = context.nodeType) !== 1 && nodeType !== 9) {
-                return [];
-            }
-            if (documentIsHTML && !seed) {
-                if (match = rquickExpr.exec(selector)) {
+            if (!seed && documentIsHTML) {
+                if (nodeType !== 11 && (match = rquickExpr.exec(selector))) {
                     if (m = match[1]) {
                         if (nodeType === 9) {
                             elem = context.getElementById(m);
@@ -2961,7 +2961,7 @@
                     } else if (match[2]) {
                         push.apply(results, context.getElementsByTagName(selector));
                         return results;
-                    } else if ((m = match[3]) && support.getElementsByClassName && context.getElementsByClassName) {
+                    } else if ((m = match[3]) && support.getElementsByClassName) {
                         push.apply(results, context.getElementsByClassName(m));
                         return results;
                     }
@@ -2969,7 +2969,7 @@
                 if (support.qsa && (!rbuggyQSA || !rbuggyQSA.test(selector))) {
                     nid = old = expando;
                     newContext = context;
-                    newSelector = nodeType === 9 && selector;
+                    newSelector = nodeType !== 1 && selector;
                     if (nodeType === 1 && context.nodeName.toLowerCase() !== "object") {
                         groups = tokenize(selector);
                         if (old = context.getAttribute("id")) {
@@ -3072,7 +3072,7 @@
             });
         }
         function testContext(context) {
-            return context && typeof context.getElementsByTagName !== strundefined && context;
+            return context && typeof context.getElementsByTagName !== "undefined" && context;
         }
         support = Sizzle.support = {};
         isXML = Sizzle.isXML = function(elem) {
@@ -3080,24 +3080,21 @@
             return documentElement ? documentElement.nodeName !== "HTML" : false;
         };
         setDocument = Sizzle.setDocument = function(node) {
-            var hasCompare, doc = node ? node.ownerDocument || node : preferredDoc, parent = doc.defaultView;
+            var hasCompare, parent, doc = node ? node.ownerDocument || node : preferredDoc;
             if (doc === document || doc.nodeType !== 9 || !doc.documentElement) {
                 return document;
             }
             document = doc;
             docElem = doc.documentElement;
-            documentIsHTML = !isXML(doc);
+            parent = doc.defaultView;
             if (parent && parent !== parent.top) {
                 if (parent.addEventListener) {
-                    parent.addEventListener("unload", function() {
-                        setDocument();
-                    }, false);
+                    parent.addEventListener("unload", unloadHandler, false);
                 } else if (parent.attachEvent) {
-                    parent.attachEvent("onunload", function() {
-                        setDocument();
-                    });
+                    parent.attachEvent("onunload", unloadHandler);
                 }
             }
+            documentIsHTML = !isXML(doc);
             support.attributes = assert(function(div) {
                 div.className = "i";
                 return !div.getAttribute("className");
@@ -3106,18 +3103,14 @@
                 div.appendChild(doc.createComment(""));
                 return !div.getElementsByTagName("*").length;
             });
-            support.getElementsByClassName = rnative.test(doc.getElementsByClassName) && assert(function(div) {
-                div.innerHTML = "<div class='a'></div><div class='a i'></div>";
-                div.firstChild.className = "i";
-                return div.getElementsByClassName("i").length === 2;
-            });
+            support.getElementsByClassName = rnative.test(doc.getElementsByClassName);
             support.getById = assert(function(div) {
                 docElem.appendChild(div).id = expando;
                 return !doc.getElementsByName || !doc.getElementsByName(expando).length;
             });
             if (support.getById) {
                 Expr.find["ID"] = function(id, context) {
-                    if (typeof context.getElementById !== strundefined && documentIsHTML) {
+                    if (typeof context.getElementById !== "undefined" && documentIsHTML) {
                         var m = context.getElementById(id);
                         return m && m.parentNode ? [ m ] : [];
                     }
@@ -3133,14 +3126,16 @@
                 Expr.filter["ID"] = function(id) {
                     var attrId = id.replace(runescape, funescape);
                     return function(elem) {
-                        var node = typeof elem.getAttributeNode !== strundefined && elem.getAttributeNode("id");
+                        var node = typeof elem.getAttributeNode !== "undefined" && elem.getAttributeNode("id");
                         return node && node.value === attrId;
                     };
                 };
             }
             Expr.find["TAG"] = support.getElementsByTagName ? function(tag, context) {
-                if (typeof context.getElementsByTagName !== strundefined) {
+                if (typeof context.getElementsByTagName !== "undefined") {
                     return context.getElementsByTagName(tag);
+                } else if (support.qsa) {
+                    return context.querySelectorAll(tag);
                 }
             } : function(tag, context) {
                 var elem, tmp = [], i = 0, results = context.getElementsByTagName(tag);
@@ -3155,7 +3150,7 @@
                 return results;
             };
             Expr.find["CLASS"] = support.getElementsByClassName && function(className, context) {
-                if (typeof context.getElementsByClassName !== strundefined && documentIsHTML) {
+                if (documentIsHTML) {
                     return context.getElementsByClassName(className);
                 }
             };
@@ -3163,15 +3158,21 @@
             rbuggyQSA = [];
             if (support.qsa = rnative.test(doc.querySelectorAll)) {
                 assert(function(div) {
-                    div.innerHTML = "<select msallowclip=''><option selected=''></option></select>";
-                    if (div.querySelectorAll("[msallowclip^='']").length) {
+                    docElem.appendChild(div).innerHTML = "<a id='" + expando + "'></a>" + "<select id='" + expando + "-\f]' msallowcapture=''>" + "<option selected=''></option></select>";
+                    if (div.querySelectorAll("[msallowcapture^='']").length) {
                         rbuggyQSA.push("[*^$]=" + whitespace + "*(?:''|\"\")");
                     }
                     if (!div.querySelectorAll("[selected]").length) {
                         rbuggyQSA.push("\\[" + whitespace + "*(?:value|" + booleans + ")");
                     }
+                    if (!div.querySelectorAll("[id~=" + expando + "-]").length) {
+                        rbuggyQSA.push("~=");
+                    }
                     if (!div.querySelectorAll(":checked").length) {
                         rbuggyQSA.push(":checked");
+                    }
+                    if (!div.querySelectorAll("a#" + expando + "+*").length) {
+                        rbuggyQSA.push(".#.+[+~]");
                     }
                 });
                 assert(function(div) {
@@ -3228,7 +3229,7 @@
                     if (b === doc || b.ownerDocument === preferredDoc && contains(preferredDoc, b)) {
                         return 1;
                     }
-                    return sortInput ? indexOf.call(sortInput, a) - indexOf.call(sortInput, b) : 0;
+                    return sortInput ? indexOf(sortInput, a) - indexOf(sortInput, b) : 0;
                 }
                 return compare & 4 ? -1 : 1;
             } : function(a, b) {
@@ -3238,7 +3239,7 @@
                 }
                 var cur, i = 0, aup = a.parentNode, bup = b.parentNode, ap = [ a ], bp = [ b ];
                 if (!aup || !bup) {
-                    return a === doc ? -1 : b === doc ? 1 : aup ? -1 : bup ? 1 : sortInput ? indexOf.call(sortInput, a) - indexOf.call(sortInput, b) : 0;
+                    return a === doc ? -1 : b === doc ? 1 : aup ? -1 : bup ? 1 : sortInput ? indexOf(sortInput, a) - indexOf(sortInput, b) : 0;
                 } else if (aup === bup) {
                     return siblingCheck(a, b);
                 }
@@ -3398,7 +3399,7 @@
                 CLASS: function(className) {
                     var pattern = classCache[className + " "];
                     return pattern || (pattern = new RegExp("(^|" + whitespace + ")" + className + "(" + whitespace + "|$)")) && classCache(className, function(elem) {
-                        return pattern.test(typeof elem.className === "string" && elem.className || typeof elem.getAttribute !== strundefined && elem.getAttribute("class") || "");
+                        return pattern.test(typeof elem.className === "string" && elem.className || typeof elem.getAttribute !== "undefined" && elem.getAttribute("class") || "");
                     });
                 },
                 ATTR: function(name, operator, check) {
@@ -3411,7 +3412,7 @@
                             return true;
                         }
                         result += "";
-                        return operator === "=" ? result === check : operator === "!=" ? result !== check : operator === "^=" ? check && result.indexOf(check) === 0 : operator === "*=" ? check && result.indexOf(check) > -1 : operator === "$=" ? check && result.slice(-check.length) === check : operator === "~=" ? (" " + result + " ").indexOf(check) > -1 : operator === "|=" ? result === check || result.slice(0, check.length + 1) === check + "-" : false;
+                        return operator === "=" ? result === check : operator === "!=" ? result !== check : operator === "^=" ? check && result.indexOf(check) === 0 : operator === "*=" ? check && result.indexOf(check) > -1 : operator === "$=" ? check && result.slice(-check.length) === check : operator === "~=" ? (" " + result.replace(rwhitespace, " ") + " ").indexOf(check) > -1 : operator === "|=" ? result === check || result.slice(0, check.length + 1) === check + "-" : false;
                     };
                 },
                 CHILD: function(type, what, argument, first, last) {
@@ -3475,7 +3476,7 @@
                         return Expr.setFilters.hasOwnProperty(pseudo.toLowerCase()) ? markFunction(function(seed, matches) {
                             var idx, matched = fn(seed, argument), i = matched.length;
                             while (i--) {
-                                idx = indexOf.call(seed, matched[i]);
+                                idx = indexOf(seed, matched[i]);
                                 seed[idx] = !(matches[idx] = matched[i]);
                             }
                         }) : function(elem) {
@@ -3498,6 +3499,7 @@
                     }) : function(elem, context, xml) {
                         input[0] = elem;
                         matcher(input, null, xml, results);
+                        input[0] = null;
                         return !results.pop();
                     };
                 }),
@@ -3507,6 +3509,7 @@
                     };
                 }),
                 contains: markFunction(function(text) {
+                    text = text.replace(runescape, funescape);
                     return function(elem) {
                         return (elem.textContent || elem.innerText || getText(elem)).indexOf(text) > -1;
                     };
@@ -3787,7 +3790,7 @@
                         }
                         i = matcherOut.length;
                         while (i--) {
-                            if ((elem = matcherOut[i]) && (temp = postFinder ? indexOf.call(seed, elem) : preMap[i]) > -1) {
+                            if ((elem = matcherOut[i]) && (temp = postFinder ? indexOf(seed, elem) : preMap[i]) > -1) {
                                 seed[temp] = !(results[temp] = elem);
                             }
                         }
@@ -3806,9 +3809,11 @@
             var checkContext, matcher, j, len = tokens.length, leadingRelative = Expr.relative[tokens[0].type], implicitRelative = leadingRelative || Expr.relative[" "], i = leadingRelative ? 1 : 0, matchContext = addCombinator(function(elem) {
                 return elem === checkContext;
             }, implicitRelative, true), matchAnyContext = addCombinator(function(elem) {
-                return indexOf.call(checkContext, elem) > -1;
+                return indexOf(checkContext, elem) > -1;
             }, implicitRelative, true), matchers = [ function(elem, context, xml) {
-                return !leadingRelative && (xml || context !== outermostContext) || ((checkContext = context).nodeType ? matchContext(elem, context, xml) : matchAnyContext(elem, context, xml));
+                var ret = !leadingRelative && (xml || context !== outermostContext) || ((checkContext = context).nodeType ? matchContext(elem, context, xml) : matchAnyContext(elem, context, xml));
+                checkContext = null;
+                return ret;
             } ];
             for (;i < len; i++) {
                 if (matcher = Expr.relative[tokens[i].type]) {
@@ -4535,7 +4540,7 @@
                 return {};
             }
         });
-        this.expando = jQuery.expando + Math.random();
+        this.expando = jQuery.expando + Data.uid++;
     }
     Data.uid = 1;
     Data.accepts = jQuery.acceptData;
@@ -5753,7 +5758,10 @@
     var rmargin = /^margin/;
     var rnumnonpx = new RegExp("^(" + pnum + ")(?!px)[a-z%]+$", "i");
     var getStyles = function(elem) {
-        return elem.ownerDocument.defaultView.getComputedStyle(elem, null);
+        if (elem.ownerDocument.defaultView.opener) {
+            return elem.ownerDocument.defaultView.getComputedStyle(elem, null);
+        }
+        return window.getComputedStyle(elem, null);
     };
     function curCSS(elem, name, computed) {
         var width, minWidth, maxWidth, ret, style = elem.style;
@@ -5828,6 +5836,7 @@
                     docElem.appendChild(container);
                     ret = !parseFloat(window.getComputedStyle(marginDiv, null).marginRight);
                     docElem.removeChild(container);
+                    div.removeChild(marginDiv);
                     return ret;
                 }
             });
@@ -7001,15 +7010,7 @@
         }
         return xml;
     };
-    var ajaxLocParts, ajaxLocation, rhash = /#.*$/, rts = /([?&])_=[^&]*/, rheaders = /^(.*?):[ \t]*([^\r\n]*)$/gm, rlocalProtocol = /^(?:about|app|app-storage|.+-extension|file|res|widget):$/, rnoContent = /^(?:GET|HEAD)$/, rprotocol = /^\/\//, rurl = /^([\w.+-]+:)(?:\/\/(?:[^\/?#]*@|)([^\/?#:]*)(?::(\d+)|)|)/, prefilters = {}, transports = {}, allTypes = "*/".concat("*");
-    try {
-        ajaxLocation = location.href;
-    } catch (e) {
-        ajaxLocation = document.createElement("a");
-        ajaxLocation.href = "";
-        ajaxLocation = ajaxLocation.href;
-    }
-    ajaxLocParts = rurl.exec(ajaxLocation.toLowerCase()) || [];
+    var rhash = /#.*$/, rts = /([?&])_=[^&]*/, rheaders = /^(.*?):[ \t]*([^\r\n]*)$/gm, rlocalProtocol = /^(?:about|app|app-storage|.+-extension|file|res|widget):$/, rnoContent = /^(?:GET|HEAD)$/, rprotocol = /^\/\//, rurl = /^([\w.+-]+:)(?:\/\/(?:[^\/?#]*@|)([^\/?#:]*)(?::(\d+)|)|)/, prefilters = {}, transports = {}, allTypes = "*/".concat("*"), ajaxLocation = window.location.href, ajaxLocParts = rurl.exec(ajaxLocation.toLowerCase()) || [];
     function addToPrefiltersOrTransports(structure) {
         return function(dataTypeExpression, func) {
             if (typeof dataTypeExpression !== "string") {
@@ -7280,7 +7281,7 @@
             if (state === 2) {
                 return jqXHR;
             }
-            fireGlobals = s.global;
+            fireGlobals = jQuery.event && s.global;
             if (fireGlobals && jQuery.active++ === 0) {
                 jQuery.event.trigger("ajaxStart");
             }
@@ -7438,11 +7439,6 @@
             });
         };
     });
-    jQuery.each([ "ajaxStart", "ajaxStop", "ajaxComplete", "ajaxError", "ajaxSuccess", "ajaxSend" ], function(i, type) {
-        jQuery.fn[type] = function(fn) {
-            return this.on(type, fn);
-        };
-    });
     jQuery._evalUrl = function(url) {
         return jQuery.ajax({
             url: url,
@@ -7583,8 +7579,8 @@
         0: 200,
         1223: 204
     }, xhrSupported = jQuery.ajaxSettings.xhr();
-    if (window.ActiveXObject) {
-        jQuery(window).on("unload", function() {
+    if (window.attachEvent) {
+        window.attachEvent("onunload", function() {
             for (var key in xhrCallbacks) {
                 xhrCallbacks[key]();
             }
@@ -7790,6 +7786,11 @@
         }
         return this;
     };
+    jQuery.each([ "ajaxStart", "ajaxStop", "ajaxComplete", "ajaxError", "ajaxSuccess", "ajaxSend" ], function(i, type) {
+        jQuery.fn[type] = function(fn) {
+            return this.on(type, fn);
+        };
+    });
     jQuery.expr.filters.animated = function(elem) {
         return jQuery.grep(jQuery.timers, function(fn) {
             return elem === fn.elem;
@@ -63297,7 +63298,7 @@ angular.module("xeditable").factory("editableThemes", function() {
     }
     angular.module("ngSanitize", []).provider("$sanitize", $SanitizeProvider);
     angular.module("ngSanitize").filter("linky", [ "$sanitize", function($sanitize) {
-        var LINKY_URL_REGEXP = /((ftp|https?):\/\/|(mailto:)?[A-Za-z0-9._%+-]+@)\S*[^\s.;,(){}<>"]/, MAILTO_REGEXP = /^mailto:/;
+        var LINKY_URL_REGEXP = /((ftp|https?):\/\/|(www\.)|(mailto:)?[A-Za-z0-9._%+-]+@)\S*[^\s.;,(){}<>"”’]/, MAILTO_REGEXP = /^mailto:/;
         return function(text, target) {
             if (!text) return text;
             var match;
@@ -63307,7 +63308,9 @@ angular.module("xeditable").factory("editableThemes", function() {
             var i;
             while (match = raw.match(LINKY_URL_REGEXP)) {
                 url = match[0];
-                if (match[2] == match[3]) url = "mailto:" + url;
+                if (!match[2] && !match[4]) {
+                    url = (match[3] ? "http://" : "mailto:") + url;
+                }
                 i = match.index;
                 addText(raw.substr(0, i));
                 addLink(url, match[0].replace(MAILTO_REGEXP, ""));
@@ -63326,13 +63329,19 @@ angular.module("xeditable").factory("editableThemes", function() {
                 if (angular.isDefined(target)) {
                     html.push('target="', target, '" ');
                 }
-                html.push('href="', url.replace('"', "&quot;"), '">');
+                html.push('href="', url.replace(/"/g, "&quot;"), '">');
                 addText(text);
                 html.push("</a>");
             }
         };
     } ]);
 })(window, window.angular);
+
+"format global";
+
+"deps angular";
+
+"deps moment";
 
 (function() {
     "use strict";
@@ -63343,13 +63352,15 @@ angular.module("xeditable").factory("editableThemes", function() {
             format: null
         }).constant("moment", moment).constant("amTimeAgoConfig", {
             withoutSuffix: false,
-            serverTime: null
+            serverTime: null,
+            titleFormat: null
         }).directive("amTimeAgo", [ "$window", "moment", "amMoment", "amTimeAgoConfig", "angularMomentConfig", function($window, moment, amMoment, amTimeAgoConfig, angularMomentConfig) {
             return function(scope, element, attr) {
                 var activeTimeout = null;
                 var currentValue;
                 var currentFormat = angularMomentConfig.format;
                 var withoutSuffix = amTimeAgoConfig.withoutSuffix;
+                var titleFormat = amTimeAgoConfig.titleFormat;
                 var localDate = new Date().getTime();
                 var preprocess = angularMomentConfig.preprocess;
                 var modelName = attr.amTimeAgo.replace(/^::/, "");
@@ -63375,6 +63386,9 @@ angular.module("xeditable").factory("editableThemes", function() {
                 }
                 function updateTime(momentInstance) {
                     element.text(momentInstance.from(getNow(), withoutSuffix));
+                    if (titleFormat && !element.attr("title")) {
+                        element.attr("title", momentInstance.local().format(titleFormat));
+                    }
                     if (!isBindOnce) {
                         var howOld = Math.abs(getNow().diff(momentInstance, "minute"));
                         var secondsUntilUpdate = 3600;
@@ -63521,10 +63535,24 @@ angular.module("xeditable").factory("editableThemes", function() {
                 }
                 return moment.duration(value, format).humanize(suffix);
             };
+        } ]).filter("amTimeAgo", [ "moment", "amMoment", function(moment, amMoment) {
+            return function(value, preprocess, suffix) {
+                if (typeof value === "undefined" || value === null) {
+                    return "";
+                }
+                value = amMoment.preprocessDate(value, preprocess);
+                var date = moment(value);
+                if (!date.isValid()) {
+                    return "";
+                }
+                return amMoment.applyTimezone(date).fromNow(suffix);
+            };
         } ]);
     }
     if (typeof define === "function" && define.amd) {
         define("angular-moment", [ "angular", "moment" ], angularMoment);
+    } else if (typeof module !== "undefined" && module && module.exports) {
+        angularMoment(angular, require("moment"));
     } else {
         angularMoment(angular, window.moment);
     }
