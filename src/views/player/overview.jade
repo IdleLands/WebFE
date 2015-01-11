@@ -33,8 +33,8 @@ script(id="player-overview", type="text/ng-template")
 
                   div.wrap-container(layout="row")
                      div.vital-stat(ng-repeat="stat in ::equipmentStatArray",flex="25")
-                        span.fa.fa-fw.fa-lg.vertical-center(class="{{stat.fa}}")
-                           md-tooltip {{stat.name}}
+                        span.fa.fa-fw.fa-lg.vertical-center(class="{{::stat.fa}}")
+                           md-tooltip {{::stat.name}}
                         span &nbsp;
                         small(class="{{valueToColor(player._statCache[stat.name])}}") {{player._statCache[stat.name] | number:0}}
 
@@ -103,7 +103,7 @@ script(id="player-overview", type="text/ng-template")
                      h3 Adventure Log
 
                md-content.is-flex.auto-flex(style="flex-basis:120px;height:120px;overflow-x:hidden",layout="column")
-                  div.is-flex.auto-flex.adventure-log-item(flex="100",ng-repeat="event in player.recentEvents | reverse",layout="row")
+                  div.is-flex.auto-flex.adventure-log-item(flex="100",quick-repeat-list="_recentEvents",quick-ng-repeat="event in _recentEvents",layout="row")
                      div.text-center.vertical-center(flex="10")
                         span.fa.fa-fw.fa-2x(class="{{::eventTypeToIcon[event.type]}}", ng-click="clickOnEvent(event.extra)", ng-class="{'hover-cursor': event.extra.battleId}")
                      div(flex="90")
@@ -119,8 +119,8 @@ script(id="player-overview", type="text/ng-template")
                         a.fa.fa-question-circle(href="http://idlelands.github.io/IdleLands/#!/Player/Personalities",target="_blank") &nbsp;Your Personalities
 
                md-content.is-flex.auto-flex(style="flex-basis:50px;height:50px",layout="column")
-                  div.is-flex.auto-flex.adventure-log-item(ng-repeat="personality in player.achievements | filter:{type:'personality'}")
+                  div.is-flex.auto-flex.adventure-log-item(quick-repeat-list="_personalities",quick-ng-repeat="personality in _personalities")
                      div(flex="30")
-                        md-switch.personality-switch(ng-model="personalityToggle[personality._personality]",aria-label="Personality Switch")
+                        md-switch.personality-switch(ng-model="personalityToggle[personality]",aria-label="Personality Switch",ng-change="togglePersonality(personality)")
                      div(flex="70")
-                        div(style="margin-top:10px") {{::personality._personality}}
+                        div(style="margin-top:10px") {{::personality}}

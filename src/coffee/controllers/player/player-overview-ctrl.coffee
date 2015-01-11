@@ -3,8 +3,6 @@ angular.module 'IdleLands'
   '$scope', '$timeout', '$interval', '$state', 'CurrentPlayer', 'API', 'CurrentBattle', 'FunMessages'
   ($scope, $timeout, $interval, $state, Player, API, CurrentBattle, FunMessages) ->
 
-    initializing = yes
-
     $scope.personalityToggle = {}
 
     $scope.equipmentStatArray = [
@@ -113,27 +111,21 @@ angular.module 'IdleLands'
 
       API.personality[func] props
 
-    $scope.$watchCollection 'personalityToggle', (newVal, oldVal) ->
-      return if initializing or newVal is oldVal
-
-      propDiff = _.omit newVal, (v,k) -> oldVal[k] is v
-
-      _.each (_.keys propDiff), (pers) ->
-        $scope.setPersonality pers, propDiff[pers]
+    $scope.togglePersonality = (personality) ->
+      $scope.setPersonality personality, $scope.personalityToggle[personality]
 
     $scope.initialize = ->
-      initializing = yes
 
       $scope.player = Player.getPlayer()
       $scope.loadPersonalities()
 
-      $timeout ->
-        initializing = no
-      , 0
+      $scope._recentEvents = $scope.player?.recentEvents.reverse()
+      $scope._personalities = _($scope.player?.achievements)
+        .filter (achievement) -> achievement.type is 'personality'
+        .pluck '_personality'
+        .value()
 
     Player.observe().then null, null, ->
       $scope.initialize()
-
-    $scope.initialize()
 
 ]
