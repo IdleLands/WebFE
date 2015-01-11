@@ -711,7 +711,7 @@
             </div>
             <div layout="row" class="wrap-container">
               <div ng-repeat="stat in ::equipmentStatArray" flex="25" class="vital-stat"><span class="fa fa-fw fa-lg vertical-center {{::stat.fa}}">
-                  <md-tooltip>{{::stat.name}}</md-tooltip></span><span>&nbsp;</span><small class="{{valueToColor(player._statCache[stat.name])}}">{{player._statCache[stat.name] | number:0}}</small></div>
+                  <md-tooltip>{{::stat.name}}</md-tooltip></span><span>&nbsp;</span><small class="{{valueToColor(player._statCache[stat.name])}}">{{getStat(stat.name)}}</small></div>
             </div>
           </md-content>
         </md-card-content>
@@ -764,7 +764,7 @@
                   <md-tooltip>Guild</md-tooltip></span><span>&nbsp;{{player.guild || 'No guild'}}</span></div>
               <div><span class="fa fa-fw fa-clock-o">
                   <md-tooltip>Creation Date</md-tooltip></span><span>&nbsp;Started&nbsp;</span><span am-time-ago="::player.registrationDate">
-                  <md-tooltip>{{::player.registrationDate | amDateFormat:'dddd, MMMM Do YYYY, h:mm:ss a'}}</md-tooltip></span></div>
+                  <!--md-tooltip {{::player.registrationDate | amDateFormat:'dddd, MMMM Do YYYY, h:mm:ss a'}}--></span></div>
             </div>
           </md-content>
         </md-card-content>

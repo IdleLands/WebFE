@@ -1577,6 +1577,10 @@
         props[key] = personality;
         return API.personality[func](props);
       };
+      $scope.getStat = function(stat) {
+        var _ref;
+        return _.str.numberFormat((_ref = $scope.player) != null ? _ref._statCache[stat] : void 0);
+      };
       $scope.togglePersonality = function(personality) {
         return $scope.setPersonality(personality, $scope.personalityToggle[personality]);
       };
