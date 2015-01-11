@@ -800,7 +800,7 @@
           <md-content style="flex-basis:50px;height:50px" layout="column" class="is-flex auto-flex">
             <div quick-repeat-list="_personalities" quick-ng-repeat="personality in _personalities" class="is-flex auto-flex adventure-log-item">
               <div flex="30">
-                <md-switch ng-model="personalityToggle[personality]" aria-label="Personality Switch" class="personality-switch"></md-switch>
+                <md-switch ng-model="personalityToggle[personality]" aria-label="Personality Switch" ng-change="togglePersonality(personality)" class="personality-switch"></md-switch>
               </div>
               <div flex="70">
                 <div style="margin-top:10px">{{::personality}}</div>

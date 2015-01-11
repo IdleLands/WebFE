@@ -1440,8 +1440,6 @@
 (function() {
   angular.module('IdleLands').controller('PlayerOverview', [
     '$scope', '$timeout', '$interval', '$state', 'CurrentPlayer', 'API', 'CurrentBattle', 'FunMessages', function($scope, $timeout, $interval, $state, Player, API, CurrentBattle, FunMessages) {
-      var initializing;
-      initializing = true;
       $scope.personalityToggle = {};
       $scope.equipmentStatArray = [
         {
@@ -1579,35 +1577,21 @@
         props[key] = personality;
         return API.personality[func](props);
       };
-      $scope.$watchCollection('personalityToggle', function(newVal, oldVal) {
-        var propDiff;
-        if (initializing || newVal === oldVal) {
-          return;
-        }
-        propDiff = _.omit(newVal, function(v, k) {
-          return oldVal[k] === v;
-        });
-        return _.each(_.keys(propDiff), function(pers) {
-          return $scope.setPersonality(pers, propDiff[pers]);
-        });
-      });
+      $scope.togglePersonality = function(personality) {
+        return $scope.setPersonality(personality, $scope.personalityToggle[personality]);
+      };
       $scope.initialize = function() {
         var _ref, _ref1;
-        initializing = true;
         $scope.player = Player.getPlayer();
         $scope.loadPersonalities();
         $scope._recentEvents = (_ref = $scope.player) != null ? _ref.recentEvents.reverse() : void 0;
-        $scope._personalities = _((_ref1 = $scope.player) != null ? _ref1.achievements : void 0).filter(function(achievement) {
+        return $scope._personalities = _((_ref1 = $scope.player) != null ? _ref1.achievements : void 0).filter(function(achievement) {
           return achievement.type === 'personality';
         }).pluck('_personality').value();
-        return $timeout(function() {
-          return initializing = false;
-        }, 0);
       };
-      Player.observe().then(null, null, function() {
+      return Player.observe().then(null, null, function() {
         return $scope.initialize();
       });
-      return $scope.initialize();
     }
   ]);
 
