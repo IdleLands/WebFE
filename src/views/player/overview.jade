@@ -36,7 +36,7 @@ script(id="player-overview", type="text/ng-template")
                         span.fa.fa-fw.fa-lg.vertical-center(class="{{::stat.fa}}")
                            md-tooltip {{::stat.name}}
                         span &nbsp;
-                        small(class="{{valueToColor(player._statCache[stat.name])}}") {{player._statCache[stat.name] | number:0}}
+                        small(class="{{valueToColor(player._statCache[stat.name])}}") {{getStat(stat.name)}}
 
          md-card.inner-card(layout="column",ng-if="_.size(player.foundPets) > 0")
             md-card-content
@@ -93,7 +93,7 @@ script(id="player-overview", type="text/ng-template")
                            md-tooltip Creation Date
                         span &nbsp;Started&nbsp;
                         span(am-time-ago="::player.registrationDate")
-                           md-tooltip {{::player.registrationDate | amDateFormat:'dddd, MMMM Do YYYY, h:mm:ss a'}}
+                           //md-tooltip {{::player.registrationDate | amDateFormat:'dddd, MMMM Do YYYY, h:mm:ss a'}}
 
       div(flex="55",layout="column")
          md-card.is-flex.auto-flex.inner-card(layout="column")
