@@ -71,6 +71,13 @@ angular.module 'IdleLands'
     $scope.toPetView = ->
       $state.go 'pet.overview'
 
+    $scope.availableTitles = ->
+      base = $scope.player?.titles or []
+      base
+
+    $scope.changeTitle = ->
+      API.title.set newTitle: $scope.player.title
+
     $scope.boughtPets = ->
       pets = 0
       _.each (_.keys $scope.player?.foundPets), (petKey) ->

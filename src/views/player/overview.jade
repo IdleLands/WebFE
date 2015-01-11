@@ -61,25 +61,36 @@ script(id="player-overview", type="text/ng-template")
                   div(layout="column")
                      div.vital-stat
                         span.fa.fa-fw.fa-institution
+                           md-tooltip Prayer
                         md-button.inline-button.md-raised.md-accent.md-hue-2(ng-disabled="praying", ng-click="pray()") {{prayText}}
                            md-tooltip Praying raises Superstition by 1
+                     div.vital-stat(ng-if="player.titles.length > 0")
+                        span.fa.fa-fw.fa-tag
+                           md-tooltip Title
+                        select(ng-model="player.title",ng-options="val for val in availableTitles()",ng-change="changeTitle()")
                      div.vital-stat
                         span.fa.fa-fw.fa-globe
+                           md-tooltip World Position
                         span &nbsp;{{player.map}} ~ {{player.x}}, {{player.y}}
                      div.vital-stat
                         span.fa.fa-fw.fa-map-marker
+                           md-tooltip Map Region
                         span &nbsp;{{player.mapRegion}}
                      div.vital-stat(ng-if="player.shop")
                         span.fa.fa-fw.icon-money.faa-tada.animated
+                           md-tooltip Current Shop
                         span &nbsp;In shop: {{player.shop.region}}!
                      div.vital-stat
                         span.fa.fa-fw.fa-users
+                           md-tooltip Party
                         span &nbsp;{{player.partyName || 'No party'}}
                      div.vital-stat
                         span.fa.fa-fw.fa-sitemap
+                           md-tooltip Guild
                         span &nbsp;{{player.guild || 'No guild'}}
                      div
                         span.fa.fa-fw.fa-clock-o
+                           md-tooltip Creation Date
                         span &nbsp;Started&nbsp;
                         span(am-time-ago="::player.registrationDate")
                            md-tooltip {{::player.registrationDate | amDateFormat:'dddd, MMMM Do YYYY, h:mm:ss a'}}

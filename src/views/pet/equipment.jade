@@ -7,9 +7,9 @@ script(id="pet-equipment", type="text/ng-template")
 
 script(id="pet-equipment-item", type="text/ng-template")
     div.md-tile-left.class-badge.text-center.align-left-list-item
-        div(class="{{itemUtilities.classToColor(item.itemClass)}}") {{::item.type}}
-            md-tooltip {{item.itemClass}}
-        div(ng-if="item.extraItemClass",class="{{itemUtilities.classToColor(item.extraItemClass)}}") {{item.extraText}}
+        div(class="{{::itemUtilities.classToColor(item.itemClass)}}") {{::item.type}}
+            md-tooltip {{::item.itemClass}}
+        div(ng-if="item.extraItemClass",class="{{::itemUtilities.classToColor(item.extraItemClass)}}") {{item.extraText}}
 
         div.text-center(ng-if="!item.hideButtons")
             span.hover-cursor.fa.fa-fw.fa-exchange(ng-click="unequipItem(item)")
@@ -18,7 +18,7 @@ script(id="pet-equipment-item", type="text/ng-template")
     div.md-tile-content.item-line
         div
             span.super-bold {{item.enchantLevel ? '+'+item.enchantLevel+' ' : ''}} {{::item.name}}
-            small(ng-if="!::item.hideButtons")
+            small(ng-if="!item.hideButtons")
                 span , found
                 span &nbsp;
                 span(am-time-ago="::item.foundAt")
