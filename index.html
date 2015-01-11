@@ -779,7 +779,7 @@
             </div>
           </md-toolbar>
           <md-content style="flex-basis:120px;height:120px;overflow-x:hidden" layout="column" class="is-flex auto-flex">
-            <div flex="100" ng-repeat="event in player.recentEvents | reverse" layout="row" class="is-flex auto-flex adventure-log-item">
+            <div flex="100" quick-repeat-list="_recentEvents" quick-ng-repeat="event in _recentEvents" layout="row" class="is-flex auto-flex adventure-log-item">
               <div flex="10" class="text-center vertical-center"><span ng-click="clickOnEvent(event.extra)" ng-class="{'hover-cursor': event.extra.battleId}" class="fa fa-fw fa-2x {{::eventTypeToIcon[event.type]}}"></span></div>
               <div flex="90"><small am-time-ago="::event.createdAt"></small>
                 <div>{{::event.message}}</div>
@@ -798,12 +798,12 @@
             </div>
           </md-toolbar>
           <md-content style="flex-basis:50px;height:50px" layout="column" class="is-flex auto-flex">
-            <div ng-repeat="personality in player.achievements | filter:{type:'personality'}" class="is-flex auto-flex adventure-log-item">
+            <div quick-repeat-list="_personalities" quick-ng-repeat="personality in _personalities" class="is-flex auto-flex adventure-log-item">
               <div flex="30">
-                <md-switch ng-model="personalityToggle[personality._personality]" aria-label="Personality Switch" class="personality-switch"></md-switch>
+                <md-switch ng-model="personalityToggle[personality]" aria-label="Personality Switch" class="personality-switch"></md-switch>
               </div>
               <div flex="70">
-                <div style="margin-top:10px">{{::personality._personality}}</div>
+                <div style="margin-top:10px">{{::personality}}</div>
               </div>
             </div>
           </md-content>

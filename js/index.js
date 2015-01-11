@@ -1,5 +1,5 @@
 (function() {
-  angular.module('IdleLands', ['ngMaterial', 'ngSanitize', 'angularMoment', 'ui.router', 'LocalStorageModule', 'xeditable']);
+  angular.module('IdleLands', ['ngMaterial', 'ngSanitize', 'angularMoment', 'ui.router', 'LocalStorageModule', 'xeditable', 'QuickList']);
 
   angular.module('IdleLands').run([
     'editableThemes', function(editableThemes) {
@@ -1592,9 +1592,14 @@
         });
       });
       $scope.initialize = function() {
+        var _ref, _ref1;
         initializing = true;
         $scope.player = Player.getPlayer();
         $scope.loadPersonalities();
+        $scope._recentEvents = (_ref = $scope.player) != null ? _ref.recentEvents.reverse() : void 0;
+        $scope._personalities = _((_ref1 = $scope.player) != null ? _ref1.achievements : void 0).filter(function(achievement) {
+          return achievement.type === 'personality';
+        }).pluck('_personality').value();
         return $timeout(function() {
           return initializing = false;
         }, 0);
