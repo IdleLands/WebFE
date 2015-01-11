@@ -1526,6 +1526,16 @@
       $scope.toPetView = function() {
         return $state.go('pet.overview');
       };
+      $scope.availableTitles = function() {
+        var base, _ref;
+        base = ((_ref = $scope.player) != null ? _ref.titles : void 0) || [];
+        return base;
+      };
+      $scope.changeTitle = function() {
+        return API.title.set({
+          newTitle: $scope.player.title
+        });
+      };
       $scope.boughtPets = function() {
         var pets, _ref;
         pets = 0;
@@ -1858,7 +1868,7 @@
 
 (function() {
   angular.module('IdleLands').factory('API', [
-    'Authentication', 'Action', 'Battle', 'Personality', 'Pushbullet', 'Strings', 'Gender', 'Inventory', 'Shop', 'Priority', 'Pet', 'Custom', function(Authentication, Action, Battle, Personality, Pushbullet, Strings, Gender, Inventory, Shop, Priority, Pet, Custom) {
+    'Authentication', 'Action', 'Battle', 'Personality', 'Pushbullet', 'Strings', 'Gender', 'Inventory', 'Shop', 'Priority', 'Pet', 'Custom', 'Title', function(Authentication, Action, Battle, Personality, Pushbullet, Strings, Gender, Inventory, Shop, Priority, Pet, Custom, Title) {
       return {
         auth: Authentication,
         action: Action,
@@ -1871,7 +1881,8 @@
         inventory: Inventory,
         shop: Shop,
         pet: Pet,
-        custom: Custom
+        custom: Custom,
+        title: Title
       };
     }
   ]);
@@ -2102,6 +2113,24 @@
     '$http', 'BaseURL', function($http, baseURL) {
       var url;
       url = "" + baseURL + "/player/manage/string";
+      return {
+        set: function(data) {
+          return $http.put("" + url + "/set", data);
+        },
+        remove: function(data) {
+          return $http.post("" + url + "/remove", data);
+        }
+      };
+    }
+  ]);
+
+}).call(this);
+
+(function() {
+  angular.module('IdleLands').factory('Title', [
+    '$http', 'BaseURL', function($http, baseURL) {
+      var url;
+      url = "" + baseURL + "/player/manage/title";
       return {
         set: function(data) {
           return $http.put("" + url + "/set", data);

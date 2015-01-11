@@ -126,15 +126,15 @@
 </script>
 <script id="pet-equipment-item" type="text/ng-template">
   <div class="md-tile-left class-badge text-center align-left-list-item">
-    <div class="{{itemUtilities.classToColor(item.itemClass)}}">{{::item.type}}
-      <md-tooltip>{{item.itemClass}}</md-tooltip>
+    <div class="{{::itemUtilities.classToColor(item.itemClass)}}">{{::item.type}}
+      <md-tooltip>{{::item.itemClass}}</md-tooltip>
     </div>
-    <div ng-if="item.extraItemClass" class="{{itemUtilities.classToColor(item.extraItemClass)}}">{{item.extraText}}</div>
+    <div ng-if="item.extraItemClass" class="{{::itemUtilities.classToColor(item.extraItemClass)}}">{{item.extraText}}</div>
     <div ng-if="!item.hideButtons" class="text-center"><span ng-click="unequipItem(item)" class="hover-cursor fa fa-fw fa-exchange">
         <md-tooltip>Unequip</md-tooltip></span></div>
   </div>
   <div class="md-tile-content item-line">
-    <div><span class="super-bold">{{item.enchantLevel ? '+'+item.enchantLevel+' ' : ''}} {{::item.name}}</span><small ng-if="!::item.hideButtons"><span>, found</span><span>&nbsp;</span><span am-time-ago="::item.foundAt"></span><span>, with a Player Relativity of</span><span>&nbsp;{{petItemScore(item)}}%&nbsp;</span><span>and an Item Relativity of</span><span>&nbsp;{{itemItemScore(item)}}%</span></small></div>
+    <div><span class="super-bold">{{item.enchantLevel ? '+'+item.enchantLevel+' ' : ''}} {{::item.name}}</span><small ng-if="!item.hideButtons"><span>, found</span><span>&nbsp;</span><span am-time-ago="::item.foundAt"></span><span>, with a Player Relativity of</span><span>&nbsp;{{petItemScore(item)}}%&nbsp;</span><span>and an Item Relativity of</span><span>&nbsp;{{itemItemScore(item)}}%</span></small></div>
     <div layout="row" class="top-margin-5 wrap-container"><span ng-repeat="stat in ::itemUtilities.equipmentStatArray" flex="8"><span class="fa fa-fw fa-lg {{::stat.fa}}">
           <md-tooltip>{{::stat.name}}</md-tooltip></span><span>&nbsp;</span><small class="{{valueToColor(item[stat.name])}}">{{item[stat.name]}}</small><small>&nbsp;/&nbsp;</small><small class="{{valueToColor(item[stat.name+'Percent'])}}">{{item[stat.name+'Percent']}}%</small></span></div>
     <div class="top-margin-5"><small>{{getExtraStats(item)}}</small></div>
@@ -147,10 +147,10 @@
     <md-item ng-repeat="item in petItems track by $index">
       <md-item-content>
         <div class="md-tile-left class-badge text-center align-left-list-item">
-          <div class="{{itemUtilities.classToColor(item.itemClass)}}">{{::item.type}}
+          <div class="{{::itemUtilities.classToColor(item.itemClass)}}">{{::item.type}}
             <md-tooltip>{{::item.itemClass}}</md-tooltip>
           </div>
-          <div ng-if="item.extraItemClass" class="{{itemUtilities.classToColor(item.extraItemClass)}}">{{item.extraText}}</div>
+          <div ng-if="item.extraItemClass" class="{{::itemUtilities.classToColor(item.extraItemClass)}}">{{item.extraText}}</div>
           <div class="text-center"><span ng-click="sellItem($index)" class="hover-cursor fa fa-fw icon-money">
               <md-tooltip>Sell</md-tooltip></span><span ng-click="equipItem(item, $index)" ng-class="{'text-red': !canEquipItem(item)}" class="hover-cursor fa fa-fw fa-exchange">
               <md-tooltip>Equip</md-tooltip></span><span ng-click="swapItem($index)" class="hover-cursor fa fa-fw fa-child">
@@ -463,10 +463,10 @@
     <md-item ng-repeat="item in playerItems track by $index">
       <md-item-content>
         <div class="md-tile-left class-badge text-center align-left-list-item">
-          <div class="{{itemUtilities.classToColor(item.itemClass)}}">{{::item.type}}
+          <div class="{{::itemUtilities.classToColor(item.itemClass)}}">{{::item.type}}
             <md-tooltip>{{::item.itemClass}}</md-tooltip>
           </div>
-          <div ng-if="::item.extraItemClass" class="{{itemUtilities.classToColor(item.extraItemClass)}}">{{item.extraText}}</div>
+          <div ng-if="::item.extraItemClass" class="{{::itemUtilities.classToColor(item.extraItemClass)}}">{{item.extraText}}</div>
           <!--equipped-->
           <div ng-if="!item.extraItemClass &amp;&amp; !item.hideButtons &amp;&amp; item.type !== 'providence'" class="text-center"><span ng-click="invItem(item)" class="hover-cursor fa fa-fw fa-caret-square-o-down">
               <md-tooltip>Add to Inventory</md-tooltip></span></div>
@@ -710,8 +710,8 @@
                   <md-tooltip>Gold</md-tooltip></span><span>&nbsp;</span><small>{{player.gold.__current | number:0}}</small></div>
             </div>
             <div layout="row" class="wrap-container">
-              <div ng-repeat="stat in ::equipmentStatArray" flex="25" class="vital-stat"><span class="fa fa-fw fa-lg vertical-center {{stat.fa}}">
-                  <md-tooltip>{{stat.name}}</md-tooltip></span><span>&nbsp;</span><small class="{{valueToColor(player._statCache[stat.name])}}">{{player._statCache[stat.name] | number:0}}</small></div>
+              <div ng-repeat="stat in ::equipmentStatArray" flex="25" class="vital-stat"><span class="fa fa-fw fa-lg vertical-center {{::stat.fa}}">
+                  <md-tooltip>{{::stat.name}}</md-tooltip></span><span>&nbsp;</span><small class="{{valueToColor(player._statCache[stat.name])}}">{{player._statCache[stat.name] | number:0}}</small></div>
             </div>
           </md-content>
         </md-card-content>
@@ -742,17 +742,28 @@
           </md-toolbar>
           <md-content class="card-padding">
             <div layout="column">
-              <div class="vital-stat"><span class="fa fa-fw fa-institution"></span>
+              <div class="vital-stat"><span class="fa fa-fw fa-institution">
+                  <md-tooltip>Prayer</md-tooltip></span>
                 <md-button ng-disabled="praying" ng-click="pray()" class="inline-button md-raised md-accent md-hue-2">{{prayText}}
                   <md-tooltip>Praying raises Superstition by 1</md-tooltip>
                 </md-button>
               </div>
-              <div class="vital-stat"><span class="fa fa-fw fa-globe"></span><span>&nbsp;{{player.map}} ~ {{player.x}}, {{player.y}}</span></div>
-              <div class="vital-stat"><span class="fa fa-fw fa-map-marker"></span><span>&nbsp;{{player.mapRegion}}</span></div>
-              <div ng-if="player.shop" class="vital-stat"><span class="fa fa-fw icon-money faa-tada animated"></span><span>&nbsp;In shop: {{player.shop.region}}!</span></div>
-              <div class="vital-stat"><span class="fa fa-fw fa-users"></span><span>&nbsp;{{player.partyName || 'No party'}}</span></div>
-              <div class="vital-stat"><span class="fa fa-fw fa-sitemap"></span><span>&nbsp;{{player.guild || 'No guild'}}</span></div>
-              <div><span class="fa fa-fw fa-clock-o"></span><span>&nbsp;Started&nbsp;</span><span am-time-ago="::player.registrationDate">
+              <div ng-if="player.titles.length &gt; 0" class="vital-stat"><span class="fa fa-fw fa-tag">
+                  <md-tooltip>Title</md-tooltip></span>
+                <select ng-model="player.title" ng-options="val for val in availableTitles()" ng-change="changeTitle()"></select>
+              </div>
+              <div class="vital-stat"><span class="fa fa-fw fa-globe">
+                  <md-tooltip>World Position</md-tooltip></span><span>&nbsp;{{player.map}} ~ {{player.x}}, {{player.y}}</span></div>
+              <div class="vital-stat"><span class="fa fa-fw fa-map-marker">
+                  <md-tooltip>Map Region</md-tooltip></span><span>&nbsp;{{player.mapRegion}}</span></div>
+              <div ng-if="player.shop" class="vital-stat"><span class="fa fa-fw icon-money faa-tada animated">
+                  <md-tooltip>Current Shop</md-tooltip></span><span>&nbsp;In shop: {{player.shop.region}}!</span></div>
+              <div class="vital-stat"><span class="fa fa-fw fa-users">
+                  <md-tooltip>Party</md-tooltip></span><span>&nbsp;{{player.partyName || 'No party'}}</span></div>
+              <div class="vital-stat"><span class="fa fa-fw fa-sitemap">
+                  <md-tooltip>Guild</md-tooltip></span><span>&nbsp;{{player.guild || 'No guild'}}</span></div>
+              <div><span class="fa fa-fw fa-clock-o">
+                  <md-tooltip>Creation Date</md-tooltip></span><span>&nbsp;Started&nbsp;</span><span am-time-ago="::player.registrationDate">
                   <md-tooltip>{{::player.registrationDate | amDateFormat:'dddd, MMMM Do YYYY, h:mm:ss a'}}</md-tooltip></span></div>
             </div>
           </md-content>
