@@ -86,7 +86,12 @@ angular.module 'IdleLands'
 
           handleObjects()
 
-          sprite = @game.add.sprite player.x*16, player.y*16, 'interactables', 12
+          sprite = @game.add.sprite player.x*16, player.y*16, 'interactables',
+            switch player.gender
+              when 'male' then 12
+              when 'female' then 13
+              else 11
+
           @game.camera.follow sprite
 
           text = @game.add.text 10, 10, (textForPlayer player), {font: '15px Arial', fill: '#fff', stroke: '#000', strokeThickness: 3}
