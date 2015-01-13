@@ -1027,7 +1027,16 @@
               map.createFromObjects('Interactables', i, 'interactables', i - 1, true, false, objectGroup);
             }
             handleObjects();
-            sprite = this.game.add.sprite(player.x * 16, player.y * 16, 'interactables', 12);
+            sprite = this.game.add.sprite(player.x * 16, player.y * 16, 'interactables', (function() {
+              switch (player.gender) {
+                case 'male':
+                  return 12;
+                case 'female':
+                  return 13;
+                default:
+                  return 11;
+              }
+            })());
             this.game.camera.follow(sprite);
             text = this.game.add.text(10, 10, textForPlayer(player), {
               font: '15px Arial',
