@@ -122,7 +122,7 @@ angular.module 'IdleLands'
       $scope.player = Player.getPlayer()
       $scope.loadPersonalities()
 
-      $scope._recentEvents = $scope.player?.recentEvents.reverse()
+      $scope._recentEvents = $scope.player?.recentEvents
       $scope._personalities = _($scope.player?.achievements)
         .filter (achievement) -> achievement.type is 'personality'
         .pluck '_personality'
