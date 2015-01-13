@@ -1588,7 +1588,7 @@
         var _ref, _ref1;
         $scope.player = Player.getPlayer();
         $scope.loadPersonalities();
-        $scope._recentEvents = (_ref = $scope.player) != null ? _ref.recentEvents.reverse() : void 0;
+        $scope._recentEvents = (_ref = $scope.player) != null ? _ref.recentEvents : void 0;
         return $scope._personalities = _((_ref1 = $scope.player) != null ? _ref1.achievements : void 0).filter(function(achievement) {
           return achievement.type === 'personality';
         }).pluck('_personality').value();

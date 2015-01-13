@@ -358,7 +358,7 @@
 
 <script id="pet" type="text/ng-template">
   <md-toolbar ng-if="pet" class="md-theme-light">
-    <h1 class="md-toolbar-tools"><span>{{::pet.name}}, the level {{pet.level.__current}} {{::pet.type}} {{pet.professionName}} with {{::pet.attrs[0]}} and {{::pet.attrs[1]}}</span></h1>
+    <h1 class="md-toolbar-tools"><span>{{pet.name}}, the level {{pet.level.__current}} {{::pet.type}} {{pet.professionName}} with {{pet.attrs[0]}} and {{pet.attrs[1]}}</span></h1>
   </md-toolbar>
   <md-progress-linear mode="determinate" ng-value="xpPercent" md-theme="green" ng-if="pet" class="player-xp"></md-progress-linear>
   <div id="pet-tabs" class="auto-flex md-whiteframe-z1 is-flex">
