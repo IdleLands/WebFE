@@ -38,6 +38,7 @@ angular.module 'IdleLands'
       'combat':           'fa-newspaper-o faa-pulse animated'
       'event':            'fa-gift faa-shake animated'
       'pet':              'fa-paw'
+      'guild':            'fa-network'
 
     $scope.praying = no
     $scope.prayText = 'Pray to RNGesus'
