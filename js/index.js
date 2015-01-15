@@ -1021,7 +1021,7 @@
             terrain.resizeWorld();
             map.createLayer('Blocking');
             objectGroup = this.game.add.group();
-            _ref = [1, 2, 12, 13, 14, 15, 18, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 35];
+            _ref = [1, 2, 12, 13, 14, 15, 16, 18, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 35, 37];
             for (_i = 0, _len = _ref.length; _i < _len; _i++) {
               i = _ref[_i];
               map.createFromObjects('Interactables', i, 'interactables', i - 1, true, false, objectGroup);
@@ -1506,7 +1506,8 @@
         'guild': 'fa-network',
         'combat': 'fa-newspaper-o faa-pulse animated',
         'event': 'fa-gift faa-shake animated',
-        'pet': 'fa-paw'
+        'pet': 'fa-paw',
+        'guild': 'fa-network'
       };
       $scope.praying = false;
       $scope.prayText = 'Pray to RNGesus';
