@@ -358,7 +358,7 @@
 
 <script id="pet" type="text/ng-template">
   <md-toolbar ng-if="pet" class="md-theme-light">
-    <h1 class="md-toolbar-tools"><span>{{pet.name}}, the level {{pet.level.__current}} {{::pet.type}} {{pet.professionName}} with {{pet.attrs[0]}} and {{pet.attrs[1]}}</span></h1>
+    <h1 class="md-toolbar-tools"><span>{{pet.name}}, the level {{pet.level.__current}} {{pet.type}} {{pet.professionName}} with {{pet.attrs[0]}} and {{pet.attrs[1]}}</span></h1>
   </md-toolbar>
   <md-progress-linear mode="determinate" ng-value="xpPercent" md-theme="green" ng-if="pet" class="player-xp"></md-progress-linear>
   <div id="pet-tabs" class="auto-flex md-whiteframe-z1 is-flex">
@@ -716,7 +716,7 @@
           </md-content>
         </md-card-content>
       </md-card>
-      <md-card layout="column" ng-if="_.size(player.foundPets) &gt; 0" class="inner-card">
+      <md-card layout="column" ng-if="numFoundPets &gt; 0" class="inner-card">
         <md-card-content>
           <md-toolbar class="md-theme-light-blue">
             <div class="md-toolbar-tools">
@@ -728,7 +728,7 @@
               <div class="vital-stat"><span class="fa fa-fw fa-dashboard"></span>
                 <md-button ng-click="toPetView()" class="inline-button md-raised md-accent">Swap to Pet View</md-button>
               </div>
-              <div class="vital-stat"><span class="fa fa-fw fa-paw"></span><span>&nbsp;{{boughtPets()}}/{{_.size(player.foundPets)}} Pets</span></div>
+              <div class="vital-stat"><span class="fa fa-fw fa-paw"></span><span>&nbsp;{{numBoughtPets}}/{{numFoundPets}} Pets</span></div>
             </div>
           </md-content>
         </md-card-content>

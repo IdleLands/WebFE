@@ -1599,9 +1599,11 @@
         $scope.player = Player.getPlayer();
         $scope.loadPersonalities();
         $scope._recentEvents = (_ref = $scope.player) != null ? _ref.recentEvents : void 0;
-        return $scope._personalities = _((_ref1 = $scope.player) != null ? _ref1.achievements : void 0).filter(function(achievement) {
+        $scope._personalities = _((_ref1 = $scope.player) != null ? _ref1.achievements : void 0).filter(function(achievement) {
           return achievement.type === 'personality';
         }).pluck('_personality').value();
+        $scope.numBoughtPets = $scope.boughtPets();
+        return $scope.numFoundPets = _.size($scope.player.foundPets);
       };
       return Player.observe().then(null, null, function() {
         return $scope.initialize();
