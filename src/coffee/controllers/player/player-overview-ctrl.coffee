@@ -129,6 +129,9 @@ angular.module 'IdleLands'
         .pluck '_personality'
         .value()
 
+      $scope.numBoughtPets = $scope.boughtPets()
+      $scope.numFoundPets = _.size $scope.player.foundPets
+
     Player.observe().then null, null, ->
       $scope.initialize()
 

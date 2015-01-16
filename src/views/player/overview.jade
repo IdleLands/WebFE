@@ -38,7 +38,7 @@ script(id="player-overview", type="text/ng-template")
                         span &nbsp;
                         small(class="{{valueToColor(player._statCache[stat.name])}}") {{getStat(stat.name)}}
 
-         md-card.inner-card(layout="column",ng-if="_.size(player.foundPets) > 0")
+         md-card.inner-card(layout="column",ng-if="numFoundPets > 0")
             md-card-content
                md-toolbar.md-theme-light-blue
                   div.md-toolbar-tools
@@ -50,7 +50,7 @@ script(id="player-overview", type="text/ng-template")
                         md-button.inline-button.md-raised.md-accent(ng-click="toPetView()") Swap to Pet View
                      div.vital-stat
                         span.fa.fa-fw.fa-paw
-                        span &nbsp;{{boughtPets()}}/{{_.size(player.foundPets)}} Pets
+                        span &nbsp;{{numBoughtPets}}/{{numFoundPets}} Pets
 
          md-card.inner-card(layout="column")
             md-card-content
