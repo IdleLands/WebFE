@@ -491,6 +491,21 @@
 </script>
 
 
+<script id="player-guild" type="text/ng-template">
+  <div>{{guild}}</div>
+  <div>{{guildInvites}}</div>
+  <md-list class="flex-scroll has-height">
+    <md-item ng-repeat="invite in guildInvites track by $index">
+      <md-item-content>
+        <div>{{invite}}</div>
+        <md-button>Accept</md-button>
+        <md-button>Reject</md-button>
+      </md-item-content>
+    </md-item>
+  </md-list>
+</script>
+
+
 <script id="player-map" type="text/ng-template">
   <div layout="row" class="tab-containment is-flex auto-flex wrap-container">
     <div>{{drawMap()}}</div>
@@ -780,7 +795,7 @@
           </md-toolbar>
           <md-content style="flex-basis:120px;height:120px;overflow-x:hidden" layout="column" class="is-flex auto-flex">
             <div flex="100" quick-repeat-list="_recentEvents" quick-ng-repeat="event in _recentEvents" layout="row" class="is-flex auto-flex adventure-log-item">
-              <div flex="10" class="text-center vertical-center"><span ng-click="clickOnEvent(event.extra)" ng-class="{'hover-cursor': ::event.extra.battleId}" class="fa fa-fw fa-2x {{::eventTypeToIcon[event.type]}}"></span></div>
+              <div flex="10" class="text-center vertical-center"><span ng-click="clickOnEvent(event.extra)" ng-class="{'hover-cursor': event.extra.battleId}" class="fa fa-fw fa-2x {{::eventTypeToIcon[event.type]}}"></span></div>
               <div flex="90"><small am-time-ago="::event.createdAt"></small>
                 <div>{{::event.message}}</div>
               </div>
@@ -831,6 +846,9 @@
       </md-tab>
       <md-tab ui-sref="player.equipment" label="Equipment">
         <div ui-view="equipment" class="tab"></div>
+      </md-tab>
+      <md-tab ui-sref="player.guild" label="Guild">
+        <div ui-view="guild" class="tab"></div>
       </md-tab>
       <md-tab ui-sref="player.battle" label="Battle">
         <div ui-view="battle" class="tab"></div>

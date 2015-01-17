@@ -21,6 +21,8 @@
       $httpProvider.interceptors.push('PetInterceptor');
       $httpProvider.interceptors.push('PetsInterceptor');
       $httpProvider.interceptors.push('ReloginInterceptor');
+      $httpProvider.interceptors.push('GuildInterceptor');
+      $httpProvider.interceptors.push('GuildInvitesInterceptor');
       $urp.otherwise('/login');
       $urp.when('/player', '/player/overview');
       return $sp.state('login', {
@@ -101,10 +103,21 @@
             controller: 'PlayerEquipment'
           }
         }
+      }).state('player.guild', {
+        url: '/guild',
+        data: {
+          selectedTab: 3
+        },
+        views: {
+          'guild': {
+            templateUrl: 'player-guild',
+            controller: 'PlayerGuild'
+          }
+        }
       }).state('player.battle', {
         url: '/battle',
         data: {
-          selectedTab: 3
+          selectedTab: 4
         },
         views: {
           'battle': {
@@ -115,7 +128,7 @@
       }).state('player.collectibles', {
         url: '/collectibles',
         data: {
-          selectedTab: 4
+          selectedTab: 5
         },
         views: {
           'collectibles': {
@@ -126,7 +139,7 @@
       }).state('player.achievements', {
         url: '/achievements',
         data: {
-          selectedTab: 5
+          selectedTab: 6
         },
         views: {
           'achievements': {
@@ -137,7 +150,7 @@
       }).state('player.statistics', {
         url: '/statistics',
         data: {
-          selectedTab: 6
+          selectedTab: 7
         },
         views: {
           'statistics': {
@@ -148,7 +161,7 @@
       }).state('player.options', {
         url: '/options',
         data: {
-          selectedTab: 7
+          selectedTab: 8
         },
         views: {
           'options': {
@@ -293,6 +306,8 @@
         $scope.pet = newVal;
         return $scope.initialize();
       });
+      $scope.pet = Pet.getPet();
+      $scope.initialize();
       return $scope.selectedIndex = $state.current.data.selectedTab;
     }
   ]);
@@ -915,6 +930,22 @@
 }).call(this);
 
 (function() {
+  angular.module('IdleLands').controller('PlayerGuild', [
+    '$scope', 'CurrentGuild', 'CurrentGuildInvites', 'API', function($scope, CurrentGuild, CurrentGuildInvites, API) {
+      CurrentGuild.observe().then(null, null, function(val) {
+        return $scope.guild = val;
+      });
+      CurrentGuildInvites.observe().then(null, null, function(val) {
+        return $scope.guildInvites = val;
+      });
+      $scope.guild = CurrentGuild.getGuild();
+      return $scope.guildInvites = CurrentGuildInvites.getGuildInvites();
+    }
+  ]);
+
+}).call(this);
+
+(function() {
   angular.module('IdleLands').controller('PlayerMap', [
     '$scope', '$timeout', 'CurrentPlayer', 'CurrentMap', 'BaseURL', function($scope, $timeout, Player, CurrentMap, BaseURL) {
       var game, handleObjects, hoverText, itemText, mapName, newMapName, objectGroup, sprite, text, textForPlayer;
@@ -980,7 +1011,7 @@
       hoverText = function() {
         var coordinates;
         coordinates = (Math.floor((game.camera.x + game.input.x) / 16)) + ', ' + (Math.floor((game.camera.y + game.input.y) / 16));
-        return "Hovering (" + coordinates + ")\n" + itemText;
+        return "Hovering (" + coordinates + ")\n" + (itemText.split("\\n").join("\n"));
       };
       textForPlayer = function(player) {
         return "" + player.map + " (" + player.mapRegion + ")\n" + player.x + ", " + player.y + "\n\n" + (hoverText());
@@ -1014,16 +1045,14 @@
             return this.game.load.tilemap(newMapName, null, $scope.currentMap.map, Phaser.Tilemap.TILED_JSON);
           },
           create: function() {
-            var i, map, terrain, _i, _len, _ref;
+            var i, map, terrain, _i;
             map = this.game.add.tilemap(newMapName);
             map.addTilesetImage('tiles', 'tiles');
             terrain = map.createLayer('Terrain');
             terrain.resizeWorld();
             map.createLayer('Blocking');
             objectGroup = this.game.add.group();
-            _ref = [1, 2, 12, 13, 14, 15, 16, 18, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 35, 37, 48, 51];
-            for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-              i = _ref[_i];
+            for (i = _i = 1; _i <= 100; i = ++_i) {
               map.createFromObjects('Interactables', i, 'interactables', i - 1, true, false, objectGroup);
             }
             handleObjects();
@@ -1042,7 +1071,9 @@
               font: '15px Arial',
               fill: '#fff',
               stroke: '#000',
-              strokeThickness: 3
+              strokeThickness: 3,
+              wordWrap: true,
+              wordWrapWidth: 500
             });
             return text.fixedToCamera = true;
           }
@@ -1723,6 +1754,38 @@
 }).call(this);
 
 (function() {
+  angular.module('IdleLands').factory('GuildInvitesInterceptor', [
+    'CurrentGuildInvites', function(CurrentGuildInvites) {
+      return {
+        response: function(response) {
+          if (response.data.guildInvites) {
+            CurrentGuildInvites.setGuildInvites(response.data.guildInvites);
+          }
+          return response;
+        }
+      };
+    }
+  ]);
+
+}).call(this);
+
+(function() {
+  angular.module('IdleLands').factory('GuildInterceptor', [
+    'CurrentGuild', function(CurrentGuild) {
+      return {
+        response: function(response) {
+          if (response.data.guild) {
+            CurrentGuild.setGuild(response.data.guild);
+          }
+          return response;
+        }
+      };
+    }
+  ]);
+
+}).call(this);
+
+(function() {
   angular.module('IdleLands').factory('PetInterceptor', [
     'CurrentPet', function(CurrentPet) {
       return {
@@ -1968,6 +2031,50 @@
         },
         remove: function(data) {
           return $http.post("" + url + "/remove", data);
+        }
+      };
+    }
+  ]);
+
+}).call(this);
+
+(function() {
+  angular.module('IdleLands').factory('Guild', [
+    '$http', 'BaseURL', function($http, baseURL) {
+      var inviteUrl, manageUrl, url;
+      url = "" + baseURL + "/guild";
+      inviteUrl = "" + url + "/invite";
+      manageUrl = "" + url + "/manage";
+      return {
+        create: function(data) {
+          return $http.put("" + url + "/create", data);
+        },
+        leave: function(data) {
+          return $http.post("" + url + "/leave", data);
+        },
+        disband: function(data) {
+          return $http.put("" + url + "/disband", data);
+        },
+        invite: function(data) {
+          return $http.put("" + inviteUrl + "/player", data);
+        },
+        manageInvite: function(data) {
+          return $http.post("" + inviteUrl + "/manage", data);
+        },
+        promote: function(data) {
+          return $http.post("" + manageUrl + "/promote", data);
+        },
+        demote: function(data) {
+          return $http.post("" + manageUrl + "/demote", data);
+        },
+        kick: function(data) {
+          return $http.post("" + manageUrl + "/kick", data);
+        },
+        donate: function(data) {
+          return $http.post("" + manageUrl + "/donate", data);
+        },
+        buff: function(data) {
+          return $http.post("" + manageUrl + "/buff", data);
         }
       };
     }
@@ -2305,6 +2412,52 @@
       messages: ['Chlorinating Car Pools', 'Partitioning Social Network', 'Prelaminating Drywall Inventory', 'Blurring Reality Lines', 'Reticulating 3-Dimensional Splines', 'Preparing Captive Simulators', 'Capacitating Genetic Modifiers', 'Destabilizing Orbital Payloads', 'Sequencing Cinematic Specifiers', 'Branching Family Trees', 'Manipulating Modal Memory', 'Pressurizing Fruit Punch Barrel Hydraulics', 'Testing Underworld Telecommunications', 'Priming Mascot Mischief Coefficients', 'Caffeinating Student Body', 'Initializing Secret Societies', 'Securing Online Grades Database', 'Reticulating Graduated Splines', 'Requisitioning Alumni Donations', 'Pre-Inking Simoleon Plates', 'Loading School Spirit Algorithm', 'Shampooing Dirty Rugs', 'Restocking Sim Inventories', 'Compositing Vampiric Complexions', 'Replacing Wheel Bearings', 'Re-Re-Re-Re-Re-Reticulating Splines', 'Loading "Vroom" Sounds', 'Turning On Turn-Ons', 'Preparing a Tasty Grilled Cheese Sandwich', 'Infuriating Furious Bits', 'Flavorizing Side-Dishes', 'Disgruntling Employees', 'Managing Managers\' Managers', 'Configuring Lemony Squeezation', 'Preparing Bacon for Homeward Transportation', 'Reticulated Splines for Sale: §2000', 'Mitigating Time-Stream Discontinuities', 'Loading "First Batch" Metrics', 'Initializing Forth-Rallying Protocol', 'Neutralizing Shuriken Oxidization', 'Roof = Roof(1/3*pi*r^2*h)', 'Rasterizing Rodent Residences', 'Limiting Litterbox Loads', 'Scheduling Copious Catnaps', 'Calibrating Canine Customization', 'Dumbing Down Doofuses', 'Scolding Splines for Reticulating', 'Distilling Doggie Dynamics', 'Atomizing Atomic Particles', 'Decrementing Feline Life-Count', 'Dampening Stray Generators', 'Gleefully Stacking Inventories', 'De-chlorophyllizing Leaves', 'Predicting Puddle Prevalence', 'Calculating Snowball Trajectories', 'Unexpectedly Reticulating Splines', 'Assessing Loam Particle Sizes', 'Timing Temperature Transference', 'Individualizing Snowflakes', 'Hydrating Harvestables', 'Stocking Ponds', 'Readying Relaxation Receptors', 'Predicting Pagoda Peaks', 'Originating Ocean Currents', 'Faceting Precious Gems', 'Preparing Vacation Days', 'Spawning Sights to See', 'Reticulating Ninja Splines', 'Analyzing Axe Trajectories', 'Training Tour Guides', 'Initializing Dastardly Schemes', 'Factoring Hobby Enthusiasm', 'Calculating Lifetime Aspirations', 'Predicating Predestined Paths', 'Populating Yards with Bugs and Birds', 'Writing Scrolling Startup String Text', 'Reticulating Splines in the Zone', 'Recruiting Snooty Food Judges', 'Breaking Down Restorable Cars', 'Threading Sewing Needles', 'Lacing Football Cleats', 'Going Apartment Hunting', 'Determining Rent Guidelines', 'Preparing for Pops and Locks', 'Generating Compatible Roommates', 'Twisting Spiral Staircases', 'Telling Splines to Reticulate More Quietly', 'Making a Little Bit of Magic', 'Rasterizing Reputation Algorithms', 'Cluttering Closets', 'Perfecting Playground Pieces', 'Submerging Bedroom Furniture', 'Desalinizing Snorkels', 'Enhancing Crown Reflectivity', 'Crenellating Crenellations', 'Dragon-proofing Dressers', 'Reticulating Underwater Splines', 'Intensifying Hawaiian Prints', 'Navigating Stormy Waters', 'Pre-fluffing Pillows', 'Factoring Fairy Frolicking Frequencies', 'Modeling Marquetry', 'Eschewing Everyday Aesthetics', 'Cultivating Quality and Class', 'Proscribing Plebeian Palates', 'Falsifying Faux Finishes', 'Invigorating Dull Habitations', 'Abolishing Pedestrian Posturing', 'Buffing Splines for Reticulation', 'Appointing Appealing Appurtenances', 'Simulating Sparkling Surfaces', 'Reverse-Engineering Party Scores', 'Unfolding Foldy Chairs', 'Rehearsing Dinner', 'Crash-Proofing Parties', 'Grooming Grooms', 'Mingling', 'De-inviting Don Lothario', 'Borrowing Something Blue', 'Happy 14th Birthday Reticulated Splines!', 'Applying Lampshade Headwear', 'Stocking Clearance Racks', 'Fiercely Reticulating Splines', 'Fashioning Late Arrivals', 'De-wrinkling Worry-Free Clothing', 'Distressing Jeans', 'Developing Delicious Designs', 'Formulating Fitting Rooms', 'Tailoring Trendy Threads', 'Constructing Clothes Hangers', 'Adjusting Acceptable Apparel', 'Capturing Youthful Exuberance', 'Analyzing Adolescent Angst', 'Preparing Personal Spaces', 'Making a Mess', 'Like, Totally Reticulating Splines, Dude', 'Generating Gothic Glamour', 'Monitoring Moody Minors', 'Sweetening Sixteens', 'Teasing Teenage Hair-dos', 'Building Boring Bedrooms? As If!', 'Taking Countertops for Granite', 'Preparing Perfect Plumbing', 'Baking Bread for Toasters', 'Igniting Pilot Lights', 'Putting Down Toilet Seats', 'Remodeling Spline Reticulator', 'Assembling Shower Stalls', 'Examining Tiles from All Zooms and Angles', 'Cooling Down Refrigerators', 'Stocking Stylish Sinks', 'Creating Handmade Lampshades', 'Making Many Mini Wrenches', 'Supplying Self-Serve Furniture Area', 'Simmering Swedish Meatballs', 'Building Bedroom Displays', 'Stress-Testing POÄNG Chairs', 'Some Spline Reticulating Required', 'Upholstering Sofas and Loveseats', 'Boxing BILLY Bookcases', 'Spooling IKEA Awesomenessens', 'Making Manic Mansions', 'Storing Solar Energy', 'Over-Waxing Banisters', 'Stopping To Smell The Flowers', 'Extrapolating Empire Eigenvectors', 'Ceiling Fan Rotation = dL/dT', 'Increasing Water Plant Population', 'Redistributing Resources', 'Reticulating Splines One Last Time', 'Reticulating Story Splines', 'Matching Walls and Floors', 'Partitioning Prose', 'Canceling Un-cancelable Actions', 'Filling in the Blanks', 'Enforcing Storyline', 'Generating Intrigue', 'Launching SimSat 9000', 'Compiling Riley\'s Wardrobe', 'Calculating Vincent\'s Wealth', 'Activating Story Arc', 'Re-Activating Story Arc', 'Leveling Playing Fields', 'Stooping and Scooping', 'Making Pets Look Like Owners', 'Making Owners Look Like Pets', 'Reticulating Dog Show Object Splines', 'Delineating Mask Dynamics', 'Reinforcing Story Lines', 'Decrementing Alice\'s Funds', 'Making Stephen Loyal', 'Calculating Native Restlessness', 'Transmitting Message Bottles', 'Clearing Shipping Lanes', 'Severing Civilization Connections', 'Generating Sand Grains', 'Bribing The Orangutans', 'Wrangling All Wreckage', 'Predicting Weather Unpredictability', 'Estimating Volcanic Activity', 'Amplifying Sun to \'11\'', 'Extruding Mesh Terrain', 'Balancing Domestic Coefficients', 'Inverting Career Ladder', 'Calculating Money Supply', 'Normalizing Social Network', 'Reticulating Even More Splines', 'Adjusting Emotional Weights', 'Calibrating Personality Matrix', 'Inserting Chaos Generator', 'Concatenating Vertex Nodes', 'Balancing Domestic Coefficients', 'Inverting Career Ladder', 'Mapping Influence Attributes', 'Assigning Mimic Propagation', 'Busy Reticulating Splines', 'Iterating Chaos Array', 'Importing Personality Anchors', 'Inserting Extension Algorithms', 'Concatenating Vertex Nodes', 'Balancing Domestic Coefficients', 'Re-Inverting Career Ladder', 'Mapping Influence Attributes', 'Aggregating Need Agents', 'Currently Reticulating Splines', 'Interpreting Family Values', 'Cabalizing NPC Controls', 'Maximizing Social Network', 'Renewing Urban Combinatorics', 'Redefining Family Values', 'Calibrating Personality Matrix', 'Generating Population Model', 'Homogenizing Interest Anatomy', 'Reticulating Splines', 'Establishing Gift Registry', 'Randomizing Inhabitant Characteristics', 'Readjusting Emotional Weights', 'Activating Hotel Staff', 'Importing Entertainment Talent', 'Updating Vacancy Request Hotline', 'Downloading Weather Data', 'Hyperactivating Children', 'Still Reticulating Splines', 'Updating Hotel Registry', 'Calculating Exchange Rate', 'Activating Deviance Threshold', 'Adapting Behavioral Model', 'Reconfiguring Genetic Algorithms', 'Hybridizing Plant Material', 'Reticulating Splines Again', 'Unfolding Helix Packet', 'Synthesizing Natural Selection', 'Enabling Lot Commercialization', 'Recomputing Mammal Matrix', 'Augmenting Occupational Conduits', 'Initializing Operant Construct', 'Generating Schmoozing Algorithm', 'Populating Empyreal Entities', 'Configuring Studio Operations', 'Reticulating Golden Splines', 'Composing Melodic Euphony', 'Spreading Rumors', 'Polarizing Image Conduits', 'Calibrating Fame Indicant', 'Strengthening Award Foundations', 'Abstracting Loading Procedures', 'Locating Misplaced Calculations', 'Eliminating Would-be Chicanery', 'Tabulating Spell Effectors', 'Reticulating Unreticulated Splines', 'Recycling Hex Decimals', 'Binding Trace Enchantments', 'Fabricating Imaginary Infrastructure', 'Optimizing Baking Temperature', 'Ensuring Transplanar Synergy', 'Simulating Program Execution', 'Reticulating More Splines', 'Interpreting Family Values', 'Fabricating Imaginary Infrastructure', 'Recomputing Mammal Matrix', 'Activating Deviance Threshold', 'Composing Melodic Euphony', 'Homogenizing Interest Anatomy', 'Normalizing Social Network', 'Compiling Reticulated Splines', 'Simulating Program Execution', 'Shooting Stars', 'Maximizing Fun', 'Tasting The Rainbow', 'Downloading Awesomesauce', 'Being Awesome', 'Generating Llamas', 'Herding Goats', 'Goats Goats Goats', 'Up To No Good', 'Calculating Odds', 'Keeping Calm', 'Keeping (Mostly) Calm', 'Stretching The Truth', 'Going Somewhere']
     };
   });
+
+}).call(this);
+
+(function() {
+  angular.module('IdleLands').factory('CurrentGuildInvites', [
+    '$q', function($q) {
+      var defer, guildInvites;
+      guildInvites = null;
+      defer = $q.defer();
+      return {
+        observe: function() {
+          return defer.promise;
+        },
+        getGuildInvites: function() {
+          return guildInvites;
+        },
+        setGuildInvites: function(newGuildInvites) {
+          guildInvites = newGuildInvites;
+          return defer.notify(guildInvites);
+        }
+      };
+    }
+  ]);
+
+}).call(this);
+
+(function() {
+  angular.module('IdleLands').factory('CurrentGuild', [
+    '$q', function($q) {
+      var defer, guild;
+      guild = null;
+      defer = $q.defer();
+      return {
+        observe: function() {
+          return defer.promise;
+        },
+        getGuild: function() {
+          return guild;
+        },
+        setGuild: function(newGuild) {
+          guild = newGuild;
+          return defer.notify(guild);
+        }
+      };
+    }
+  ]);
 
 }).call(this);
 
