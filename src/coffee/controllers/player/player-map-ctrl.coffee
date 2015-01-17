@@ -42,7 +42,7 @@ angular.module 'IdleLands'
 
     hoverText = ->
       coordinates = ((game.camera.x+game.input.x)//16) + ', ' + ((game.camera.y+game.input.y)//16)
-      "Hovering (#{coordinates})\n#{itemText}"
+      "Hovering (#{coordinates})\n#{itemText.split("\\n").join "\n"}"
 
     textForPlayer = (player) ->
       "#{player.map} (#{player.mapRegion})\n#{player.x}, #{player.y}\n\n#{hoverText()}"
@@ -81,7 +81,7 @@ angular.module 'IdleLands'
 
           objectGroup = @game.add.group()
 
-          for i in [1, 2, 12, 13, 14, 15, 16, 18, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 35, 37, 48, 51]
+          for i in [1..100]
             map.createFromObjects 'Interactables', i, 'interactables', i-1, yes, no, objectGroup
 
           handleObjects()
@@ -94,7 +94,7 @@ angular.module 'IdleLands'
 
           @game.camera.follow sprite
 
-          text = @game.add.text 10, 10, (textForPlayer player), {font: '15px Arial', fill: '#fff', stroke: '#000', strokeThickness: 3}
+          text = @game.add.text 10, 10, (textForPlayer player), {font: '15px Arial', fill: '#fff', stroke: '#000', strokeThickness: 3, wordWrap: yes, wordWrapWidth: 500}
           text.fixedToCamera = yes
 
       return if (not player) or game
