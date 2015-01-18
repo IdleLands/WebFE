@@ -1022,8 +1022,9 @@
         }
       };
       $scope.canKick = function(member) {
-        var myIdent, _ref;
-        myIdent = (_ref = CurrentPlayer.getPlayer()) != null ? _ref.identifier : void 0;
+        var currentPlayer, myIdent;
+        currentPlayer = CurrentPlayer.getPlayer();
+        myIdent = currentPlayer != null ? currentPlayer.identifier : void 0;
         if (member.identifier === myIdent) {
           return false;
         }
@@ -1031,6 +1032,9 @@
           return false;
         }
         if ($scope.isInvited(member)) {
+          return false;
+        }
+        if ((currentPlayer != null ? currentPlayer.guildStatus : void 0) <= 0) {
           return false;
         }
         return true;
@@ -1318,7 +1322,7 @@
 (function() {
   angular.module('IdleLands').controller('PlayerOptions', [
     '$scope', '$timeout', '$mdDialog', 'CurrentPlayer', 'OptionsCache', 'API', function($scope, $timeout, $mdDialog, Player, OptionsCache, API) {
-      var initializing, isChanging;
+      var initializing;
       initializing = true;
       $scope.options = OptionsCache.getOpts();
       $scope.strings = {
@@ -1386,66 +1390,38 @@
         }
         return $scope.updateStrings();
       }, true);
-      $scope.$watch('player.pushbulletApiKey', function(newVal, oldVal) {
-        if (newVal === oldVal || initializing) {
-          return;
-        }
-        return API.pushbullet.set({
-          apiKey: newVal
+      $scope.updatePushbullet = function() {
+        API.pushbullet.set({
+          apiKey: $scope.player.pushbulletApiKey
         });
-      });
-      $scope.$watch('player.gender', function(newVal, oldVal) {
-        if (newVal === oldVal || initializing) {
-          return;
-        }
-        return API.gender.set({
-          gender: newVal
+        return true;
+      };
+      $scope.updateGender = function() {
+        API.gender.set({
+          gender: $scope.player.gender
         });
-      });
-      isChanging = false;
-      $scope.$watch('player.priorityPoints', function(newVal, oldVal) {
-        var propDiff;
-        if (newVal === oldVal || !oldVal) {
+        return true;
+      };
+      $scope.tempPP = {};
+      $scope.updatePP = function(stat) {
+        var diff, newVal, oldVal;
+        oldVal = $scope.tempPP[stat];
+        newVal = $scope.player.priorityPoints[stat];
+        diff = newVal - oldVal;
+        if (diff === 0) {
           return;
         }
-        propDiff = _.omit(newVal, function(v, k) {
-          return oldVal[k] === v;
-        });
-        if (_.isEmpty(propDiff)) {
-          return;
-        }
-        return _.each(_.keys(propDiff), function(prop) {
-          if ($scope.player.priorityPoints[prop] < 0) {
-            isChanging = true;
-            $scope.player.priorityPoints[prop] = 0;
-            $timeout(function() {
-              return isChanging = false;
-            }, 0);
-            return;
+        $scope.tempPP[stat] += diff;
+        return API.priority.add({
+          stat: stat,
+          points: diff
+        }).then(function(res) {
+          if (!res.data.isSuccess) {
+            $scope.player.priorityPoints[stat] = oldVal;
+            return $scope.tempPP[stat] -= diff;
           }
-          if (isChanging) {
-            return;
-          }
-          propDiff[prop] = newVal[prop] - oldVal[prop];
-          if ((Math.abs(propDiff[prop])) !== 1) {
-            return;
-          }
-          isChanging = true;
-          return API.priority.add({
-            stat: prop,
-            points: propDiff[prop]
-          }).then(function(res) {
-            if (res.data.isSuccess) {
-              isChanging = false;
-              return;
-            }
-            $scope.player.priorityPoints[prop] -= propDiff[prop];
-            return $timeout(function() {
-              return isChanging = false;
-            }, 0);
-          });
         });
-      }, true);
+      };
       $scope.refreshCustomContent = function() {
         return API.custom.list().then(function(res) {
           return $scope.customContentList = res.data.customs;

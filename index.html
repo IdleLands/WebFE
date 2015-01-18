@@ -675,7 +675,7 @@
               <h3><a href="https://github.com/IdleLands/IdleLands/wiki/New-Player-Guide#pushbullet" target="_blank" class="fa fa-question-circle">&nbsp;PushBullet</a></h3>
             </div>
           </md-toolbar>
-          <md-content class="card-padding"><a href="href" editable-text="player.pushbulletApiKey">{{player.pushbulletApiKey || 'No PushBullet API key set'}}</a></md-content>
+          <md-content class="card-padding"><a href="href" editable-text="player.pushbulletApiKey" onaftersave="updatePushbullet()">{{player.pushbulletApiKey || 'No PushBullet API key set'}}</a></md-content>
         </md-card-content>
       </md-card>
       <md-card layout="column" class="inner-card">
@@ -685,8 +685,8 @@
               <h3><a href="https://github.com/IdleLands/IdleLands/wiki/New-Player-Guide#gender" target="_blank" class="fa fa-question-circle">&nbsp;Gender</a></h3>
             </div>
           </md-toolbar>
-          <md-content class="card-padding"><a href="href" editable-text="player.gender">{{player.gender || 'No gender specified'}}</a>
-            <md-radio-group ng-model="player.gender">
+          <md-content class="card-padding"><a href="href" editable-text="player.gender" onaftersave="updateGender()">{{player.gender || 'No gender specified'}}</a>
+            <md-radio-group ng-model="player.gender" ng-change="updateGender()">
               <md-radio-button value="female">Female</md-radio-button>
               <md-radio-button value="male">Male</md-radio-button>
               <md-radio-button value="glowcloud">Glowcloud</md-radio-button>
@@ -709,8 +709,8 @@
           <md-content class="card-padding">
             <div layout="row" class="wrap-container">
               <md-input-container flex="33" ng-repeat="(stat,val) in player.priorityPoints track by $index">
-                <label>{{stat}}</label>
-                <input type="number" ng-model="player.priorityPoints[stat]"/>
+                <label>{{::stat}}</label>
+                <input type="number" min="0" max="6" ng-model="player.priorityPoints[stat]" ng-focus="tempPP[stat] = player.priorityPoints[stat]" ng-change="updatePP(stat)"/>
               </md-input-container>
             </div>
           </md-content>
