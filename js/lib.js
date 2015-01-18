@@ -45449,7 +45449,7 @@ Phaser.Physics.P2.RevoluteConstraint.prototype.constructor = Phaser.Physics.P2.R
                 }
                 return match;
             });
-            message = message + "\nhttp://errors.angularjs.org/1.3.8/" + (module ? module + "/" : "") + code;
+            message = message + "\nhttp://errors.angularjs.org/1.3.9/" + (module ? module + "/" : "") + code;
             for (i = 2; i < arguments.length; i++) {
                 message = message + (i == 2 ? "?" : "&") + "p" + (i - 2) + "=" + encodeURIComponent(toDebugString(arguments[i]));
             }
@@ -46153,11 +46153,11 @@ Phaser.Physics.P2.RevoluteConstraint.prototype.constructor = Phaser.Physics.P2.R
         return obj;
     }
     var version = {
-        full: "1.3.8",
+        full: "1.3.9",
         major: 1,
         minor: 3,
-        dot: 8,
-        codeName: "prophetic-narwhal"
+        dot: 9,
+        codeName: "multidimensional-awareness"
     };
     function publishExternalAPI(angular) {
         extend(angular, {
@@ -50533,7 +50533,7 @@ Phaser.Physics.P2.RevoluteConstraint.prototype.constructor = Phaser.Physics.P2.R
             }, {
                 assign: function(scope, value, locals) {
                     var o = object(scope, locals);
-                    if (!o) object.assign(scope, o = {});
+                    if (!o) object.assign(scope, o = {}, locals);
                     return getter.assign(o, value);
                 }
             });
@@ -50552,7 +50552,7 @@ Phaser.Physics.P2.RevoluteConstraint.prototype.constructor = Phaser.Physics.P2.R
                 assign: function(self, value, locals) {
                     var key = ensureSafeMemberName(indexFn(self, locals), expression);
                     var o = ensureSafeObject(obj(self, locals), expression);
-                    if (!o) obj.assign(self, o = {});
+                    if (!o) obj.assign(self, o = {}, locals);
                     return o[key] = value;
                 }
             });
@@ -50638,17 +50638,18 @@ Phaser.Physics.P2.RevoluteConstraint.prototype.constructor = Phaser.Physics.P2.R
             });
         }
     };
-    function setter(obj, path, setValue, fullExp) {
+    function setter(obj, locals, path, setValue, fullExp) {
         ensureSafeObject(obj, fullExp);
+        ensureSafeObject(locals, fullExp);
         var element = path.split("."), key;
         for (var i = 0; element.length > 1; i++) {
             key = ensureSafeMemberName(element.shift(), fullExp);
-            var propertyObj = ensureSafeObject(obj[key], fullExp);
+            var propertyObj = i === 0 && locals && locals[key] || obj[key];
             if (!propertyObj) {
                 propertyObj = {};
                 obj[key] = propertyObj;
             }
-            obj = propertyObj;
+            obj = ensureSafeObject(propertyObj, fullExp);
         }
         key = ensureSafeMemberName(element.shift(), fullExp);
         ensureSafeObject(obj[key], fullExp);
@@ -50742,8 +50743,8 @@ Phaser.Physics.P2.RevoluteConstraint.prototype.constructor = Phaser.Physics.P2.R
             fn = evaledFnGetter;
         }
         fn.sharedGetter = true;
-        fn.assign = function(self, value) {
-            return setter(self, path, value, path);
+        fn.assign = function(self, value, locals) {
+            return setter(self, locals, path, value, path);
         };
         getterFnCache[path] = fn;
         return fn;
@@ -52190,7 +52191,7 @@ Phaser.Physics.P2.RevoluteConstraint.prototype.constructor = Phaser.Physics.P2.R
         var expectedType = typeof expected;
         if (expectedType === "string" && expected.charAt(0) === "!") {
             return !deepCompare(actual, expected.substring(1), comparator, matchAgainstAnyProp);
-        } else if (actualType === "array") {
+        } else if (isArray(actual)) {
             return actual.some(function(item) {
                 return deepCompare(item, expected, comparator, matchAgainstAnyProp);
             });
@@ -52458,24 +52459,11 @@ Phaser.Physics.P2.RevoluteConstraint.prototype.constructor = Phaser.Physics.P2.R
             } else {
                 limit = int(limit);
             }
-            if (isString(input)) {
-                if (limit) {
-                    return limit >= 0 ? input.slice(0, limit) : input.slice(limit, input.length);
-                } else {
-                    return "";
-                }
-            }
-            var i, n;
-            if (limit > input.length) limit = input.length; else if (limit < -input.length) limit = -input.length;
-            if (limit > 0) {
-                i = 0;
-                n = limit;
+            if (limit) {
+                return limit > 0 ? input.slice(0, limit) : input.slice(limit);
             } else {
-                if (!limit) return [];
-                i = input.length + limit;
-                n = input.length;
+                return isString(input) ? "" : [];
             }
-            return input.slice(i, n);
         };
     }
     orderByFilter.$inject = [ "$parse" ];
@@ -52793,19 +52781,19 @@ Phaser.Physics.P2.RevoluteConstraint.prototype.constructor = Phaser.Physics.P2.R
                             }
                             var parentFormCtrl = controller.$$parentForm, alias = controller.$name;
                             if (alias) {
-                                setter(scope, alias, controller, alias);
+                                setter(scope, null, alias, controller, alias);
                                 attr.$observe(attr.name ? "name" : "ngForm", function(newValue) {
                                     if (alias === newValue) return;
-                                    setter(scope, alias, undefined, alias);
+                                    setter(scope, null, alias, undefined, alias);
                                     alias = newValue;
-                                    setter(scope, alias, controller, alias);
+                                    setter(scope, null, alias, controller, alias);
                                     parentFormCtrl.$$renameControl(controller, alias);
                                 });
                             }
                             formElement.on("$destroy", function() {
                                 parentFormCtrl.$removeControl(controller);
                                 if (alias) {
-                                    setter(scope, alias, undefined, alias);
+                                    setter(scope, null, alias, undefined, alias);
                                 }
                                 extend(controller, nullFormCtrl);
                             });
@@ -52827,8 +52815,6 @@ Phaser.Physics.P2.RevoluteConstraint.prototype.constructor = Phaser.Physics.P2.R
     var WEEK_REGEXP = /^(\d{4})-W(\d\d)$/;
     var MONTH_REGEXP = /^(\d{4})-(\d\d)$/;
     var TIME_REGEXP = /^(\d\d):(\d\d)(?::(\d\d)(\.\d{1,3})?)?$/;
-    var DEFAULT_REGEXP = /(\s+|^)default(\s+|$)/;
-    var $ngModelMinErr = new minErr("ngModel");
     var inputType = {
         text: textInputType,
         date: createDateInputType("date", DATE_REGEXP, createDateParser(DATE_REGEXP, [ "yyyy", "MM", "dd" ]), "yyyy-MM-dd"),
@@ -53174,7 +53160,398 @@ Phaser.Physics.P2.RevoluteConstraint.prototype.constructor = Phaser.Physics.P2.R
             }
         };
     } ];
+    var CONSTANT_VALUE_REGEXP = /^(true|false|\d+)$/;
+    var ngValueDirective = function() {
+        return {
+            restrict: "A",
+            priority: 100,
+            compile: function(tpl, tplAttr) {
+                if (CONSTANT_VALUE_REGEXP.test(tplAttr.ngValue)) {
+                    return function ngValueConstantLink(scope, elm, attr) {
+                        attr.$set("value", scope.$eval(attr.ngValue));
+                    };
+                } else {
+                    return function ngValueLink(scope, elm, attr) {
+                        scope.$watch(attr.ngValue, function valueWatchAction(value) {
+                            attr.$set("value", value);
+                        });
+                    };
+                }
+            }
+        };
+    };
+    var ngBindDirective = [ "$compile", function($compile) {
+        return {
+            restrict: "AC",
+            compile: function ngBindCompile(templateElement) {
+                $compile.$$addBindingClass(templateElement);
+                return function ngBindLink(scope, element, attr) {
+                    $compile.$$addBindingInfo(element, attr.ngBind);
+                    element = element[0];
+                    scope.$watch(attr.ngBind, function ngBindWatchAction(value) {
+                        element.textContent = value === undefined ? "" : value;
+                    });
+                };
+            }
+        };
+    } ];
+    var ngBindTemplateDirective = [ "$interpolate", "$compile", function($interpolate, $compile) {
+        return {
+            compile: function ngBindTemplateCompile(templateElement) {
+                $compile.$$addBindingClass(templateElement);
+                return function ngBindTemplateLink(scope, element, attr) {
+                    var interpolateFn = $interpolate(element.attr(attr.$attr.ngBindTemplate));
+                    $compile.$$addBindingInfo(element, interpolateFn.expressions);
+                    element = element[0];
+                    attr.$observe("ngBindTemplate", function(value) {
+                        element.textContent = value === undefined ? "" : value;
+                    });
+                };
+            }
+        };
+    } ];
+    var ngBindHtmlDirective = [ "$sce", "$parse", "$compile", function($sce, $parse, $compile) {
+        return {
+            restrict: "A",
+            compile: function ngBindHtmlCompile(tElement, tAttrs) {
+                var ngBindHtmlGetter = $parse(tAttrs.ngBindHtml);
+                var ngBindHtmlWatch = $parse(tAttrs.ngBindHtml, function getStringValue(value) {
+                    return (value || "").toString();
+                });
+                $compile.$$addBindingClass(tElement);
+                return function ngBindHtmlLink(scope, element, attr) {
+                    $compile.$$addBindingInfo(element, attr.ngBindHtml);
+                    scope.$watch(ngBindHtmlWatch, function ngBindHtmlWatchAction() {
+                        element.html($sce.getTrustedHtml(ngBindHtmlGetter(scope)) || "");
+                    });
+                };
+            }
+        };
+    } ];
+    var ngChangeDirective = valueFn({
+        restrict: "A",
+        require: "ngModel",
+        link: function(scope, element, attr, ctrl) {
+            ctrl.$viewChangeListeners.push(function() {
+                scope.$eval(attr.ngChange);
+            });
+        }
+    });
+    function classDirective(name, selector) {
+        name = "ngClass" + name;
+        return [ "$animate", function($animate) {
+            return {
+                restrict: "AC",
+                link: function(scope, element, attr) {
+                    var oldVal;
+                    scope.$watch(attr[name], ngClassWatchAction, true);
+                    attr.$observe("class", function(value) {
+                        ngClassWatchAction(scope.$eval(attr[name]));
+                    });
+                    if (name !== "ngClass") {
+                        scope.$watch("$index", function($index, old$index) {
+                            var mod = $index & 1;
+                            if (mod !== (old$index & 1)) {
+                                var classes = arrayClasses(scope.$eval(attr[name]));
+                                mod === selector ? addClasses(classes) : removeClasses(classes);
+                            }
+                        });
+                    }
+                    function addClasses(classes) {
+                        var newClasses = digestClassCounts(classes, 1);
+                        attr.$addClass(newClasses);
+                    }
+                    function removeClasses(classes) {
+                        var newClasses = digestClassCounts(classes, -1);
+                        attr.$removeClass(newClasses);
+                    }
+                    function digestClassCounts(classes, count) {
+                        var classCounts = element.data("$classCounts") || {};
+                        var classesToUpdate = [];
+                        forEach(classes, function(className) {
+                            if (count > 0 || classCounts[className]) {
+                                classCounts[className] = (classCounts[className] || 0) + count;
+                                if (classCounts[className] === +(count > 0)) {
+                                    classesToUpdate.push(className);
+                                }
+                            }
+                        });
+                        element.data("$classCounts", classCounts);
+                        return classesToUpdate.join(" ");
+                    }
+                    function updateClasses(oldClasses, newClasses) {
+                        var toAdd = arrayDifference(newClasses, oldClasses);
+                        var toRemove = arrayDifference(oldClasses, newClasses);
+                        toAdd = digestClassCounts(toAdd, 1);
+                        toRemove = digestClassCounts(toRemove, -1);
+                        if (toAdd && toAdd.length) {
+                            $animate.addClass(element, toAdd);
+                        }
+                        if (toRemove && toRemove.length) {
+                            $animate.removeClass(element, toRemove);
+                        }
+                    }
+                    function ngClassWatchAction(newVal) {
+                        if (selector === true || scope.$index % 2 === selector) {
+                            var newClasses = arrayClasses(newVal || []);
+                            if (!oldVal) {
+                                addClasses(newClasses);
+                            } else if (!equals(newVal, oldVal)) {
+                                var oldClasses = arrayClasses(oldVal);
+                                updateClasses(oldClasses, newClasses);
+                            }
+                        }
+                        oldVal = shallowCopy(newVal);
+                    }
+                }
+            };
+            function arrayDifference(tokens1, tokens2) {
+                var values = [];
+                outer: for (var i = 0; i < tokens1.length; i++) {
+                    var token = tokens1[i];
+                    for (var j = 0; j < tokens2.length; j++) {
+                        if (token == tokens2[j]) continue outer;
+                    }
+                    values.push(token);
+                }
+                return values;
+            }
+            function arrayClasses(classVal) {
+                if (isArray(classVal)) {
+                    return classVal;
+                } else if (isString(classVal)) {
+                    return classVal.split(" ");
+                } else if (isObject(classVal)) {
+                    var classes = [];
+                    forEach(classVal, function(v, k) {
+                        if (v) {
+                            classes = classes.concat(k.split(" "));
+                        }
+                    });
+                    return classes;
+                }
+                return classVal;
+            }
+        } ];
+    }
+    var ngClassDirective = classDirective("", true);
+    var ngClassOddDirective = classDirective("Odd", 0);
+    var ngClassEvenDirective = classDirective("Even", 1);
+    var ngCloakDirective = ngDirective({
+        compile: function(element, attr) {
+            attr.$set("ngCloak", undefined);
+            element.removeClass("ng-cloak");
+        }
+    });
+    var ngControllerDirective = [ function() {
+        return {
+            restrict: "A",
+            scope: true,
+            controller: "@",
+            priority: 500
+        };
+    } ];
+    var ngEventDirectives = {};
+    var forceAsyncEvents = {
+        blur: true,
+        focus: true
+    };
+    forEach("click dblclick mousedown mouseup mouseover mouseout mousemove mouseenter mouseleave keydown keyup keypress submit focus blur copy cut paste".split(" "), function(eventName) {
+        var directiveName = directiveNormalize("ng-" + eventName);
+        ngEventDirectives[directiveName] = [ "$parse", "$rootScope", function($parse, $rootScope) {
+            return {
+                restrict: "A",
+                compile: function($element, attr) {
+                    var fn = $parse(attr[directiveName], null, true);
+                    return function ngEventHandler(scope, element) {
+                        element.on(eventName, function(event) {
+                            var callback = function() {
+                                fn(scope, {
+                                    $event: event
+                                });
+                            };
+                            if (forceAsyncEvents[eventName] && $rootScope.$$phase) {
+                                scope.$evalAsync(callback);
+                            } else {
+                                scope.$apply(callback);
+                            }
+                        });
+                    };
+                }
+            };
+        } ];
+    });
+    var ngIfDirective = [ "$animate", function($animate) {
+        return {
+            multiElement: true,
+            transclude: "element",
+            priority: 600,
+            terminal: true,
+            restrict: "A",
+            $$tlb: true,
+            link: function($scope, $element, $attr, ctrl, $transclude) {
+                var block, childScope, previousElements;
+                $scope.$watch($attr.ngIf, function ngIfWatchAction(value) {
+                    if (value) {
+                        if (!childScope) {
+                            $transclude(function(clone, newScope) {
+                                childScope = newScope;
+                                clone[clone.length++] = document.createComment(" end ngIf: " + $attr.ngIf + " ");
+                                block = {
+                                    clone: clone
+                                };
+                                $animate.enter(clone, $element.parent(), $element);
+                            });
+                        }
+                    } else {
+                        if (previousElements) {
+                            previousElements.remove();
+                            previousElements = null;
+                        }
+                        if (childScope) {
+                            childScope.$destroy();
+                            childScope = null;
+                        }
+                        if (block) {
+                            previousElements = getBlockNodes(block.clone);
+                            $animate.leave(previousElements).then(function() {
+                                previousElements = null;
+                            });
+                            block = null;
+                        }
+                    }
+                });
+            }
+        };
+    } ];
+    var ngIncludeDirective = [ "$templateRequest", "$anchorScroll", "$animate", "$sce", function($templateRequest, $anchorScroll, $animate, $sce) {
+        return {
+            restrict: "ECA",
+            priority: 400,
+            terminal: true,
+            transclude: "element",
+            controller: angular.noop,
+            compile: function(element, attr) {
+                var srcExp = attr.ngInclude || attr.src, onloadExp = attr.onload || "", autoScrollExp = attr.autoscroll;
+                return function(scope, $element, $attr, ctrl, $transclude) {
+                    var changeCounter = 0, currentScope, previousElement, currentElement;
+                    var cleanupLastIncludeContent = function() {
+                        if (previousElement) {
+                            previousElement.remove();
+                            previousElement = null;
+                        }
+                        if (currentScope) {
+                            currentScope.$destroy();
+                            currentScope = null;
+                        }
+                        if (currentElement) {
+                            $animate.leave(currentElement).then(function() {
+                                previousElement = null;
+                            });
+                            previousElement = currentElement;
+                            currentElement = null;
+                        }
+                    };
+                    scope.$watch($sce.parseAsResourceUrl(srcExp), function ngIncludeWatchAction(src) {
+                        var afterAnimation = function() {
+                            if (isDefined(autoScrollExp) && (!autoScrollExp || scope.$eval(autoScrollExp))) {
+                                $anchorScroll();
+                            }
+                        };
+                        var thisChangeId = ++changeCounter;
+                        if (src) {
+                            $templateRequest(src, true).then(function(response) {
+                                if (thisChangeId !== changeCounter) return;
+                                var newScope = scope.$new();
+                                ctrl.template = response;
+                                var clone = $transclude(newScope, function(clone) {
+                                    cleanupLastIncludeContent();
+                                    $animate.enter(clone, null, $element).then(afterAnimation);
+                                });
+                                currentScope = newScope;
+                                currentElement = clone;
+                                currentScope.$emit("$includeContentLoaded", src);
+                                scope.$eval(onloadExp);
+                            }, function() {
+                                if (thisChangeId === changeCounter) {
+                                    cleanupLastIncludeContent();
+                                    scope.$emit("$includeContentError", src);
+                                }
+                            });
+                            scope.$emit("$includeContentRequested", src);
+                        } else {
+                            cleanupLastIncludeContent();
+                            ctrl.template = null;
+                        }
+                    });
+                };
+            }
+        };
+    } ];
+    var ngIncludeFillContentDirective = [ "$compile", function($compile) {
+        return {
+            restrict: "ECA",
+            priority: -400,
+            require: "ngInclude",
+            link: function(scope, $element, $attr, ctrl) {
+                if (/SVG/.test($element[0].toString())) {
+                    $element.empty();
+                    $compile(jqLiteBuildFragment(ctrl.template, document).childNodes)(scope, function namespaceAdaptedClone(clone) {
+                        $element.append(clone);
+                    }, {
+                        futureParentElement: $element
+                    });
+                    return;
+                }
+                $element.html(ctrl.template);
+                $compile($element.contents())(scope);
+            }
+        };
+    } ];
+    var ngInitDirective = ngDirective({
+        priority: 450,
+        compile: function() {
+            return {
+                pre: function(scope, element, attrs) {
+                    scope.$eval(attrs.ngInit);
+                }
+            };
+        }
+    });
+    var ngListDirective = function() {
+        return {
+            restrict: "A",
+            priority: 100,
+            require: "ngModel",
+            link: function(scope, element, attr, ctrl) {
+                var ngList = element.attr(attr.$attr.ngList) || ", ";
+                var trimValues = attr.ngTrim !== "false";
+                var separator = trimValues ? trim(ngList) : ngList;
+                var parse = function(viewValue) {
+                    if (isUndefined(viewValue)) return;
+                    var list = [];
+                    if (viewValue) {
+                        forEach(viewValue.split(separator), function(value) {
+                            if (value) list.push(trimValues ? trim(value) : value);
+                        });
+                    }
+                    return list;
+                };
+                ctrl.$parsers.push(parse);
+                ctrl.$formatters.push(function(value) {
+                    if (isArray(value)) {
+                        return value.join(ngList);
+                    }
+                    return undefined;
+                });
+                ctrl.$isEmpty = function(value) {
+                    return !value || !value.length;
+                };
+            }
+        };
+    };
     var VALID_CLASS = "ng-valid", INVALID_CLASS = "ng-invalid", PRISTINE_CLASS = "ng-pristine", DIRTY_CLASS = "ng-dirty", UNTOUCHED_CLASS = "ng-untouched", TOUCHED_CLASS = "ng-touched", PENDING_CLASS = "ng-pending";
+    var $ngModelMinErr = new minErr("ngModel");
     var NgModelController = [ "$scope", "$exceptionHandler", "$attrs", "$element", "$parse", "$animate", "$timeout", "$rootScope", "$q", "$interpolate", function($scope, $exceptionHandler, $attr, $element, $parse, $animate, $timeout, $rootScope, $q, $interpolate) {
         this.$viewValue = Number.NaN;
         this.$modelValue = Number.NaN;
@@ -53512,141 +53889,7 @@ Phaser.Physics.P2.RevoluteConstraint.prototype.constructor = Phaser.Physics.P2.R
             }
         };
     } ];
-    var ngChangeDirective = valueFn({
-        restrict: "A",
-        require: "ngModel",
-        link: function(scope, element, attr, ctrl) {
-            ctrl.$viewChangeListeners.push(function() {
-                scope.$eval(attr.ngChange);
-            });
-        }
-    });
-    var requiredDirective = function() {
-        return {
-            restrict: "A",
-            require: "?ngModel",
-            link: function(scope, elm, attr, ctrl) {
-                if (!ctrl) return;
-                attr.required = true;
-                ctrl.$validators.required = function(modelValue, viewValue) {
-                    return !attr.required || !ctrl.$isEmpty(viewValue);
-                };
-                attr.$observe("required", function() {
-                    ctrl.$validate();
-                });
-            }
-        };
-    };
-    var patternDirective = function() {
-        return {
-            restrict: "A",
-            require: "?ngModel",
-            link: function(scope, elm, attr, ctrl) {
-                if (!ctrl) return;
-                var regexp, patternExp = attr.ngPattern || attr.pattern;
-                attr.$observe("pattern", function(regex) {
-                    if (isString(regex) && regex.length > 0) {
-                        regex = new RegExp("^" + regex + "$");
-                    }
-                    if (regex && !regex.test) {
-                        throw minErr("ngPattern")("noregexp", "Expected {0} to be a RegExp but was {1}. Element: {2}", patternExp, regex, startingTag(elm));
-                    }
-                    regexp = regex || undefined;
-                    ctrl.$validate();
-                });
-                ctrl.$validators.pattern = function(value) {
-                    return ctrl.$isEmpty(value) || isUndefined(regexp) || regexp.test(value);
-                };
-            }
-        };
-    };
-    var maxlengthDirective = function() {
-        return {
-            restrict: "A",
-            require: "?ngModel",
-            link: function(scope, elm, attr, ctrl) {
-                if (!ctrl) return;
-                var maxlength = -1;
-                attr.$observe("maxlength", function(value) {
-                    var intVal = int(value);
-                    maxlength = isNaN(intVal) ? -1 : intVal;
-                    ctrl.$validate();
-                });
-                ctrl.$validators.maxlength = function(modelValue, viewValue) {
-                    return maxlength < 0 || ctrl.$isEmpty(modelValue) || viewValue.length <= maxlength;
-                };
-            }
-        };
-    };
-    var minlengthDirective = function() {
-        return {
-            restrict: "A",
-            require: "?ngModel",
-            link: function(scope, elm, attr, ctrl) {
-                if (!ctrl) return;
-                var minlength = 0;
-                attr.$observe("minlength", function(value) {
-                    minlength = int(value) || 0;
-                    ctrl.$validate();
-                });
-                ctrl.$validators.minlength = function(modelValue, viewValue) {
-                    return ctrl.$isEmpty(viewValue) || viewValue.length >= minlength;
-                };
-            }
-        };
-    };
-    var ngListDirective = function() {
-        return {
-            restrict: "A",
-            priority: 100,
-            require: "ngModel",
-            link: function(scope, element, attr, ctrl) {
-                var ngList = element.attr(attr.$attr.ngList) || ", ";
-                var trimValues = attr.ngTrim !== "false";
-                var separator = trimValues ? trim(ngList) : ngList;
-                var parse = function(viewValue) {
-                    if (isUndefined(viewValue)) return;
-                    var list = [];
-                    if (viewValue) {
-                        forEach(viewValue.split(separator), function(value) {
-                            if (value) list.push(trimValues ? trim(value) : value);
-                        });
-                    }
-                    return list;
-                };
-                ctrl.$parsers.push(parse);
-                ctrl.$formatters.push(function(value) {
-                    if (isArray(value)) {
-                        return value.join(ngList);
-                    }
-                    return undefined;
-                });
-                ctrl.$isEmpty = function(value) {
-                    return !value || !value.length;
-                };
-            }
-        };
-    };
-    var CONSTANT_VALUE_REGEXP = /^(true|false|\d+)$/;
-    var ngValueDirective = function() {
-        return {
-            restrict: "A",
-            priority: 100,
-            compile: function(tpl, tplAttr) {
-                if (CONSTANT_VALUE_REGEXP.test(tplAttr.ngValue)) {
-                    return function ngValueConstantLink(scope, elm, attr) {
-                        attr.$set("value", scope.$eval(attr.ngValue));
-                    };
-                } else {
-                    return function ngValueLink(scope, elm, attr) {
-                        scope.$watch(attr.ngValue, function valueWatchAction(value) {
-                            attr.$set("value", value);
-                        });
-                    };
-                }
-            }
-        };
-    };
+    var DEFAULT_REGEXP = /(\s+|^)default(\s+|$)/;
     var ngModelOptionsDirective = function() {
         return {
             restrict: "A",
@@ -53747,335 +53990,6 @@ Phaser.Physics.P2.RevoluteConstraint.prototype.constructor = Phaser.Physics.P2.R
         }
         return true;
     }
-    var ngBindDirective = [ "$compile", function($compile) {
-        return {
-            restrict: "AC",
-            compile: function ngBindCompile(templateElement) {
-                $compile.$$addBindingClass(templateElement);
-                return function ngBindLink(scope, element, attr) {
-                    $compile.$$addBindingInfo(element, attr.ngBind);
-                    element = element[0];
-                    scope.$watch(attr.ngBind, function ngBindWatchAction(value) {
-                        element.textContent = value === undefined ? "" : value;
-                    });
-                };
-            }
-        };
-    } ];
-    var ngBindTemplateDirective = [ "$interpolate", "$compile", function($interpolate, $compile) {
-        return {
-            compile: function ngBindTemplateCompile(templateElement) {
-                $compile.$$addBindingClass(templateElement);
-                return function ngBindTemplateLink(scope, element, attr) {
-                    var interpolateFn = $interpolate(element.attr(attr.$attr.ngBindTemplate));
-                    $compile.$$addBindingInfo(element, interpolateFn.expressions);
-                    element = element[0];
-                    attr.$observe("ngBindTemplate", function(value) {
-                        element.textContent = value === undefined ? "" : value;
-                    });
-                };
-            }
-        };
-    } ];
-    var ngBindHtmlDirective = [ "$sce", "$parse", "$compile", function($sce, $parse, $compile) {
-        return {
-            restrict: "A",
-            compile: function ngBindHtmlCompile(tElement, tAttrs) {
-                var ngBindHtmlGetter = $parse(tAttrs.ngBindHtml);
-                var ngBindHtmlWatch = $parse(tAttrs.ngBindHtml, function getStringValue(value) {
-                    return (value || "").toString();
-                });
-                $compile.$$addBindingClass(tElement);
-                return function ngBindHtmlLink(scope, element, attr) {
-                    $compile.$$addBindingInfo(element, attr.ngBindHtml);
-                    scope.$watch(ngBindHtmlWatch, function ngBindHtmlWatchAction() {
-                        element.html($sce.getTrustedHtml(ngBindHtmlGetter(scope)) || "");
-                    });
-                };
-            }
-        };
-    } ];
-    function classDirective(name, selector) {
-        name = "ngClass" + name;
-        return [ "$animate", function($animate) {
-            return {
-                restrict: "AC",
-                link: function(scope, element, attr) {
-                    var oldVal;
-                    scope.$watch(attr[name], ngClassWatchAction, true);
-                    attr.$observe("class", function(value) {
-                        ngClassWatchAction(scope.$eval(attr[name]));
-                    });
-                    if (name !== "ngClass") {
-                        scope.$watch("$index", function($index, old$index) {
-                            var mod = $index & 1;
-                            if (mod !== (old$index & 1)) {
-                                var classes = arrayClasses(scope.$eval(attr[name]));
-                                mod === selector ? addClasses(classes) : removeClasses(classes);
-                            }
-                        });
-                    }
-                    function addClasses(classes) {
-                        var newClasses = digestClassCounts(classes, 1);
-                        attr.$addClass(newClasses);
-                    }
-                    function removeClasses(classes) {
-                        var newClasses = digestClassCounts(classes, -1);
-                        attr.$removeClass(newClasses);
-                    }
-                    function digestClassCounts(classes, count) {
-                        var classCounts = element.data("$classCounts") || {};
-                        var classesToUpdate = [];
-                        forEach(classes, function(className) {
-                            if (count > 0 || classCounts[className]) {
-                                classCounts[className] = (classCounts[className] || 0) + count;
-                                if (classCounts[className] === +(count > 0)) {
-                                    classesToUpdate.push(className);
-                                }
-                            }
-                        });
-                        element.data("$classCounts", classCounts);
-                        return classesToUpdate.join(" ");
-                    }
-                    function updateClasses(oldClasses, newClasses) {
-                        var toAdd = arrayDifference(newClasses, oldClasses);
-                        var toRemove = arrayDifference(oldClasses, newClasses);
-                        toAdd = digestClassCounts(toAdd, 1);
-                        toRemove = digestClassCounts(toRemove, -1);
-                        if (toAdd && toAdd.length) {
-                            $animate.addClass(element, toAdd);
-                        }
-                        if (toRemove && toRemove.length) {
-                            $animate.removeClass(element, toRemove);
-                        }
-                    }
-                    function ngClassWatchAction(newVal) {
-                        if (selector === true || scope.$index % 2 === selector) {
-                            var newClasses = arrayClasses(newVal || []);
-                            if (!oldVal) {
-                                addClasses(newClasses);
-                            } else if (!equals(newVal, oldVal)) {
-                                var oldClasses = arrayClasses(oldVal);
-                                updateClasses(oldClasses, newClasses);
-                            }
-                        }
-                        oldVal = shallowCopy(newVal);
-                    }
-                }
-            };
-            function arrayDifference(tokens1, tokens2) {
-                var values = [];
-                outer: for (var i = 0; i < tokens1.length; i++) {
-                    var token = tokens1[i];
-                    for (var j = 0; j < tokens2.length; j++) {
-                        if (token == tokens2[j]) continue outer;
-                    }
-                    values.push(token);
-                }
-                return values;
-            }
-            function arrayClasses(classVal) {
-                if (isArray(classVal)) {
-                    return classVal;
-                } else if (isString(classVal)) {
-                    return classVal.split(" ");
-                } else if (isObject(classVal)) {
-                    var classes = [];
-                    forEach(classVal, function(v, k) {
-                        if (v) {
-                            classes = classes.concat(k.split(" "));
-                        }
-                    });
-                    return classes;
-                }
-                return classVal;
-            }
-        } ];
-    }
-    var ngClassDirective = classDirective("", true);
-    var ngClassOddDirective = classDirective("Odd", 0);
-    var ngClassEvenDirective = classDirective("Even", 1);
-    var ngCloakDirective = ngDirective({
-        compile: function(element, attr) {
-            attr.$set("ngCloak", undefined);
-            element.removeClass("ng-cloak");
-        }
-    });
-    var ngControllerDirective = [ function() {
-        return {
-            restrict: "A",
-            scope: true,
-            controller: "@",
-            priority: 500
-        };
-    } ];
-    var ngEventDirectives = {};
-    var forceAsyncEvents = {
-        blur: true,
-        focus: true
-    };
-    forEach("click dblclick mousedown mouseup mouseover mouseout mousemove mouseenter mouseleave keydown keyup keypress submit focus blur copy cut paste".split(" "), function(eventName) {
-        var directiveName = directiveNormalize("ng-" + eventName);
-        ngEventDirectives[directiveName] = [ "$parse", "$rootScope", function($parse, $rootScope) {
-            return {
-                restrict: "A",
-                compile: function($element, attr) {
-                    var fn = $parse(attr[directiveName], null, true);
-                    return function ngEventHandler(scope, element) {
-                        element.on(eventName, function(event) {
-                            var callback = function() {
-                                fn(scope, {
-                                    $event: event
-                                });
-                            };
-                            if (forceAsyncEvents[eventName] && $rootScope.$$phase) {
-                                scope.$evalAsync(callback);
-                            } else {
-                                scope.$apply(callback);
-                            }
-                        });
-                    };
-                }
-            };
-        } ];
-    });
-    var ngIfDirective = [ "$animate", function($animate) {
-        return {
-            multiElement: true,
-            transclude: "element",
-            priority: 600,
-            terminal: true,
-            restrict: "A",
-            $$tlb: true,
-            link: function($scope, $element, $attr, ctrl, $transclude) {
-                var block, childScope, previousElements;
-                $scope.$watch($attr.ngIf, function ngIfWatchAction(value) {
-                    if (value) {
-                        if (!childScope) {
-                            $transclude(function(clone, newScope) {
-                                childScope = newScope;
-                                clone[clone.length++] = document.createComment(" end ngIf: " + $attr.ngIf + " ");
-                                block = {
-                                    clone: clone
-                                };
-                                $animate.enter(clone, $element.parent(), $element);
-                            });
-                        }
-                    } else {
-                        if (previousElements) {
-                            previousElements.remove();
-                            previousElements = null;
-                        }
-                        if (childScope) {
-                            childScope.$destroy();
-                            childScope = null;
-                        }
-                        if (block) {
-                            previousElements = getBlockNodes(block.clone);
-                            $animate.leave(previousElements).then(function() {
-                                previousElements = null;
-                            });
-                            block = null;
-                        }
-                    }
-                });
-            }
-        };
-    } ];
-    var ngIncludeDirective = [ "$templateRequest", "$anchorScroll", "$animate", "$sce", function($templateRequest, $anchorScroll, $animate, $sce) {
-        return {
-            restrict: "ECA",
-            priority: 400,
-            terminal: true,
-            transclude: "element",
-            controller: angular.noop,
-            compile: function(element, attr) {
-                var srcExp = attr.ngInclude || attr.src, onloadExp = attr.onload || "", autoScrollExp = attr.autoscroll;
-                return function(scope, $element, $attr, ctrl, $transclude) {
-                    var changeCounter = 0, currentScope, previousElement, currentElement;
-                    var cleanupLastIncludeContent = function() {
-                        if (previousElement) {
-                            previousElement.remove();
-                            previousElement = null;
-                        }
-                        if (currentScope) {
-                            currentScope.$destroy();
-                            currentScope = null;
-                        }
-                        if (currentElement) {
-                            $animate.leave(currentElement).then(function() {
-                                previousElement = null;
-                            });
-                            previousElement = currentElement;
-                            currentElement = null;
-                        }
-                    };
-                    scope.$watch($sce.parseAsResourceUrl(srcExp), function ngIncludeWatchAction(src) {
-                        var afterAnimation = function() {
-                            if (isDefined(autoScrollExp) && (!autoScrollExp || scope.$eval(autoScrollExp))) {
-                                $anchorScroll();
-                            }
-                        };
-                        var thisChangeId = ++changeCounter;
-                        if (src) {
-                            $templateRequest(src, true).then(function(response) {
-                                if (thisChangeId !== changeCounter) return;
-                                var newScope = scope.$new();
-                                ctrl.template = response;
-                                var clone = $transclude(newScope, function(clone) {
-                                    cleanupLastIncludeContent();
-                                    $animate.enter(clone, null, $element).then(afterAnimation);
-                                });
-                                currentScope = newScope;
-                                currentElement = clone;
-                                currentScope.$emit("$includeContentLoaded", src);
-                                scope.$eval(onloadExp);
-                            }, function() {
-                                if (thisChangeId === changeCounter) {
-                                    cleanupLastIncludeContent();
-                                    scope.$emit("$includeContentError", src);
-                                }
-                            });
-                            scope.$emit("$includeContentRequested", src);
-                        } else {
-                            cleanupLastIncludeContent();
-                            ctrl.template = null;
-                        }
-                    });
-                };
-            }
-        };
-    } ];
-    var ngIncludeFillContentDirective = [ "$compile", function($compile) {
-        return {
-            restrict: "ECA",
-            priority: -400,
-            require: "ngInclude",
-            link: function(scope, $element, $attr, ctrl) {
-                if (/SVG/.test($element[0].toString())) {
-                    $element.empty();
-                    $compile(jqLiteBuildFragment(ctrl.template, document).childNodes)(scope, function namespaceAdaptedClone(clone) {
-                        $element.append(clone);
-                    }, {
-                        futureParentElement: $element
-                    });
-                    return;
-                }
-                $element.html(ctrl.template);
-                $compile($element.contents())(scope);
-            }
-        };
-    } ];
-    var ngInitDirective = ngDirective({
-        priority: 450,
-        compile: function() {
-            return {
-                pre: function(scope, element, attrs) {
-                    scope.$eval(attrs.ngInit);
-                }
-            };
-        }
-    });
     var ngNonBindableDirective = ngDirective({
         terminal: true,
         priority: 1e3
@@ -54299,14 +54213,14 @@ Phaser.Physics.P2.RevoluteConstraint.prototype.constructor = Phaser.Physics.P2.R
         };
     } ];
     var ngStyleDirective = ngDirective(function(scope, element, attr) {
-        scope.$watch(attr.ngStyle, function ngStyleWatchAction(newStyles, oldStyles) {
+        scope.$watchCollection(attr.ngStyle, function ngStyleWatchAction(newStyles, oldStyles) {
             if (oldStyles && newStyles !== oldStyles) {
                 forEach(oldStyles, function(val, style) {
                     element.css(style, "");
                 });
             }
             if (newStyles) element.css(newStyles);
-        }, true);
+        });
     });
     var ngSwitchDirective = [ "$animate", function($animate) {
         return {
@@ -54811,6 +54725,80 @@ Phaser.Physics.P2.RevoluteConstraint.prototype.constructor = Phaser.Physics.P2.R
         restrict: "E",
         terminal: false
     });
+    var requiredDirective = function() {
+        return {
+            restrict: "A",
+            require: "?ngModel",
+            link: function(scope, elm, attr, ctrl) {
+                if (!ctrl) return;
+                attr.required = true;
+                ctrl.$validators.required = function(modelValue, viewValue) {
+                    return !attr.required || !ctrl.$isEmpty(viewValue);
+                };
+                attr.$observe("required", function() {
+                    ctrl.$validate();
+                });
+            }
+        };
+    };
+    var patternDirective = function() {
+        return {
+            restrict: "A",
+            require: "?ngModel",
+            link: function(scope, elm, attr, ctrl) {
+                if (!ctrl) return;
+                var regexp, patternExp = attr.ngPattern || attr.pattern;
+                attr.$observe("pattern", function(regex) {
+                    if (isString(regex) && regex.length > 0) {
+                        regex = new RegExp("^" + regex + "$");
+                    }
+                    if (regex && !regex.test) {
+                        throw minErr("ngPattern")("noregexp", "Expected {0} to be a RegExp but was {1}. Element: {2}", patternExp, regex, startingTag(elm));
+                    }
+                    regexp = regex || undefined;
+                    ctrl.$validate();
+                });
+                ctrl.$validators.pattern = function(value) {
+                    return ctrl.$isEmpty(value) || isUndefined(regexp) || regexp.test(value);
+                };
+            }
+        };
+    };
+    var maxlengthDirective = function() {
+        return {
+            restrict: "A",
+            require: "?ngModel",
+            link: function(scope, elm, attr, ctrl) {
+                if (!ctrl) return;
+                var maxlength = -1;
+                attr.$observe("maxlength", function(value) {
+                    var intVal = int(value);
+                    maxlength = isNaN(intVal) ? -1 : intVal;
+                    ctrl.$validate();
+                });
+                ctrl.$validators.maxlength = function(modelValue, viewValue) {
+                    return maxlength < 0 || ctrl.$isEmpty(modelValue) || viewValue.length <= maxlength;
+                };
+            }
+        };
+    };
+    var minlengthDirective = function() {
+        return {
+            restrict: "A",
+            require: "?ngModel",
+            link: function(scope, elm, attr, ctrl) {
+                if (!ctrl) return;
+                var minlength = 0;
+                attr.$observe("minlength", function(value) {
+                    minlength = int(value) || 0;
+                    ctrl.$validate();
+                });
+                ctrl.$validators.minlength = function(modelValue, viewValue) {
+                    return ctrl.$isEmpty(viewValue) || viewValue.length >= minlength;
+                };
+            }
+        };
+    };
     if (window.angular.bootstrap) {
         console.log("WARNING: Tried to load angular more than once.");
         return;
