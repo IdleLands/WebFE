@@ -2,8 +2,8 @@ angular.module 'IdleLands', ['ngMaterial', 'ngSanitize', 'angularMoment', 'ui.ro
 
 angular.module 'IdleLands'
   .run ['editableThemes', (editableThemes) ->
-    editableThemes.default.cancelTpl = '<md-button class="xeditable-form-button md-theme-red" ng-click="$form.$cancel()">Cancel</md-button>'
-    editableThemes.default.submitTpl = '<md-button class="xeditable-form-button md-theme-green" type="submit">Save</md-button>'
+    editableThemes.default.cancelTpl = '<md-button class="xeditable-form-button md-warn" ng-click="$form.$cancel()">Cancel</md-button>'
+    editableThemes.default.submitTpl = '<md-button class="xeditable-form-button md-primary" type="submit">Save</md-button>'
 ]
 
 angular.module 'IdleLands'

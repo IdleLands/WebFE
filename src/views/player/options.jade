@@ -28,7 +28,7 @@ script(id="player-options", type="text/ng-template")
                md-toolbar.md-theme-light-blue
                   div.md-toolbar-tools
                      h3
-                        a.fa.fa-question-circle(href="https://github.com/IdleLands/IdleLands/wiki/PushBullet-Integration",target="_blank") &nbsp;PushBullet
+                        a.fa.fa-question-circle(href="https://github.com/IdleLands/IdleLands/wiki/New-Player-Guide#pushbullet",target="_blank") &nbsp;PushBullet
                md-content.card-padding
                   a(href,editable-text="player.pushbulletApiKey") {{player.pushbulletApiKey || 'No PushBullet API key set'}}
                
@@ -37,7 +37,7 @@ script(id="player-options", type="text/ng-template")
                md-toolbar.md-theme-light-blue
                   div.md-toolbar-tools
                      h3
-                        a.fa.fa-question-circle(href="https://github.com/IdleLands/IdleLands/wiki/Gender",target="_blank") &nbsp;Gender
+                        a.fa.fa-question-circle(href="https://github.com/IdleLands/IdleLands/wiki/New-Player-Guide#gender",target="_blank") &nbsp;Gender
                md-content.card-padding
                   a(href,editable-text="player.gender") {{player.gender || 'No gender specified'}}
                   md-radio-group(ng-model="player.gender")
@@ -54,7 +54,7 @@ script(id="player-options", type="text/ng-template")
                md-toolbar.md-theme-light-blue
                   div.md-toolbar-tools
                      h3
-                        a.fa.fa-question-circle(href="https://github.com/IdleLands/IdleLands/wiki/Priority-Points",target="_blank") &nbsp;Priority Points
+                        a.fa.fa-question-circle(href="https://github.com/IdleLands/IdleLands/wiki/New-Player-Guide#priority-points",target="_blank") &nbsp;Priority Points
 
                md-content.card-padding
                   div.wrap-container(layout="row")
@@ -67,7 +67,7 @@ script(id="player-options", type="text/ng-template")
                md-toolbar.md-theme-light-blue
                   div.md-toolbar-tools
                      h3
-                        a.fa.fa-question-circle(href="https://github.com/IdleLands/IdleLands/wiki/Player-Strings",target="_blank") &nbsp;Custom Strings
+                        a.fa.fa-question-circle(href="https://github.com/IdleLands/IdleLands/wiki/New-Player-Guide#custom-strings",target="_blank") &nbsp;Custom Strings
                md-content.card-padding
                   table
                      tr(ng-repeat="key in strings.keys track by $index")
@@ -169,4 +169,4 @@ script(id="submit-content",type="text/ng-template")
          md-button.md-accent(target="_blank",href="https://github.com/IdleLands/IdleLands/wiki/Content-Crafting") Help
          md-button.md-accent(target="_blank",href="https://github.com/IdleLands/IdleLands/tree/master/assets/data/{{data.type.folder}}/{{data.type.type}}.txt") Show Example
          md-button(ng-click="cancel()") Cancel
-         md-button.md-primary(ng-click="submit()") Submit
+         md-button.md-primary.md-raised(ng-click="submit()") Submit

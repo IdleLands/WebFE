@@ -37,5 +37,8 @@ angular.module 'IdleLands'
       $scope.pet = newVal
       $scope.initialize()
 
+    $scope.pet = Pet.getPet()
+    $scope.initialize()
+
     $scope.selectedIndex = $state.current.data.selectedTab
 ]

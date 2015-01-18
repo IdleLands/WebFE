@@ -47,7 +47,7 @@ script(id="player-overview", type="text/ng-template")
                   div(layout="column")
                      div.vital-stat
                         span.fa.fa-fw.fa-dashboard
-                        md-button.inline-button.md-raised.md-accent(ng-click="toPetView()") Swap to Pet View
+                        md-button.inline-button.md-primary(ng-click="toPetView()") Swap to Pet View
                      div.vital-stat
                         span.fa.fa-fw.fa-paw
                         span &nbsp;{{numBoughtPets}}/{{numFoundPets}} Pets
@@ -62,7 +62,7 @@ script(id="player-overview", type="text/ng-template")
                      div.vital-stat
                         span.fa.fa-fw.fa-institution
                            md-tooltip Prayer
-                        md-button.inline-button.md-raised.md-accent.md-hue-2(ng-disabled="praying", ng-click="pray()") {{prayText}}
+                        md-button.inline-button.md-accent(ng-disabled="praying", ng-click="pray()") {{prayText}}
                            md-tooltip Praying raises Superstition by 1
                      div.vital-stat(ng-if="player.titles.length > 0")
                         span.fa.fa-fw.fa-tag
@@ -105,7 +105,7 @@ script(id="player-overview", type="text/ng-template")
                md-content.is-flex.auto-flex(style="flex-basis:120px;height:120px;overflow-x:hidden",layout="column")
                   div.is-flex.auto-flex.adventure-log-item(flex="100",quick-repeat-list="_recentEvents",quick-ng-repeat="event in _recentEvents",layout="row")
                      div.text-center.vertical-center(flex="10")
-                        span.fa.fa-fw.fa-2x(class="{{::eventTypeToIcon[event.type]}}", ng-click="clickOnEvent(event.extra)", ng-class="{'hover-cursor': ::event.extra.battleId}")
+                        span.fa.fa-fw.fa-2x(class="{{::eventTypeToIcon[event.type]}}", ng-click="clickOnEvent(event.extra)", ng-class="{'hover-cursor': event.extra.battleId}")
                      div(flex="90")
                         small(am-time-ago="::event.createdAt")
                         div {{::event.message}}

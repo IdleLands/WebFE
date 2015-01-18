@@ -9,6 +9,8 @@ angular.module 'IdleLands'
       $httpProvider.interceptors.push 'PetInterceptor'
       $httpProvider.interceptors.push 'PetsInterceptor'
       $httpProvider.interceptors.push 'ReloginInterceptor'
+      $httpProvider.interceptors.push 'GuildInterceptor'
+      $httpProvider.interceptors.push 'GuildInvitesInterceptor'
 
       $urp.otherwise '/login'
 
@@ -84,10 +86,19 @@ angular.module 'IdleLands'
               templateUrl: 'player-equipment'
               controller: 'PlayerEquipment'
 
+        .state 'player.guild',
+          url: '/guild'
+          data:
+            selectedTab: 3
+          views:
+            'guild':
+              templateUrl: 'player-guild'
+              controller: 'PlayerGuild'
+
         .state 'player.battle',
           url: '/battle'
           data:
-            selectedTab: 3
+            selectedTab: 4
           views:
             'battle':
               templateUrl: 'player-battle'
@@ -96,7 +107,7 @@ angular.module 'IdleLands'
         .state 'player.collectibles',
           url: '/collectibles'
           data:
-            selectedTab: 4
+            selectedTab: 5
           views:
             'collectibles':
               templateUrl: 'player-collectibles'
@@ -105,7 +116,7 @@ angular.module 'IdleLands'
         .state 'player.achievements',
           url: '/achievements'
           data:
-            selectedTab: 5
+            selectedTab: 6
           views:
             'achievements':
               templateUrl: 'player-achievements'
@@ -114,7 +125,7 @@ angular.module 'IdleLands'
         .state 'player.statistics',
           url: '/statistics'
           data:
-            selectedTab: 6
+            selectedTab: 7
           views:
             'statistics':
               templateUrl: 'player-statistics'
@@ -123,7 +134,7 @@ angular.module 'IdleLands'
         .state 'player.options',
           url: '/options'
           data:
-            selectedTab: 7
+            selectedTab: 8
           views:
             'options':
               templateUrl: 'player-options'

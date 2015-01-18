@@ -1,0 +1,120 @@
+script(id="player-guild", type="text/ng-template")
+
+    div.tab-containment.is-flex.auto-flex.wrap-container.has-height(layout="row",ng-if="!currentlyInGuild")
+        div(flex="40",offset="30",layout="column")
+            md-card(layout="column")
+                md-card-content(layout="column")
+                    md-toolbar.md-theme-light-blue
+                        div.md-toolbar-tools
+                            h3 Create New Guild (costs 100k gold)
+                    md-content.is-flex.auto-flex(style="flex-basis:80px;height:80px;overflow-x:hidden;align-items:center",layout="row")
+                        md-input-container(flex="75",offset="5")
+                            label Guild Name
+                            input(ng-model="editable.guildName")
+                        div(flex="20")
+                            md-button.md-primary(ng-click="createGuild()") Create
+
+            md-card.is-flex.auto-flex.inner-card(layout="column",ng-if="guildInvites.length > 0")
+                md-card-content.is-flex.auto-flex(layout="column")
+                    md-toolbar.md-theme-light-blue
+                        div.md-toolbar-tools
+                            h3 Guild Invites
+                    md-content.is-flex.auto-flex(style="flex-basis:120px;height:120px;overflow-x:hidden",layout="column")
+                        div.is-flex.auto-flex.adventure-log-item(flex="100",quick-repeat-list="guildInvites",quick-ng-repeat="invite in guildInvites",layout="row")
+                            div(flex="55",offset="5")
+                                a(href="http://idle.land/s/guild/{{invite}}",target="_blank") {{invite}}
+                            div(flex="20")
+                                md-button.md-primary(ng-click="$parent.manageInvite(invite, true)") Accept
+                            div(flex="20")
+                                md-button.md-warn(ng-click="$parent.manageInvite(invite, false)") Reject
+
+    div.tab-containment.is-flex.auto-flex.wrap-container.has-height(layout="row",ng-if="currentlyInGuild")
+        div(flex="25",layout="column")
+            md-card.inner-card(layout="column")
+                md-card-content
+                    md-toolbar.md-theme-light-blue
+                        div.md-toolbar-tools
+                            h3 {{guild.name}}
+                    md-content.card-padding
+                        div.vital-stat
+                            span.fa.fa-fw.fa-user
+                            span &nbsp;Led by {{orderedMembers[0].name}}
+                        div.vital-stat
+                            span.fa.fa-fw.fa-clock-o
+                            span &nbsp;Founded <span am-time-ago="guild.createDate"></span>
+                        div.vital-stat
+                            span.fa.fa-fw.fa-sitemap
+                            span &nbsp;Level {{guild.level}}
+                        div.vital-stat
+                            span.fa.fa-fw.fa-envelope
+                            span &nbsp;{{guild.invitesAvailable}} invites left
+                        div.vital-stat
+                            span.fa.fa-fw.icon-money
+                            span &nbsp;{{guild.gold.__current}} gold
+
+            md-card.inner-card(layout="column", ng-if="isAdmin")
+                md-card-content
+                    md-toolbar.md-theme-light-blue
+                        div.md-toolbar-tools
+                            h3 Invite Players
+                    md-content.card-padding
+                        a(href,editable-text="editable.newMember",onaftersave="inviteMember()") {{edtiable.newMember || 'Invite a new member!'}}
+
+            md-card.inner-card(layout="column")
+                md-card-content
+                    md-toolbar.md-theme-light-blue
+                        div.md-toolbar-tools
+                            h3 Actions
+                    md-content.card-padding
+                        div.vital-stat(ng-if="!isLeader")
+                            span.fa.fa-fw.fa-anchor
+                            md-button.inline-button.md-warn(ng-click="leaveGuild()") Leave
+                        div.vital-stat(ng-if="isLeader")
+                            span.fa.fa-fw.fa-anchor
+                            md-button.inline-button.md-warn(ng-click="disbandGuild()") Disband
+                        div.vital-stat(ng-repeat="tier in getDonationTiers()")
+                            span.fa.fa-fw.icon-money
+                            md-button.inline-button.md-primary(ng-click="donateGold(tier)") Donate {{tier | number:0}} gold
+
+        div(flex="45",layout="column")
+            md-card.is-flex.auto-flex.inner-card(layout="column")
+                md-card-content.is-flex.auto-flex(layout="column")
+                    md-toolbar.md-theme-light-blue
+                        div.md-toolbar-tools
+                            h3 Guild Roster ({{guild.members.length}} members)
+                    md-content.is-flex.auto-flex(style="flex-basis:50px;height:50px;overflow-x:hidden",layout="column")
+                        div.is-flex.auto-flex.adventure-log-item(flex="100",quick-repeat-list="orderedMembers",quick-ng-repeat="member in orderedMembers",layout="row")
+                            div.text-center.vertical-center(flex="10")
+                                span.fa.fa-fw.fa-2x(class="{{iconForMember(member)}}", ng-class="{'text-green': member._cache.online, 'text-red': !member._cache.online, 'fa-rotate-90 text-gray': isInvited(member)}")
+                                    md-tooltip {{getTooltipText(member)}}
+                            div(flex="50")
+                                div(ng-class="{'italic text-gray': isInvited(member)}") {{member.name}}
+                                div(ng-if="member._cache.level && member._cache.class")
+                                    span Level {{member._cache.level}} {{member._cache.class}}
+                                    small(ng-if="member._cache.lastSeen && !member._cache.online") &nbsp;- Last seen <span am-time-ago="member._cache.lastSeen"></span>
+                                div(ng-if="!member._cache.level && !member._cache.class && !isInvited(member)") Profile Unknown
+                            div(flex="20",ng-if="!member.isAdmin && !$first")
+                                md-button.md-accent(ng-if="isLeader", ng-click="promoteMember(member.name)") Promote
+                            div(flex="20",ng-if="member.isAdmin && !$first")
+                                md-button.md-warn.md-hue-2(ng-if="isLeader", ng-click="demoteMember(member.name)") Demote
+                            div(flex="20")
+                                md-button.md-warn(ng-if="canKick(member)",ng-click="kickMember(member.name)") Kick
+
+        div(flex="30",layout="column")
+            md-card.is-flex.auto-flex.inner-card(layout="column")
+                md-card-content.is-flex.auto-flex(layout="column")
+                    md-toolbar.md-theme-light-blue
+                        div.md-toolbar-tools(flex="100",layout="row")
+                            h3(flex="50")
+                                a.fa.fa-question-circle(href="http://idlelands.github.io/IdleLands/#!/GuildBuffs",target="_blank") &nbsp;Guild Buffs
+                            md-slider.md-accent(flex="50",min="1",max="9",ng-model="editable.buffLevel",md-discrete,ng-if="isAdmin",aria-label="buff level")
+                    md-content.is-flex.auto-flex(style="flex-basis:50px;height:50px",layout="column")
+                        div.is-flex.auto-flex.adventure-log-item(flex="100",quick-repeat-list="buffType",quick-ng-repeat="type in buffTypes",layout="row")
+                            div.text-center.vertical-center(flex="15")
+                                span.fa.fa-fw.fa-2x(class="{{nameToIcon(type)}}")
+                            div(flex="60")
+                                div {{buffs[type] ? buffs[type].name : type}}
+                                div(ng-if="buffs[type]") Expires <span am-time-ago="buffs[type].expire"></span>
+                                dif(ng-if="!buffs[type]") Not Purchased
+                            div(flex="25")
+                                md-button.md-primary(ng-click="buyBuff(type)",ng-if="isAdmin") Buy

@@ -94,7 +94,7 @@ angular.module 'IdleLands'
       .then (res) ->
         return if not res.data.battle
         CurrentBattle.setBattle res.data.battle
-        $scope.$parent.$parent.selectedIndex = 3 #wut
+        $scope.$parent.$parent.selectedIndex = 4 #wut
         $timeout ->
           $state.go 'player.battle'
         , 0
@@ -121,6 +121,9 @@ angular.module 'IdleLands'
     $scope.initialize = ->
 
       $scope.player = Player.getPlayer()
+
+      return if not player
+
       $scope.loadPersonalities()
 
       $scope._recentEvents = $scope.player?.recentEvents
@@ -130,9 +133,11 @@ angular.module 'IdleLands'
         .value()
 
       $scope.numBoughtPets = $scope.boughtPets()
-      $scope.numFoundPets = _.size $scope.player.foundPets
+      $scope.numFoundPets = _.size $scope.player?.foundPets
 
     Player.observe().then null, null, ->
       $scope.initialize()
+
+    $scope.initialize()
 
 ]
