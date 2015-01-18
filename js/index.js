@@ -966,9 +966,10 @@
         $scope.orderedMembers = leader.concat(admins).concat(normal).concat(invites);
         myIdent = (_ref = CurrentPlayer.getPlayer()) != null ? _ref.identifier : void 0;
         $scope.isLeader = myIdent === $scope.guild.leader;
-        return $scope.isAdmin = $scope.isLeader || _.findWhere(admins, {
+        $scope.isAdmin = $scope.isLeader || _.findWhere(admins, {
           identifier: myIdent
         });
+        return $scope.goldTiers = $scope.getDonationTiers();
       };
       $scope.checkLeader = function(member) {
         return member.identifier === $scope.guild.leader;
@@ -1728,7 +1729,7 @@
         'combat': 'fa-newspaper-o faa-pulse animated',
         'event': 'fa-gift faa-shake animated',
         'pet': 'fa-paw',
-        'guild': 'fa-network'
+        'guild': 'fa-sitemap'
       };
       $scope.praying = false;
       $scope.prayText = 'Pray to RNGesus';
@@ -1822,6 +1823,7 @@
           return;
         }
         $scope.loadPersonalities();
+        $scope.titles = $scope.availableTitles();
         $scope._recentEvents = (_ref = $scope.player) != null ? _ref.recentEvents : void 0;
         $scope._personalities = _((_ref1 = $scope.player) != null ? _ref1.achievements : void 0).filter(function(achievement) {
           return achievement.type === 'personality';

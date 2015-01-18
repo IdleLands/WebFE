@@ -540,12 +540,12 @@
         <md-card-content>
           <md-toolbar class="md-theme-light-blue">
             <div class="md-toolbar-tools">
-              <h3>{{guild.name}}</h3>
+              <h3>{{::guild.name}}</h3>
             </div>
           </md-toolbar>
           <md-content class="card-padding">
-            <div class="vital-stat"><span class="fa fa-fw fa-user"></span><span>&nbsp;Led by {{orderedMembers[0].name}}</span></div>
-            <div class="vital-stat"><span class="fa fa-fw fa-clock-o"></span><span>&nbsp;Founded <span am-time-ago="guild.createDate"></span></span></div>
+            <div class="vital-stat"><span class="fa fa-fw fa-user"></span><span>&nbsp;Led by {{::orderedMembers[0].name}}</span></div>
+            <div class="vital-stat"><span class="fa fa-fw fa-clock-o"></span><span>&nbsp;Founded <span am-time-ago="::guild.createDate"></span></span></div>
             <div class="vital-stat"><span class="fa fa-fw fa-sitemap"></span><span>&nbsp;Level {{guild.level}}</span></div>
             <div class="vital-stat"><span class="fa fa-fw fa-envelope"></span><span>&nbsp;{{guild.invitesAvailable}} invites left</span></div>
             <div class="vital-stat"><span class="fa fa-fw icon-money"></span><span>&nbsp;{{guild.gold.__current}} gold</span></div>
@@ -570,13 +570,13 @@
             </div>
           </md-toolbar>
           <md-content class="card-padding">
-            <div ng-if="!isLeader" class="vital-stat"><span class="fa fa-fw fa-anchor"></span>
+            <div ng-if="::!isLeader" class="vital-stat"><span class="fa fa-fw fa-anchor"></span>
               <md-button ng-click="leaveGuild()" class="inline-button md-warn">Leave</md-button>
             </div>
-            <div ng-if="isLeader" class="vital-stat"><span class="fa fa-fw fa-anchor"></span>
+            <div ng-if="::isLeader" class="vital-stat"><span class="fa fa-fw fa-anchor"></span>
               <md-button ng-click="disbandGuild()" class="inline-button md-warn">Disband</md-button>
             </div>
-            <div ng-repeat="tier in getDonationTiers()" class="vital-stat"><span class="fa fa-fw icon-money"></span>
+            <div quick-ng-repeat="tier in goldTiers" quick-repeat-list="goldTiers" class="vital-stat"><span class="fa fa-fw icon-money"></span>
               <md-button ng-click="donateGold(tier)" class="inline-button md-primary">Donate {{tier | number:0}} gold</md-button>
             </div>
           </md-content>
@@ -624,8 +624,8 @@
             </div>
           </md-toolbar>
           <md-content style="flex-basis:50px;height:50px" layout="column" class="is-flex auto-flex">
-            <div flex="100" quick-repeat-list="buffType" quick-ng-repeat="type in buffTypes" layout="row" class="is-flex auto-flex adventure-log-item">
-              <div flex="15" class="text-center vertical-center"><span class="fa fa-fw fa-2x {{nameToIcon(type)}}"></span></div>
+            <div flex="100" quick-repeat-list="buffType" quick-ng-repeat="type in ::buffTypes" layout="row" class="is-flex auto-flex adventure-log-item">
+              <div flex="15" class="text-center vertical-center"><span class="fa fa-fw fa-2x {{::nameToIcon(type)}}"></span></div>
               <div flex="60">
                 <div>{{buffs[type] ? buffs[type].name : type}}</div>
                 <div ng-if="buffs[type]">Expires <span am-time-ago="buffs[type].expire"></span></div>
@@ -863,7 +863,7 @@
             </div>
             <div layout="row" class="wrap-container">
               <div ng-repeat="stat in ::equipmentStatArray" flex="25" class="vital-stat"><span class="fa fa-fw fa-lg vertical-center {{::stat.fa}}">
-                  <md-tooltip>{{::stat.name}}</md-tooltip></span><span>&nbsp;</span><small class="{{valueToColor(player._statCache[stat.name])}}">{{getStat(stat.name)}}</small></div>
+                  <md-tooltip>{{::stat.name}}</md-tooltip></span><span>&nbsp;</span><small ng-class="{'text-red': player._statCache[stat.name] &lt; 0, 'text-green': player._statCache[stat.name] &gt; 0}">{{getStat(stat.name)}}</small></div>
             </div>
           </md-content>
         </md-card-content>
@@ -902,7 +902,7 @@
               </div>
               <div ng-if="player.titles.length &gt; 0" class="vital-stat"><span class="fa fa-fw fa-tag">
                   <md-tooltip>Title</md-tooltip></span>
-                <select ng-model="player.title" ng-options="val for val in availableTitles()" ng-change="changeTitle()"></select>
+                <select ng-model="player.title" ng-options="val for val in titles" ng-change="changeTitle()"></select>
               </div>
               <div class="vital-stat"><span class="fa fa-fw fa-globe">
                   <md-tooltip>World Position</md-tooltip></span><span>&nbsp;{{player.map}} ~ {{player.x}}, {{player.y}}</span></div>
