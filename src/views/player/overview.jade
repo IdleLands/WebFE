@@ -36,7 +36,7 @@ script(id="player-overview", type="text/ng-template")
                         span.fa.fa-fw.fa-lg.vertical-center(class="{{::stat.fa}}")
                            md-tooltip {{::stat.name}}
                         span &nbsp;
-                        small(ng-class="{'text-red': player._statCache[stat.name] < 0, 'text-green': player._statCache[stat.name] > 0}") {{getStat(stat.name)}}
+                        small(ng-class="{'text-red': player._statCache[stat.name] < 0, 'text-green': player._statCache[stat.name] > 0}") {{player._statCache[stat.name] | number:0}}
 
          md-card.inner-card(layout="column",ng-if="numFoundPets > 0")
             md-card-content

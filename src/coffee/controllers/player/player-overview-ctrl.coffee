@@ -112,9 +112,6 @@ angular.module 'IdleLands'
 
       API.personality[func] props
 
-    $scope.getStat = (stat) ->
-      return _.str.numberFormat $scope.player?._statCache[stat]
-
     $scope.togglePersonality = (personality) ->
       $scope.setPersonality personality, $scope.personalityToggle[personality]
 
