@@ -126,6 +126,8 @@ angular.module 'IdleLands'
 
       $scope.loadPersonalities()
 
+      $scope.titles = $scope.availableTitles()
+
       $scope._recentEvents = $scope.player?.recentEvents
       $scope._personalities = _($scope.player?.achievements)
         .filter (achievement) -> achievement.type is 'personality'

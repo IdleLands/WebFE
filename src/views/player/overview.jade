@@ -36,7 +36,7 @@ script(id="player-overview", type="text/ng-template")
                         span.fa.fa-fw.fa-lg.vertical-center(class="{{::stat.fa}}")
                            md-tooltip {{::stat.name}}
                         span &nbsp;
-                        small(class="{{valueToColor(player._statCache[stat.name])}}") {{getStat(stat.name)}}
+                        small(ng-class="{'text-red': player._statCache[stat.name] < 0, 'text-green': player._statCache[stat.name] > 0}") {{getStat(stat.name)}}
 
          md-card.inner-card(layout="column",ng-if="numFoundPets > 0")
             md-card-content
@@ -67,7 +67,7 @@ script(id="player-overview", type="text/ng-template")
                      div.vital-stat(ng-if="player.titles.length > 0")
                         span.fa.fa-fw.fa-tag
                            md-tooltip Title
-                        select(ng-model="player.title",ng-options="val for val in availableTitles()",ng-change="changeTitle()")
+                        select(ng-model="player.title",ng-options="val for val in titles",ng-change="changeTitle()")
                      div.vital-stat
                         span.fa.fa-fw.fa-globe
                            md-tooltip World Position
