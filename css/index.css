@@ -221,6 +221,9 @@ body {
 md-card md-card-content {
   padding: 0!important;
 }
+.italic {
+  font-style: italic;
+}
 
 #login-tabs .tab {
   height: 300px;

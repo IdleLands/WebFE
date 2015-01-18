@@ -3,8 +3,8 @@
 
   angular.module('IdleLands').run([
     'editableThemes', function(editableThemes) {
-      editableThemes["default"].cancelTpl = '<md-button class="xeditable-form-button md-theme-red" ng-click="$form.$cancel()">Cancel</md-button>';
-      return editableThemes["default"].submitTpl = '<md-button class="xeditable-form-button md-theme-green" type="submit">Save</md-button>';
+      editableThemes["default"].cancelTpl = '<md-button class="xeditable-form-button md-warn" ng-click="$form.$cancel()">Cancel</md-button>';
+      return editableThemes["default"].submitTpl = '<md-button class="xeditable-form-button md-primary" type="submit">Save</md-button>';
     }
   ]);
 
@@ -931,15 +931,205 @@
 
 (function() {
   angular.module('IdleLands').controller('PlayerGuild', [
-    '$scope', 'CurrentGuild', 'CurrentGuildInvites', 'API', function($scope, CurrentGuild, CurrentGuildInvites, API) {
+    '$scope', 'CurrentGuild', 'CurrentGuildInvites', 'CurrentPlayer', 'API', function($scope, CurrentGuild, CurrentGuildInvites, CurrentPlayer, API) {
+      $scope.initialize = function() {
+        var _ref;
+        $scope.guild = CurrentGuild.getGuild();
+        $scope.guildInvites = CurrentGuildInvites.getGuildInvites();
+        $scope.currentlyInGuild = (_ref = CurrentPlayer.getPlayer()) != null ? _ref.guild : void 0;
+        if ($scope.guild) {
+          $scope.setupGuildData();
+          $scope.loadBuffsIntoHash();
+          return $scope.getDonationTiers();
+        }
+      };
+      $scope.setupGuildData = function() {
+        var admins, invites, leader, members, myIdent, normal, _ref;
+        members = _.sortBy($scope.guild.members, function(member) {
+          return member.name;
+        });
+        leader = _.filter(members, function(member) {
+          return member.identifier === $scope.guild.leader;
+        });
+        admins = _.filter(members, function(member) {
+          return member.identifier !== $scope.guild.leader && member.isAdmin;
+        });
+        normal = _.reject(members, function(member) {
+          return member.isAdmin;
+        });
+        invites = _.map($scope.guild.invites, function(inv) {
+          return {
+            identifier: inv,
+            name: inv
+          };
+        });
+        $scope.orderedMembers = leader.concat(admins).concat(normal).concat(invites);
+        myIdent = (_ref = CurrentPlayer.getPlayer()) != null ? _ref.identifier : void 0;
+        $scope.isLeader = myIdent === $scope.guild.leader;
+        return $scope.isAdmin = $scope.isLeader || _.findWhere(admins, {
+          identifier: myIdent
+        });
+      };
+      $scope.checkLeader = function(member) {
+        return member.identifier === $scope.guild.leader;
+      };
+      $scope.checkAdmin = function(member) {
+        return member.isAdmin;
+      };
+      $scope.loadBuffsIntoHash = function() {
+        $scope.buffs = {};
+        return _.each($scope.guild.buffs, function(buff) {
+          return $scope.buffs[buff.type] = buff;
+        });
+      };
+      $scope.getDonationTiers = function() {
+        var cur, i, x, _ref;
+        x = [];
+        cur = (_ref = CurrentPlayer.getPlayer()) != null ? _ref.gold.__current : void 0;
+        while (((i = i * 10 || 100) && (cur /= 10)) > 1000) {
+          x.push(Math.round(i * 10));
+        }
+        return x;
+      };
+      $scope.iconForMember = function(member) {
+        if (member.identifier === $scope.guild.leader) {
+          return 'fa-star';
+        }
+        if (member.isAdmin) {
+          return 'fa-star-half-o';
+        }
+        return 'fa-star-o';
+      };
+      $scope.nameToIcon = function(name) {
+        switch (name) {
+          case 'Strength':
+            return 'fa-legal fa-rotate-90';
+          case 'Agility':
+            return 'fa-bicycle';
+          case 'Constitution':
+            return 'fa-heart';
+          case 'Dexterity':
+            return 'fa-crosshairs';
+          case 'Fortune':
+            return 'icon-money';
+          case 'Intelligence':
+            return 'fa-mortar-board';
+          case 'Luck':
+            return 'fa-moon-o';
+          case 'Wisdom':
+            return 'fa-book';
+        }
+      };
+      $scope.canKick = function(member) {
+        var myIdent, _ref;
+        myIdent = (_ref = CurrentPlayer.getPlayer()) != null ? _ref.identifier : void 0;
+        if (member.identifier === myIdent) {
+          return false;
+        }
+        if (myIdent !== $scope.guild.leader && member.isAdmin) {
+          return false;
+        }
+        if ($scope.isInvited(member)) {
+          return false;
+        }
+        return true;
+      };
+      $scope.canModRank = function(member) {
+        var myIdent, _ref;
+        myIdent = (_ref = CurrentPlayer.getPlayer()) != null ? _ref.identifier : void 0;
+        return member.identifier !== myIdent;
+      };
+      $scope.isInvited = function(member) {
+        return _.contains($scope.guild.invites, member.name);
+      };
+      $scope.getTooltipText = function(member) {
+        var left, right, _ref;
+        left = right = '';
+        left = 'Member';
+        if ($scope.checkLeader(member)) {
+          left = 'Leader';
+        }
+        if ($scope.checkAdmin(member)) {
+          left = 'Admin';
+        }
+        if ($scope.isInvited(member)) {
+          left = 'Invited';
+        }
+        right = ((_ref = member._cache) != null ? _ref.online : void 0) ? 'Online' : 'Offline';
+        return "" + left + ", " + right;
+      };
+      $scope.buffTypes = ['Agility', 'Constitution', 'Dexterity', 'Fortune', 'Intelligence', 'Luck', 'Strength', 'Wisdom'];
+      $scope.editable = {
+        guildName: '',
+        buffLevel: 1
+      };
+      $scope.initialize();
       CurrentGuild.observe().then(null, null, function(val) {
-        return $scope.guild = val;
+        $scope.guild = val;
+        if ($scope.guild) {
+          $scope.setupGuildData();
+          $scope.loadBuffsIntoHash();
+          return $scope.getDonationTiers();
+        }
       });
       CurrentGuildInvites.observe().then(null, null, function(val) {
         return $scope.guildInvites = val;
       });
-      $scope.guild = CurrentGuild.getGuild();
-      return $scope.guildInvites = CurrentGuildInvites.getGuildInvites();
+      CurrentPlayer.observe().then(null, null, function(val) {
+        $scope.currentlyInGuild = val != null ? val.guild : void 0;
+        return $scope.getDonationTiers();
+      });
+      $scope.createGuild = function() {
+        return API.guild.create({
+          guildName: $scope.editable.guildName
+        });
+      };
+      $scope.manageInvite = function(guild, accept) {
+        return API.guild.manageInvite({
+          guildName: guild,
+          accepted: accept
+        });
+      };
+      $scope.buyBuff = function(type) {
+        return API.guild.buff({
+          type: type,
+          tier: $scope.editable.buffLevel
+        });
+      };
+      $scope.kickMember = function(name) {
+        return API.guild.kick({
+          memberName: name
+        });
+      };
+      $scope.promoteMember = function(name) {
+        return API.guild.promote({
+          memberName: name
+        });
+      };
+      $scope.demoteMember = function(name) {
+        return API.guild.demote({
+          memberName: name
+        });
+      };
+      $scope.inviteMember = function() {
+        API.guild.invite({
+          invName: $scope.editable.newMember
+        }).then(function() {
+          return $scope.editable.newMember = '';
+        });
+        return true;
+      };
+      $scope.leaveGuild = function() {
+        return API.guild.leave();
+      };
+      $scope.disbandGuild = function() {
+        return API.guild.disband();
+      };
+      return $scope.donateGold = function(gold) {
+        return API.guild.donate({
+          gold: gold
+        });
+      };
     }
   ]);
 
@@ -1598,7 +1788,7 @@
             return;
           }
           CurrentBattle.setBattle(res.data.battle);
-          $scope.$parent.$parent.selectedIndex = 3;
+          $scope.$parent.$parent.selectedIndex = 4;
           return $timeout(function() {
             return $state.go('player.battle');
           }, 0);
@@ -1626,19 +1816,23 @@
         return $scope.setPersonality(personality, $scope.personalityToggle[personality]);
       };
       $scope.initialize = function() {
-        var _ref, _ref1;
+        var _ref, _ref1, _ref2;
         $scope.player = Player.getPlayer();
+        if (!player) {
+          return;
+        }
         $scope.loadPersonalities();
         $scope._recentEvents = (_ref = $scope.player) != null ? _ref.recentEvents : void 0;
         $scope._personalities = _((_ref1 = $scope.player) != null ? _ref1.achievements : void 0).filter(function(achievement) {
           return achievement.type === 'personality';
         }).pluck('_personality').value();
         $scope.numBoughtPets = $scope.boughtPets();
-        return $scope.numFoundPets = _.size($scope.player.foundPets);
+        return $scope.numFoundPets = _.size((_ref2 = $scope.player) != null ? _ref2.foundPets : void 0);
       };
-      return Player.observe().then(null, null, function() {
+      Player.observe().then(null, null, function() {
         return $scope.initialize();
       });
+      return $scope.initialize();
     }
   ]);
 
@@ -1936,7 +2130,7 @@
 
 (function() {
   angular.module('IdleLands').factory('API', [
-    'Authentication', 'Action', 'Battle', 'Personality', 'Pushbullet', 'Strings', 'Gender', 'Inventory', 'Shop', 'Priority', 'Pet', 'Custom', 'Title', function(Authentication, Action, Battle, Personality, Pushbullet, Strings, Gender, Inventory, Shop, Priority, Pet, Custom, Title) {
+    'Authentication', 'Action', 'Battle', 'Personality', 'Pushbullet', 'Strings', 'Gender', 'Inventory', 'Shop', 'Priority', 'Pet', 'Custom', 'Title', 'Guild', function(Authentication, Action, Battle, Personality, Pushbullet, Strings, Gender, Inventory, Shop, Priority, Pet, Custom, Title, Guild) {
       return {
         auth: Authentication,
         action: Action,
@@ -1950,7 +2144,8 @@
         shop: Shop,
         pet: Pet,
         custom: Custom,
-        title: Title
+        title: Title,
+        guild: Guild
       };
     }
   ]);

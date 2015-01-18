@@ -395,7 +395,7 @@
 
 <script id="player-battle" type="text/ng-template">
   <div layout="row" class="tab-containment is-flex auto-flex wrap-container has-height">
-    <div ng-if="!currentBattle" layout="column" style="align-items:center;justify-content:center" flex="100" class="text-center md-theme-yellow">
+    <div ng-if="!currentBattle" layout="column" style="align-items:center;justify-content:center" flex="100" class="text-center">
       <div>Nothing to see here. You have to select a battle from your Adventure Log to see it here.</div>
     </div>
     <div flex="30" layout="column" ng-if="currentBattle">
@@ -492,17 +492,154 @@
 
 
 <script id="player-guild" type="text/ng-template">
-  <div>{{guild}}</div>
-  <div>{{guildInvites}}</div>
-  <md-list class="flex-scroll has-height">
-    <md-item ng-repeat="invite in guildInvites track by $index">
-      <md-item-content>
-        <div>{{invite}}</div>
-        <md-button>Accept</md-button>
-        <md-button>Reject</md-button>
-      </md-item-content>
-    </md-item>
-  </md-list>
+  <div layout="row" ng-if="!currentlyInGuild" class="tab-containment is-flex auto-flex wrap-container has-height">
+    <div flex="40" offset="30" layout="column">
+      <md-card layout="column">
+        <md-card-content layout="column">
+          <md-toolbar class="md-theme-light-blue">
+            <div class="md-toolbar-tools">
+              <h3>Create New Guild (costs 100k gold)</h3>
+            </div>
+          </md-toolbar>
+          <md-content style="flex-basis:80px;height:80px;overflow-x:hidden;align-items:center" layout="row" class="is-flex auto-flex">
+            <md-input-container flex="75" offset="5">
+              <label>Guild Name</label>
+              <input ng-model="editable.guildName"/>
+            </md-input-container>
+            <div flex="20">
+              <md-button ng-click="createGuild()" class="md-primary">Create</md-button>
+            </div>
+          </md-content>
+        </md-card-content>
+      </md-card>
+      <md-card layout="column" ng-if="guildInvites.length &gt; 0" class="is-flex auto-flex inner-card">
+        <md-card-content layout="column" class="is-flex auto-flex">
+          <md-toolbar class="md-theme-light-blue">
+            <div class="md-toolbar-tools">
+              <h3>Guild Invites</h3>
+            </div>
+          </md-toolbar>
+          <md-content style="flex-basis:120px;height:120px;overflow-x:hidden" layout="column" class="is-flex auto-flex">
+            <div flex="100" quick-repeat-list="guildInvites" quick-ng-repeat="invite in guildInvites" layout="row" class="is-flex auto-flex adventure-log-item">
+              <div flex="55" offset="5"><a href="http://idle.land/s/guild/{{invite}}" target="_blank">{{invite}}</a></div>
+              <div flex="20">
+                <md-button ng-click="$parent.manageInvite(invite, true)" class="md-primary">Accept</md-button>
+              </div>
+              <div flex="20">
+                <md-button ng-click="$parent.manageInvite(invite, false)" class="md-warn">Reject</md-button>
+              </div>
+            </div>
+          </md-content>
+        </md-card-content>
+      </md-card>
+    </div>
+  </div>
+  <div layout="row" ng-if="currentlyInGuild" class="tab-containment is-flex auto-flex wrap-container has-height">
+    <div flex="25" layout="column">
+      <md-card layout="column" class="inner-card">
+        <md-card-content>
+          <md-toolbar class="md-theme-light-blue">
+            <div class="md-toolbar-tools">
+              <h3>{{guild.name}}</h3>
+            </div>
+          </md-toolbar>
+          <md-content class="card-padding">
+            <div class="vital-stat"><span class="fa fa-fw fa-user"></span><span>&nbsp;Led by {{orderedMembers[0].name}}</span></div>
+            <div class="vital-stat"><span class="fa fa-fw fa-clock-o"></span><span>&nbsp;Founded <span am-time-ago="guild.createDate"></span></span></div>
+            <div class="vital-stat"><span class="fa fa-fw fa-sitemap"></span><span>&nbsp;Level {{guild.level}}</span></div>
+            <div class="vital-stat"><span class="fa fa-fw fa-envelope"></span><span>&nbsp;{{guild.invitesAvailable}} invites left</span></div>
+            <div class="vital-stat"><span class="fa fa-fw icon-money"></span><span>&nbsp;{{guild.gold.__current}} gold</span></div>
+          </md-content>
+        </md-card-content>
+      </md-card>
+      <md-card layout="column" ng-if="isAdmin" class="inner-card">
+        <md-card-content>
+          <md-toolbar class="md-theme-light-blue">
+            <div class="md-toolbar-tools">
+              <h3>Invite Players</h3>
+            </div>
+          </md-toolbar>
+          <md-content class="card-padding"><a href="href" editable-text="editable.newMember" onaftersave="inviteMember()">{{edtiable.newMember || 'Invite a new member!'}}</a></md-content>
+        </md-card-content>
+      </md-card>
+      <md-card layout="column" class="inner-card">
+        <md-card-content>
+          <md-toolbar class="md-theme-light-blue">
+            <div class="md-toolbar-tools">
+              <h3>Actions</h3>
+            </div>
+          </md-toolbar>
+          <md-content class="card-padding">
+            <div ng-if="!isLeader" class="vital-stat"><span class="fa fa-fw fa-anchor"></span>
+              <md-button ng-click="leaveGuild()" class="inline-button md-warn">Leave</md-button>
+            </div>
+            <div ng-if="isLeader" class="vital-stat"><span class="fa fa-fw fa-anchor"></span>
+              <md-button ng-click="disbandGuild()" class="inline-button md-warn">Disband</md-button>
+            </div>
+            <div ng-repeat="tier in getDonationTiers()" class="vital-stat"><span class="fa fa-fw icon-money"></span>
+              <md-button ng-click="donateGold(tier)" class="inline-button md-primary">Donate {{tier | number:0}} gold</md-button>
+            </div>
+          </md-content>
+        </md-card-content>
+      </md-card>
+    </div>
+    <div flex="45" layout="column">
+      <md-card layout="column" class="is-flex auto-flex inner-card">
+        <md-card-content layout="column" class="is-flex auto-flex">
+          <md-toolbar class="md-theme-light-blue">
+            <div class="md-toolbar-tools">
+              <h3>Guild Roster ({{guild.members.length}} members)</h3>
+            </div>
+          </md-toolbar>
+          <md-content style="flex-basis:50px;height:50px;overflow-x:hidden" layout="column" class="is-flex auto-flex">
+            <div flex="100" quick-repeat-list="orderedMembers" quick-ng-repeat="member in orderedMembers" layout="row" class="is-flex auto-flex adventure-log-item">
+              <div flex="10" class="text-center vertical-center"><span ng-class="{'text-green': member._cache.online, 'text-red': !member._cache.online, 'fa-rotate-90 text-gray': isInvited(member)}" class="fa fa-fw fa-2x {{iconForMember(member)}}">
+                  <md-tooltip>{{getTooltipText(member)}}</md-tooltip></span></div>
+              <div flex="50">
+                <div ng-class="{'italic text-gray': isInvited(member)}">{{member.name}}</div>
+                <div ng-if="member._cache.level &amp;&amp; member._cache.class"><span>Level {{member._cache.level}} {{member._cache.class}}</span><small ng-if="member._cache.lastSeen &amp;&amp; !member._cache.online">&nbsp;- Last seen <span am-time-ago="member._cache.lastSeen"></span></small></div>
+                <div ng-if="!member._cache.level &amp;&amp; !member._cache.class &amp;&amp; !isInvited(member)">Profile Unknown</div>
+              </div>
+              <div flex="20" ng-if="!member.isAdmin &amp;&amp; !$first">
+                <md-button ng-if="isLeader" ng-click="promoteMember(member.name)" class="md-accent">Promote</md-button>
+              </div>
+              <div flex="20" ng-if="member.isAdmin &amp;&amp; !$first">
+                <md-button ng-if="isLeader" ng-click="demoteMember(member.name)" class="md-warn md-hue-2">Demote</md-button>
+              </div>
+              <div flex="20">
+                <md-button ng-if="canKick(member)" ng-click="kickMember(member.name)" class="md-warn">Kick</md-button>
+              </div>
+            </div>
+          </md-content>
+        </md-card-content>
+      </md-card>
+    </div>
+    <div flex="30" layout="column">
+      <md-card layout="column" class="is-flex auto-flex inner-card">
+        <md-card-content layout="column" class="is-flex auto-flex">
+          <md-toolbar class="md-theme-light-blue">
+            <div flex="100" layout="row" class="md-toolbar-tools">
+              <h3 flex="50"><a href="http://idlelands.github.io/IdleLands/#!/GuildBuffs" target="_blank" class="fa fa-question-circle">&nbsp;Guild Buffs</a></h3>
+              <md-slider flex="50" min="1" max="9" ng-model="editable.buffLevel" md-discrete="md-discrete" ng-if="isAdmin" aria-label="buff level" class="md-accent"></md-slider>
+            </div>
+          </md-toolbar>
+          <md-content style="flex-basis:50px;height:50px" layout="column" class="is-flex auto-flex">
+            <div flex="100" quick-repeat-list="buffType" quick-ng-repeat="type in buffTypes" layout="row" class="is-flex auto-flex adventure-log-item">
+              <div flex="15" class="text-center vertical-center"><span class="fa fa-fw fa-2x {{nameToIcon(type)}}"></span></div>
+              <div flex="60">
+                <div>{{buffs[type] ? buffs[type].name : type}}</div>
+                <div ng-if="buffs[type]">Expires <span am-time-ago="buffs[type].expire"></span></div>
+                <dif ng-if="!buffs[type]">Not Purchased</dif>
+              </div>
+              <div flex="25">
+                <md-button ng-click="buyBuff(type)" ng-if="isAdmin" class="md-primary">Buy</md-button>
+              </div>
+            </div>
+          </md-content>
+        </md-card-content>
+      </md-card>
+    </div>
+  </div>
 </script>
 
 
@@ -535,7 +672,7 @@
         <md-card-content>
           <md-toolbar class="md-theme-light-blue">
             <div class="md-toolbar-tools">
-              <h3><a href="https://github.com/IdleLands/IdleLands/wiki/PushBullet-Integration" target="_blank" class="fa fa-question-circle">&nbsp;PushBullet</a></h3>
+              <h3><a href="https://github.com/IdleLands/IdleLands/wiki/New-Player-Guide#pushbullet" target="_blank" class="fa fa-question-circle">&nbsp;PushBullet</a></h3>
             </div>
           </md-toolbar>
           <md-content class="card-padding"><a href="href" editable-text="player.pushbulletApiKey">{{player.pushbulletApiKey || 'No PushBullet API key set'}}</a></md-content>
@@ -545,7 +682,7 @@
         <md-card-content>
           <md-toolbar class="md-theme-light-blue">
             <div class="md-toolbar-tools">
-              <h3><a href="https://github.com/IdleLands/IdleLands/wiki/Gender" target="_blank" class="fa fa-question-circle">&nbsp;Gender</a></h3>
+              <h3><a href="https://github.com/IdleLands/IdleLands/wiki/New-Player-Guide#gender" target="_blank" class="fa fa-question-circle">&nbsp;Gender</a></h3>
             </div>
           </md-toolbar>
           <md-content class="card-padding"><a href="href" editable-text="player.gender">{{player.gender || 'No gender specified'}}</a>
@@ -566,7 +703,7 @@
         <md-card-content>
           <md-toolbar class="md-theme-light-blue">
             <div class="md-toolbar-tools">
-              <h3><a href="https://github.com/IdleLands/IdleLands/wiki/Priority-Points" target="_blank" class="fa fa-question-circle">&nbsp;Priority Points</a></h3>
+              <h3><a href="https://github.com/IdleLands/IdleLands/wiki/New-Player-Guide#priority-points" target="_blank" class="fa fa-question-circle">&nbsp;Priority Points</a></h3>
             </div>
           </md-toolbar>
           <md-content class="card-padding">
@@ -583,7 +720,7 @@
         <md-card-content>
           <md-toolbar class="md-theme-light-blue">
             <div class="md-toolbar-tools">
-              <h3><a href="https://github.com/IdleLands/IdleLands/wiki/Player-Strings" target="_blank" class="fa fa-question-circle">&nbsp;Custom Strings</a></h3>
+              <h3><a href="https://github.com/IdleLands/IdleLands/wiki/New-Player-Guide#custom-strings" target="_blank" class="fa fa-question-circle">&nbsp;Custom Strings</a></h3>
             </div>
           </md-toolbar>
           <md-content class="card-padding">
@@ -695,7 +832,7 @@
       <md-button target="_blank" href="https://github.com/IdleLands/IdleLands/wiki/Content-Crafting" class="md-accent">Help</md-button>
       <md-button target="_blank" href="https://github.com/IdleLands/IdleLands/tree/master/assets/data/{{data.type.folder}}/{{data.type.type}}.txt" class="md-accent">Show Example</md-button>
       <md-button ng-click="cancel()">Cancel</md-button>
-      <md-button ng-click="submit()" class="md-primary">Submit</md-button>
+      <md-button ng-click="submit()" class="md-primary md-raised">Submit</md-button>
     </div>
   </md-dialog>
 </script>
@@ -741,7 +878,7 @@
           <md-content class="card-padding">
             <div layout="column">
               <div class="vital-stat"><span class="fa fa-fw fa-dashboard"></span>
-                <md-button ng-click="toPetView()" class="inline-button md-raised md-accent">Swap to Pet View</md-button>
+                <md-button ng-click="toPetView()" class="inline-button md-primary">Swap to Pet View</md-button>
               </div>
               <div class="vital-stat"><span class="fa fa-fw fa-paw"></span><span>&nbsp;{{numBoughtPets}}/{{numFoundPets}} Pets</span></div>
             </div>
@@ -759,7 +896,7 @@
             <div layout="column">
               <div class="vital-stat"><span class="fa fa-fw fa-institution">
                   <md-tooltip>Prayer</md-tooltip></span>
-                <md-button ng-disabled="praying" ng-click="pray()" class="inline-button md-raised md-accent md-hue-2">{{prayText}}
+                <md-button ng-disabled="praying" ng-click="pray()" class="inline-button md-accent">{{prayText}}
                   <md-tooltip>Praying raises Superstition by 1</md-tooltip>
                 </md-button>
               </div>
