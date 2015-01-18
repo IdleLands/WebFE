@@ -34,14 +34,14 @@ script(id="player-guild", type="text/ng-template")
                 md-card-content
                     md-toolbar.md-theme-light-blue
                         div.md-toolbar-tools
-                            h3 {{guild.name}}
+                            h3 {{::guild.name}}
                     md-content.card-padding
                         div.vital-stat
                             span.fa.fa-fw.fa-user
-                            span &nbsp;Led by {{orderedMembers[0].name}}
+                            span &nbsp;Led by {{::orderedMembers[0].name}}
                         div.vital-stat
                             span.fa.fa-fw.fa-clock-o
-                            span &nbsp;Founded <span am-time-ago="guild.createDate"></span>
+                            span &nbsp;Founded <span am-time-ago="::guild.createDate"></span>
                         div.vital-stat
                             span.fa.fa-fw.fa-sitemap
                             span &nbsp;Level {{guild.level}}
@@ -66,13 +66,13 @@ script(id="player-guild", type="text/ng-template")
                         div.md-toolbar-tools
                             h3 Actions
                     md-content.card-padding
-                        div.vital-stat(ng-if="!isLeader")
+                        div.vital-stat(ng-if="::!isLeader")
                             span.fa.fa-fw.fa-anchor
                             md-button.inline-button.md-warn(ng-click="leaveGuild()") Leave
-                        div.vital-stat(ng-if="isLeader")
+                        div.vital-stat(ng-if="::isLeader")
                             span.fa.fa-fw.fa-anchor
                             md-button.inline-button.md-warn(ng-click="disbandGuild()") Disband
-                        div.vital-stat(ng-repeat="tier in getDonationTiers()")
+                        div.vital-stat(quick-ng-repeat="tier in goldTiers",quick-repeat-list="goldTiers")
                             span.fa.fa-fw.icon-money
                             md-button.inline-button.md-primary(ng-click="donateGold(tier)") Donate {{tier | number:0}} gold
 
@@ -109,9 +109,9 @@ script(id="player-guild", type="text/ng-template")
                                 a.fa.fa-question-circle(href="http://idlelands.github.io/IdleLands/#!/GuildBuffs",target="_blank") &nbsp;Guild Buffs
                             md-slider.md-accent(flex="50",min="1",max="9",ng-model="editable.buffLevel",md-discrete,ng-if="isAdmin",aria-label="buff level")
                     md-content.is-flex.auto-flex(style="flex-basis:50px;height:50px",layout="column")
-                        div.is-flex.auto-flex.adventure-log-item(flex="100",quick-repeat-list="buffType",quick-ng-repeat="type in buffTypes",layout="row")
+                        div.is-flex.auto-flex.adventure-log-item(flex="100",quick-repeat-list="buffType",quick-ng-repeat="type in ::buffTypes",layout="row")
                             div.text-center.vertical-center(flex="15")
-                                span.fa.fa-fw.fa-2x(class="{{nameToIcon(type)}}")
+                                span.fa.fa-fw.fa-2x(class="{{::nameToIcon(type)}}")
                             div(flex="60")
                                 div {{buffs[type] ? buffs[type].name : type}}
                                 div(ng-if="buffs[type]") Expires <span am-time-ago="buffs[type].expire"></span>

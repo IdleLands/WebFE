@@ -25,6 +25,8 @@ angular.module 'IdleLands'
       $scope.isLeader = myIdent is $scope.guild.leader
       $scope.isAdmin = $scope.isLeader or _.findWhere admins, {identifier: myIdent}
 
+      $scope.goldTiers = $scope.getDonationTiers()
+
     $scope.checkLeader = (member) -> member.identifier is $scope.guild.leader
     $scope.checkAdmin  = (member) -> member.isAdmin
 
