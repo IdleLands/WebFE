@@ -60,49 +60,30 @@ angular.module 'IdleLands'
       $scope.updateStrings()
     , yes
 
-    $scope.$watch 'player.pushbulletApiKey', (newVal, oldVal) ->
-      return if newVal is oldVal or initializing
-      API.pushbullet.set {apiKey: newVal}
+    $scope.updatePushbullet = ->
+      API.pushbullet.set {apiKey: $scope.player.pushbulletApiKey}
+      yes
 
-    $scope.$watch 'player.gender', (newVal, oldVal) ->
-      return if newVal is oldVal or initializing
-      API.gender.set {gender: newVal}
+    $scope.updateGender = ->
+      API.gender.set {gender: $scope.player.gender}
+      yes
 
-    isChanging = no
-    $scope.$watch 'player.priorityPoints', (newVal, oldVal) ->
-      return if newVal is oldVal or not oldVal
+    $scope.tempPP = {}
 
-      propDiff = _.omit newVal, (v,k) -> oldVal[k] is v
+    $scope.updatePP = (stat) ->
+      oldVal = $scope.tempPP[stat]
+      newVal = $scope.player.priorityPoints[stat]
+      diff = newVal - oldVal
 
-      return if _.isEmpty propDiff
+      return if diff is 0
 
-      _.each (_.keys propDiff), (prop) ->
-        if $scope.player.priorityPoints[prop] < 0
-          isChanging = yes
-          $scope.player.priorityPoints[prop] = 0
-          $timeout ->
-            isChanging = no
-          , 0
-          return
+      $scope.tempPP[stat] += diff
 
-        return if isChanging
-
-        propDiff[prop] = newVal[prop] - oldVal[prop]
-
-        return if (Math.abs propDiff[prop]) isnt 1
-
-        isChanging = yes
-        API.priority.add {stat: prop, points: propDiff[prop]}
-        .then (res) ->
-          if res.data.isSuccess
-            isChanging = no
-            return
-          $scope.player.priorityPoints[prop] -= propDiff[prop]
-
-          $timeout ->
-            isChanging = no
-          , 0
-    , yes
+      API.priority.add {stat: stat, points: diff}
+      .then (res) ->
+        if not res.data.isSuccess
+          $scope.player.priorityPoints[stat] = oldVal
+          $scope.tempPP[stat] -= diff
 
     $scope.refreshCustomContent = ->
       API.custom.list()

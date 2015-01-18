@@ -59,10 +59,12 @@ angular.module 'IdleLands'
         when 'Wisdom'       then return 'fa-book'
 
     $scope.canKick = (member) ->
-      myIdent = CurrentPlayer.getPlayer()?.identifier
+      currentPlayer = CurrentPlayer.getPlayer()
+      myIdent = currentPlayer?.identifier
       return no if member.identifier is myIdent
       return no if myIdent isnt $scope.guild.leader and member.isAdmin
       return no if $scope.isInvited member
+      return no if currentPlayer?.guildStatus <= 0
 
       yes
 

@@ -30,7 +30,7 @@ script(id="player-options", type="text/ng-template")
                      h3
                         a.fa.fa-question-circle(href="https://github.com/IdleLands/IdleLands/wiki/New-Player-Guide#pushbullet",target="_blank") &nbsp;PushBullet
                md-content.card-padding
-                  a(href,editable-text="player.pushbulletApiKey") {{player.pushbulletApiKey || 'No PushBullet API key set'}}
+                  a(href,editable-text="player.pushbulletApiKey",onaftersave="updatePushbullet()") {{player.pushbulletApiKey || 'No PushBullet API key set'}}
                
          md-card.inner-card(layout="column")
             md-card-content
@@ -39,8 +39,8 @@ script(id="player-options", type="text/ng-template")
                      h3
                         a.fa.fa-question-circle(href="https://github.com/IdleLands/IdleLands/wiki/New-Player-Guide#gender",target="_blank") &nbsp;Gender
                md-content.card-padding
-                  a(href,editable-text="player.gender") {{player.gender || 'No gender specified'}}
-                  md-radio-group(ng-model="player.gender")
+                  a(href,editable-text="player.gender",onaftersave="updateGender()") {{player.gender || 'No gender specified'}}
+                  md-radio-group(ng-model="player.gender",ng-change="updateGender()")
                      md-radio-button(value="female") Female
                      md-radio-button(value="male") Male
                      md-radio-button(value="glowcloud") Glowcloud
@@ -59,8 +59,8 @@ script(id="player-options", type="text/ng-template")
                md-content.card-padding
                   div.wrap-container(layout="row")
                      md-input-container(flex="33", ng-repeat="(stat,val) in player.priorityPoints track by $index")
-                        label {{stat}}
-                        input(type="number", ng-model="player.priorityPoints[stat]")
+                        label {{::stat}}
+                        input(type="number", min="0", max="6", ng-model="player.priorityPoints[stat]", ng-focus="tempPP[stat] = player.priorityPoints[stat]", ng-change="updatePP(stat)")
 
          md-card.inner-card(layout="column")
             md-card-content
