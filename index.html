@@ -863,7 +863,7 @@
             </div>
             <div layout="row" class="wrap-container">
               <div ng-repeat="stat in ::equipmentStatArray" flex="25" class="vital-stat"><span class="fa fa-fw fa-lg vertical-center {{::stat.fa}}">
-                  <md-tooltip>{{::stat.name}}</md-tooltip></span><span>&nbsp;</span><small ng-class="{'text-red': player._statCache[stat.name] &lt; 0, 'text-green': player._statCache[stat.name] &gt; 0}">{{getStat(stat.name)}}</small></div>
+                  <md-tooltip>{{::stat.name}}</md-tooltip></span><span>&nbsp;</span><small ng-class="{'text-red': player._statCache[stat.name] &lt; 0, 'text-green': player._statCache[stat.name] &gt; 0}">{{player._statCache[stat.name] | number:0}}</small></div>
             </div>
           </md-content>
         </md-card-content>
