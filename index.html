@@ -209,7 +209,7 @@
           <md-content class="card-padding">
             <div layout="column">
               <div class="vital-stat"><span class="fa fa-fw fa-dashboard"></span>
-                <md-button ng-click="toPlayerView()" class="inline-button md-raised md-accent">Swap to Player View</md-button>
+                <md-button ng-click="toPlayerView()" class="inline-button md-accent">Swap to Player View</md-button>
               </div>
               <div class="vital-stat"><span class="fa fa-fw fa-{{getSmartIcon('Sell')}}"></span>
                 <md-button ng-click="toggleSmart('Sell')" class="inline-button md-primary">Smart Sell
@@ -931,10 +931,10 @@
             </div>
           </md-toolbar>
           <md-content style="flex-basis:120px;height:120px;overflow-x:hidden" layout="column" class="is-flex auto-flex">
-            <div flex="100" quick-repeat-list="_recentEvents" quick-ng-repeat="event in _recentEvents" layout="row" class="is-flex auto-flex adventure-log-item">
+            <div flex="100" ng-repeat="event in _recentEvents" layout="row" class="is-flex auto-flex adventure-log-item">
               <div flex="10" class="text-center vertical-center"><span ng-click="clickOnEvent(event.extra)" ng-class="{'hover-cursor': event.extra.battleId}" class="fa fa-fw fa-2x {{::eventTypeToIcon[event.type]}}"></span></div>
-              <div flex="90"><small am-time-ago="::event.createdAt"></small>
-                <div>{{::event.message}}</div>
+              <div flex="90"><small am-time-ago="event.createdAt"></small>
+                <div>{{event.message}}</div>
               </div>
             </div>
           </md-content>
