@@ -103,12 +103,12 @@ script(id="player-overview", type="text/ng-template")
                      h3 Adventure Log
 
                md-content.is-flex.auto-flex(style="flex-basis:120px;height:120px;overflow-x:hidden",layout="column")
-                  div.is-flex.auto-flex.adventure-log-item(flex="100",quick-repeat-list="_recentEvents",quick-ng-repeat="event in _recentEvents",layout="row")
+                  div.is-flex.auto-flex.adventure-log-item(flex="100",ng-repeat="event in _recentEvents",layout="row")
                      div.text-center.vertical-center(flex="10")
                         span.fa.fa-fw.fa-2x(class="{{::eventTypeToIcon[event.type]}}", ng-click="clickOnEvent(event.extra)", ng-class="{'hover-cursor': event.extra.battleId}")
                      div(flex="90")
-                        small(am-time-ago="::event.createdAt")
-                        div {{::event.message}}
+                        small(am-time-ago="event.createdAt")
+                        div {{event.message}}
 
       div(flex="20",layout="column")
          md-card.is-flex.auto-flex.inner-card(layout="column")
