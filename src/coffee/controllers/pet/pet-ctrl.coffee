@@ -23,7 +23,7 @@ angular.module 'IdleLands'
     $window.scrollTo 0, document.body.scrollHeight
 
     $scope.calcXpPercent = ->
-      $scope.xpPercent = ($scope.pet.xp.__current / $scope.pet.xp.maximum)*100
+      $scope.xpPercent = if $scope.pet then ($scope.pet?.xp.__current / $scope.pet?.xp.maximum)*100 else 0
 
     # equipment page & overview page
     $scope.valueToColor = (value) ->
