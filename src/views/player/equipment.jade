@@ -29,11 +29,11 @@ script(id="player-equipment", type="text/ng-template")
                 div.md-tile-content.item-line
                     div
                         span.super-bold {{item.enchantLevel ? '+'+item.enchantLevel+' ' : ''}}
-                        span.super-bold {{::item.name}}
-                        small(ng-if="::item.foundAt")
+                        span.super-bold {{item.name}}
+                        small(ng-if=:item.foundAt")
                             span , found
                             span &nbsp;
-                            span(am-time-ago="::item.foundAt")
+                            span(am-time-ago="item.foundAt")
                             span , with a Player Relativity of
                             span &nbsp;{{playerItemScore(item)}}%&nbsp;
                             span and an Item Relativity of
