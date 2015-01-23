@@ -289,7 +289,8 @@
       $scope._ = $window._;
       $window.scrollTo(0, document.body.scrollHeight);
       $scope.calcXpPercent = function() {
-        return $scope.xpPercent = ($scope.pet.xp.__current / $scope.pet.xp.maximum) * 100;
+        var _ref, _ref1;
+        return $scope.xpPercent = $scope.pet ? (((_ref = $scope.pet) != null ? _ref.xp.__current : void 0) / ((_ref1 = $scope.pet) != null ? _ref1.xp.maximum : void 0)) * 100 : 0;
       };
       $scope.valueToColor = function(value) {
         if (value < 0) {
