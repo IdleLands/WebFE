@@ -30,7 +30,7 @@ script(id="player-equipment", type="text/ng-template")
                     div
                         span.super-bold {{item.enchantLevel ? '+'+item.enchantLevel+' ' : ''}}
                         span.super-bold {{item.name}}
-                        small(ng-if=:item.foundAt")
+                        small(ng-if="item.foundAt")
                             span , found
                             span &nbsp;
                             span(am-time-ago="item.foundAt")
