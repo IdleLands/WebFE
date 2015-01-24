@@ -7,7 +7,7 @@ script(id="pet-overview", type="text/ng-template")
                md-toolbar.md-theme-light-blue
                   div.md-toolbar-tools
                      h3 Vitals
-               md-content.card-padding
+               md-content.card-padding.hide-y-scrollbar
                   div(ng-if="!pet")
                      span No Pets Purchased
                   div(layout="row",ng-if="pet")
@@ -77,7 +77,7 @@ script(id="pet-overview", type="text/ng-template")
                md-toolbar.md-theme-light-blue
                   div.md-toolbar-tools
                      h3 Miscellaneous
-               md-content.card-padding
+               md-content.card-padding.hide-y-scrollbar
                   div(ng-if="!pet")
                      span No Pets Purchased
                   div(layout="column",ng-if="pet")
@@ -106,7 +106,7 @@ script(id="pet-overview", type="text/ng-template")
                      h3 Unpurchased Pets
                md-content.is-flex.auto-flex.card-padding(style="flex-basis:60px;height:60px",layout="column",ng-if="availablePets().length !== 0")
 
-                  div.is-flex.auto-flex.adventure-log-item(style="align-items:center",flex="100",ng-repeat="pet in availablePets()",layout="row")
+                  div.is-flex.auto-flex.adventure-log-item(style="min-height:60px;align-items:center",flex="100",ng-repeat="pet in availablePets()",layout="row")
                      div.vertical-center.text-center.faa-parent(flex="10",ng-class="{'text-green hover-cursor animated-hover': canBuyPet(pet), 'text-red': !canBuyPet(pet)}")
                         span.fa.fa-fw.fa-lg.icon-money.faa-shake(ng-click="tryToBuyPet(pet)")
                      div(flex="90") Unlock {{pet.type}} - {{pet.cost | number:0}} gold
@@ -115,7 +115,7 @@ script(id="pet-overview", type="text/ng-template")
                   div.md-toolbar-tools
                      h3 Your Pets
                md-content.is-flex.auto-flex(style="flex-basis:60px;height:60px",layout="column",ng-if="pets.length")
-                  div.is-flex.auto-flex.adventure-log-item(style="align-items:center",flex="100",ng-repeat="pet in getPetsInOrder()",layout="row")
+                  div.is-flex.auto-flex.adventure-log-item(style="min-height:60px;align-items:center",flex="100",ng-repeat="pet in getPetsInOrder()",layout="row")
                      div.vertical-center.text-center.faa-parent.animated-hover.hover-cursor(flex="10")
                         span.fa.fa-fw.fa-lg.fa-certificate.faa-spin(ng-class="{'text-green': pet.isActive, 'text-gray': !pet.isActive}",ng-click="doPetSwap(pet.createdAt)")
                      div(flex="90")
@@ -129,7 +129,7 @@ script(id="pet-overview", type="text/ng-template")
                md-toolbar.md-theme-light-blue
                   div.md-toolbar-tools
                      h3 Upgrade Levels
-               md-content.is-flex.auto-flex.card-padding(style="flex-basis:20px;height:20px",layout="column")
+               md-content.is-flex.auto-flex.card-padding.hide-y-scrollbar(style="flex-basis:20px;height:20px",layout="column")
                   div(ng-if="!pet") No Pets Purchased
                   table(ng-if="pet")
                      tr
