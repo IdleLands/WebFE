@@ -224,6 +224,9 @@ md-card md-card-content {
 .italic {
   font-style: italic;
 }
+.hide-y-scrollbar {
+  overflow-y: hidden;
+}
 
 #login-tabs .tab {
   height: 300px;

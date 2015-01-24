@@ -178,7 +178,7 @@
               <h3>Vitals</h3>
             </div>
           </md-toolbar>
-          <md-content class="card-padding">
+          <md-content class="card-padding hide-y-scrollbar">
             <div ng-if="!pet"><span>No Pets Purchased</span></div>
             <div layout="row" ng-if="pet">
               <div flex="33" class="vital-stat"><span class="fa fa-fw fa-heart fa-lg text-red vertical-center">
@@ -246,7 +246,7 @@
               <h3>Miscellaneous</h3>
             </div>
           </md-toolbar>
-          <md-content class="card-padding">
+          <md-content class="card-padding hide-y-scrollbar">
             <div ng-if="!pet"><span>No Pets Purchased</span></div>
             <div layout="column" ng-if="pet">
               <div><span class="fa fa-fw fa-clock-o"></span><span>&nbsp;{{pet.creator.name}} originally found this pet <span am-time-ago='pet.createdAt'></span>
@@ -269,7 +269,7 @@
             </div>
           </md-toolbar>
           <md-content style="flex-basis:60px;height:60px" layout="column" ng-if="availablePets().length !== 0" class="is-flex auto-flex card-padding">
-            <div style="align-items:center" flex="100" ng-repeat="pet in availablePets()" layout="row" class="is-flex auto-flex adventure-log-item">
+            <div style="min-height:60px;align-items:center" flex="100" ng-repeat="pet in availablePets()" layout="row" class="is-flex auto-flex adventure-log-item">
               <div flex="10" ng-class="{'text-green hover-cursor animated-hover': canBuyPet(pet), 'text-red': !canBuyPet(pet)}" class="vertical-center text-center faa-parent"><span ng-click="tryToBuyPet(pet)" class="fa fa-fw fa-lg icon-money faa-shake"></span></div>
               <div flex="90">Unlock {{pet.type}} - {{pet.cost | number:0}} gold</div>
             </div>
@@ -280,7 +280,7 @@
             </div>
           </md-toolbar>
           <md-content style="flex-basis:60px;height:60px" layout="column" ng-if="pets.length" class="is-flex auto-flex">
-            <div style="align-items:center" flex="100" ng-repeat="pet in getPetsInOrder()" layout="row" class="is-flex auto-flex adventure-log-item">
+            <div style="min-height:60px;align-items:center" flex="100" ng-repeat="pet in getPetsInOrder()" layout="row" class="is-flex auto-flex adventure-log-item">
               <div flex="10" class="vertical-center text-center faa-parent animated-hover hover-cursor"><span ng-class="{'text-green': pet.isActive, 'text-gray': !pet.isActive}" ng-click="doPetSwap(pet.createdAt)" class="fa fa-fw fa-lg fa-certificate faa-spin"></span></div>
               <div flex="90">
                 <div>{{pet.name}}, the {{pet.type}}</div>
@@ -300,7 +300,7 @@
               <h3>Upgrade Levels</h3>
             </div>
           </md-toolbar>
-          <md-content style="flex-basis:20px;height:20px" layout="column" class="is-flex auto-flex card-padding">
+          <md-content style="flex-basis:20px;height:20px" layout="column" class="is-flex auto-flex card-padding hide-y-scrollbar">
             <div ng-if="!pet">No Pets Purchased</div>
             <table ng-if="pet">
               <tr>
@@ -592,7 +592,7 @@
             </div>
           </md-toolbar>
           <md-content style="flex-basis:50px;height:50px;overflow-x:hidden" layout="column" class="is-flex auto-flex">
-            <div flex="100" quick-repeat-list="orderedMembers" quick-ng-repeat="member in orderedMembers" layout="row" class="is-flex auto-flex adventure-log-item">
+            <div style="min-height: 50px" flex="100" quick-repeat-list="orderedMembers" quick-ng-repeat="member in orderedMembers" layout="row" class="is-flex auto-flex adventure-log-item">
               <div flex="10" class="text-center vertical-center"><span ng-class="{'text-green': member._cache.online, 'text-red': !member._cache.online, 'fa-rotate-90 text-gray': isInvited(member)}" class="fa fa-fw fa-2x {{iconForMember(member)}}">
                   <md-tooltip>{{getTooltipText(member)}}</md-tooltip></span></div>
               <div flex="50">
@@ -848,7 +848,7 @@
               <h3>Vitals</h3>
             </div>
           </md-toolbar>
-          <md-content class="card-padding">
+          <md-content class="card-padding hide-y-scrollbar">
             <div layout="row">
               <div flex="33" class="vital-stat"><span class="fa fa-fw fa-heart fa-lg text-red vertical-center">
                   <md-tooltip>Max HP</md-tooltip></span><span>&nbsp;</span><small>{{player.hp.maximum | number:0}}</small></div>
@@ -875,7 +875,7 @@
               <h3>Pet Information</h3>
             </div>
           </md-toolbar>
-          <md-content class="card-padding">
+          <md-content class="card-padding hide-y-scrollbar">
             <div layout="column">
               <div class="vital-stat"><span class="fa fa-fw fa-dashboard"></span>
                 <md-button ng-click="toPetView()" class="inline-button md-primary">Swap to Pet View</md-button>
@@ -892,7 +892,7 @@
               <h3>Miscellaneous</h3>
             </div>
           </md-toolbar>
-          <md-content class="card-padding">
+          <md-content class="card-padding hide-y-scrollbar">
             <div layout="column">
               <div class="vital-stat"><span class="fa fa-fw fa-institution">
                   <md-tooltip>Prayer</md-tooltip></span>
@@ -931,7 +931,7 @@
             </div>
           </md-toolbar>
           <md-content style="flex-basis:120px;height:120px;overflow-x:hidden" layout="column" class="is-flex auto-flex">
-            <div flex="100" ng-repeat="event in _recentEvents" layout="row" class="is-flex auto-flex adventure-log-item">
+            <div style="min-height:100px" flex="100" ng-repeat="event in _recentEvents" layout="row" class="is-flex auto-flex adventure-log-item">
               <div flex="10" class="text-center vertical-center"><span ng-click="clickOnEvent(event.extra)" ng-class="{'hover-cursor': event.extra.battleId}" class="fa fa-fw fa-2x {{::eventTypeToIcon[event.type]}}"></span></div>
               <div flex="90"><small am-time-ago="event.createdAt"></small>
                 <div>{{event.message}}</div>
@@ -950,7 +950,7 @@
             </div>
           </md-toolbar>
           <md-content style="flex-basis:50px;height:50px" layout="column" class="is-flex auto-flex">
-            <div quick-repeat-list="_personalities" quick-ng-repeat="personality in _personalities" class="is-flex auto-flex adventure-log-item">
+            <div style="min-height:30px" quick-repeat-list="_personalities" quick-ng-repeat="personality in _personalities" class="is-flex auto-flex adventure-log-item">
               <div flex="30">
                 <md-switch ng-model="personalityToggle[personality]" aria-label="Personality Switch" ng-change="togglePersonality(personality)" class="personality-switch"></md-switch>
               </div>
