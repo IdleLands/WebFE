@@ -165,22 +165,23 @@ angular.module 'IdleLands'
       {folder: 'events',      type: 'party' }
       {folder: 'events',      type: 'providence' }
       {folder: 'events',      type: 'tinker' }
-      {folder: 'ingredients', type: 'bread',    requiresName: yes }
-      {folder: 'ingredients', type: 'meat',     requiresName: yes }
-      {folder: 'ingredients', type: 'veg',      requiresName: yes }
-      {folder: 'items',       type: 'body',     requiresName: yes }
-      {folder: 'items',       type: 'charm',    requiresName: yes }
-      {folder: 'items',       type: 'feet',     requiresName: yes }
-      {folder: 'items',       type: 'finger',   requiresName: yes }
-      {folder: 'items',       type: 'hands',    requiresName: yes }
-      {folder: 'items',       type: 'head',     requiresName: yes }
-      {folder: 'items',       type: 'legs',     requiresName: yes }
-      {folder: 'items',       type: 'mainhand', requiresName: yes }
-      {folder: 'items',       type: 'neck',     requiresName: yes }
-      {folder: 'items',       type: 'offhand',  requiresName: yes }
-      {folder: 'items',       type: 'prefix',   requiresName: yes }
-      {folder: 'items',       type: 'suffix',   requiresName: yes }
-      {folder: 'monsters',    type: 'monster',  requiresName: yes }
+      {folder: 'ingredients', type: 'bread',    requiresName: yes, requiresContent: yes }
+      {folder: 'ingredients', type: 'meat',     requiresName: yes, requiresContent: yes }
+      {folder: 'ingredients', type: 'veg',      requiresName: yes, requiresContent: yes }
+      {folder: 'items',       type: 'body',     requiresName: yes, requiresContent: yes }
+      {folder: 'items',       type: 'charm',    requiresName: yes, requiresContent: yes }
+      {folder: 'items',       type: 'feet',     requiresName: yes, requiresContent: yes }
+      {folder: 'items',       type: 'finger',   requiresName: yes, requiresContent: yes }
+      {folder: 'items',       type: 'hands',    requiresName: yes, requiresContent: yes }
+      {folder: 'items',       type: 'head',     requiresName: yes, requiresContent: yes }
+      {folder: 'items',       type: 'legs',     requiresName: yes, requiresContent: yes }
+      {folder: 'items',       type: 'mainhand', requiresName: yes, requiresContent: yes }
+      {folder: 'items',       type: 'neck',     requiresName: yes, requiresContent: yes }
+      {folder: 'items',       type: 'offhand',  requiresName: yes, requiresContent: yes }
+      {folder: 'items',       type: 'prefix',   requiresName: yes, requiresContent: yes }
+      {folder: 'items',       type: 'suffix',   requiresName: yes, requiresContent: yes }
+      {folder: 'monsters',    type: 'monster',  requiresName: yes, requiresContent: yes }
+      {folder: 'npcs',        type: 'trainer',  requiresName: yes }
     ]
 
     $scope.data = type: _.sample $scope.types
@@ -190,11 +191,12 @@ angular.module 'IdleLands'
     $scope.submit = ->
       data = $scope.data
       data._name = data._name?.trim()
-      data.content = data.content?.trim()
+      data.content = data.content?.trim() or ""
 
       requiresName = $scope.data.type.requiresName
+      requiresContent = $scope.data.type.requiresContent
 
-      if not data.content
+      if not data.content and requiresContent
         $mdToast.show template: '<md-toast>You must have content!</md-toast>'
         return
 
