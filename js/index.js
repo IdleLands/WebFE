@@ -1542,66 +1542,86 @@
         }, {
           folder: 'ingredients',
           type: 'bread',
-          requiresName: true
+          requiresName: true,
+          requiresContent: true
         }, {
           folder: 'ingredients',
           type: 'meat',
-          requiresName: true
+          requiresName: true,
+          requiresContent: true
         }, {
           folder: 'ingredients',
           type: 'veg',
-          requiresName: true
+          requiresName: true,
+          requiresContent: true
         }, {
           folder: 'items',
           type: 'body',
-          requiresName: true
+          requiresName: true,
+          requiresContent: true
         }, {
           folder: 'items',
           type: 'charm',
-          requiresName: true
+          requiresName: true,
+          requiresContent: true
         }, {
           folder: 'items',
           type: 'feet',
-          requiresName: true
+          requiresName: true,
+          requiresContent: true
         }, {
           folder: 'items',
           type: 'finger',
-          requiresName: true
+          requiresName: true,
+          requiresContent: true
         }, {
           folder: 'items',
           type: 'hands',
-          requiresName: true
+          requiresName: true,
+          requiresContent: true
         }, {
           folder: 'items',
           type: 'head',
-          requiresName: true
+          requiresName: true,
+          requiresContent: true
         }, {
           folder: 'items',
           type: 'legs',
-          requiresName: true
+          requiresName: true,
+          requiresContent: true
         }, {
           folder: 'items',
           type: 'mainhand',
-          requiresName: true
+          requiresName: true,
+          requiresContent: true
         }, {
           folder: 'items',
           type: 'neck',
-          requiresName: true
+          requiresName: true,
+          requiresContent: true
         }, {
           folder: 'items',
           type: 'offhand',
-          requiresName: true
+          requiresName: true,
+          requiresContent: true
         }, {
           folder: 'items',
           type: 'prefix',
-          requiresName: true
+          requiresName: true,
+          requiresContent: true
         }, {
           folder: 'items',
           type: 'suffix',
-          requiresName: true
+          requiresName: true,
+          requiresContent: true
         }, {
           folder: 'monsters',
           type: 'monster',
+          requiresName: true,
+          requiresContent: true
+        }, {
+          folder: 'npcs',
+          type: 'trainer',
           requiresName: true
         }
       ];
@@ -1610,12 +1630,13 @@
       };
       $scope.cancel = $mdDialog.hide;
       return $scope.submit = function() {
-        var data, newData, requiresName, _ref, _ref1;
+        var data, newData, requiresContent, requiresName, _ref, _ref1;
         data = $scope.data;
         data._name = (_ref = data._name) != null ? _ref.trim() : void 0;
-        data.content = (_ref1 = data.content) != null ? _ref1.trim() : void 0;
+        data.content = ((_ref1 = data.content) != null ? _ref1.trim() : void 0) || "";
         requiresName = $scope.data.type.requiresName;
-        if (!data.content) {
+        requiresContent = $scope.data.type.requiresContent;
+        if (!data.content && requiresContent) {
           $mdToast.show({
             template: '<md-toast>You must have content!</md-toast>'
           });
