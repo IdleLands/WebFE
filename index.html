@@ -570,13 +570,21 @@
             </div>
           </md-toolbar>
           <md-content class="card-padding">
-            <div ng-if="::!isLeader" class="vital-stat"><span class="fa fa-fw fa-anchor"></span>
-              <md-button ng-click="leaveGuild()" class="inline-button md-warn">Leave</md-button>
+            <div ng-if="::!isLeader" class="vital-stat"><span flex="10" class="fa fa-fw fa-anchor"></span>
+              <md-button ng-click="leaveGuild()" flex="90" class="inline-button md-warn">Leave</md-button>
             </div>
-            <div ng-if="::isLeader" class="vital-stat"><span class="fa fa-fw fa-anchor"></span>
+            <div ng-if="::isLeader" class="vital-stat"><span flex="10" class="fa fa-fw fa-anchor"></span>
               <md-button ng-click="disbandGuild()" class="inline-button md-warn">Disband</md-button>
             </div>
-            <div quick-ng-repeat="tier in goldTiers" quick-repeat-list="goldTiers" class="vital-stat"><span class="fa fa-fw icon-money"></span>
+            <div flex="flex" layout="row" class="vital-stat"><span flex="10" style="justify-content:center;align-self:center" class="fa fa-fw fa-usd">
+                <md-tooltip>Guild Tax Rate ({{editable.guildTaxRate}}%)</md-tooltip></span>
+              <md-slider flex="80" ng-model="editable.guildTaxRate" min="0" max="15" md-discrete="md-discrete" aria-label="Guild Tax Rate" ng-disabled="!isLeader" ng-change="updateGuildTax()" class="md-accent md-hue-1"></md-slider>
+            </div>
+            <div flex="flex" layout="row" class="vital-stat"><span flex="10" style="justify-content:center;align-self:center" class="fa fa-fw fa-usd">
+                <md-tooltip>Self Tax Rate ({{editable.selfTaxRate}}%)</md-tooltip></span>
+              <md-slider flex="80" ng-model="editable.selfTaxRate" min="0" max="85" md-discrete="md-discrete" aria-label="Self Tax Rate" ng-change="updateSelfTax()" class="md-accent md-hue-2"></md-slider>
+            </div>
+            <div quick-ng-repeat="tier in goldTiers" quick-repeat-list="goldTiers" class="vital-stat"><span flex="10" class="fa fa-fw icon-money"></span>
               <md-button ng-click="donateGold(tier)" class="inline-button md-primary">Donate {{tier | number:0}} gold</md-button>
             </div>
           </md-content>

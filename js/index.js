@@ -934,10 +934,11 @@
   angular.module('IdleLands').controller('PlayerGuild', [
     '$scope', 'CurrentGuild', 'CurrentGuildInvites', 'CurrentPlayer', 'API', function($scope, CurrentGuild, CurrentGuildInvites, CurrentPlayer, API) {
       $scope.initialize = function() {
-        var _ref;
+        var player;
         $scope.guild = CurrentGuild.getGuild();
         $scope.guildInvites = CurrentGuildInvites.getGuildInvites();
-        $scope.currentlyInGuild = (_ref = CurrentPlayer.getPlayer()) != null ? _ref.guild : void 0;
+        player = CurrentPlayer.getPlayer();
+        $scope.currentlyInGuild = player != null ? player.guild : void 0;
         if ($scope.guild) {
           $scope.setupGuildData();
           $scope.loadBuffsIntoHash();
@@ -1067,7 +1068,9 @@
       $scope.buffTypes = ['Agility', 'Constitution', 'Dexterity', 'Fortune', 'Intelligence', 'Luck', 'Strength', 'Wisdom'];
       $scope.editable = {
         guildName: '',
-        buffLevel: 1
+        buffLevel: 1,
+        guildTaxRate: 0,
+        selfTaxRate: 0
       };
       $scope.initialize();
       CurrentGuild.observe().then(null, null, function(val) {
@@ -1075,7 +1078,8 @@
         if ($scope.guild) {
           $scope.setupGuildData();
           $scope.loadBuffsIntoHash();
-          return $scope.getDonationTiers();
+          $scope.getDonationTiers();
+          return $scope.editable.guildTaxRate = $scope.guild.taxPercent;
         }
       });
       CurrentGuildInvites.observe().then(null, null, function(val) {
@@ -1083,7 +1087,8 @@
       });
       CurrentPlayer.observe().then(null, null, function(val) {
         $scope.currentlyInGuild = val != null ? val.guild : void 0;
-        return $scope.getDonationTiers();
+        $scope.getDonationTiers();
+        return $scope.editable.selfTaxRate = val != null ? val.guildTax : void 0;
       });
       $scope.createGuild = function() {
         return API.guild.create({
@@ -1131,9 +1136,19 @@
       $scope.disbandGuild = function() {
         return API.guild.disband();
       };
-      return $scope.donateGold = function(gold) {
+      $scope.donateGold = function(gold) {
         return API.guild.donate({
           gold: gold
+        });
+      };
+      $scope.updateGuildTax = function() {
+        return API.guild.tax({
+          taxPercent: $scope.editable.guildTaxRate
+        });
+      };
+      return $scope.updateSelfTax = function() {
+        return API.guild.selftax({
+          taxPercent: $scope.editable.selfTaxRate
         });
       };
     }
@@ -1633,7 +1648,7 @@
         var data, newData, requiresContent, requiresName, _ref, _ref1;
         data = $scope.data;
         data._name = (_ref = data._name) != null ? _ref.trim() : void 0;
-        data.content = ((_ref1 = data.content) != null ? _ref1.trim() : void 0) || "";
+        data.content = ((_ref1 = data.content) != null ? _ref1.trim() : void 0) || '';
         requiresName = $scope.data.type.requiresName;
         requiresContent = $scope.data.type.requiresContent;
         if (!data.content && requiresContent) {
@@ -2266,6 +2281,12 @@
         },
         buff: function(data) {
           return $http.post("" + manageUrl + "/buff", data);
+        },
+        tax: function(data) {
+          return $http.post("" + manageUrl + "/tax", data);
+        },
+        selftax: function(data) {
+          return $http.post("" + baseURL + "/player/manage/tax", data);
         }
       };
     }
