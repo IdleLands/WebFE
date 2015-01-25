@@ -19,4 +19,7 @@ angular.module 'IdleLands'
     kick:         (data) -> $http.post "#{manageUrl}/kick", data
     donate:       (data) -> $http.post "#{manageUrl}/donate", data
     buff:         (data) -> $http.post "#{manageUrl}/buff", data
+
+    tax:          (data) -> $http.post "#{manageUrl}/tax", data
+    selftax:      (data) -> $http.post "#{baseURL}/player/manage/tax", data
 ]

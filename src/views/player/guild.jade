@@ -67,13 +67,21 @@ script(id="player-guild", type="text/ng-template")
                             h3 Actions
                     md-content.card-padding
                         div.vital-stat(ng-if="::!isLeader")
-                            span.fa.fa-fw.fa-anchor
-                            md-button.inline-button.md-warn(ng-click="leaveGuild()") Leave
+                            span.fa.fa-fw.fa-anchor(flex="10")
+                            md-button.inline-button.md-warn(ng-click="leaveGuild()",flex="90") Leave
                         div.vital-stat(ng-if="::isLeader")
-                            span.fa.fa-fw.fa-anchor
+                            span.fa.fa-fw.fa-anchor(flex="10")
                             md-button.inline-button.md-warn(ng-click="disbandGuild()") Disband
+                        div.vital-stat(flex,layout="row")
+                            span.fa.fa-fw.fa-usd(flex="10",style="justify-content:center;align-self:center")
+                                md-tooltip Guild Tax Rate ({{editable.guildTaxRate}}%)
+                            md-slider.md-accent.md-hue-1(flex="80",ng-model="editable.guildTaxRate",min="0",max="15",md-discrete,aria-label="Guild Tax Rate",ng-disabled="!isLeader",ng-change="updateGuildTax()")
+                        div.vital-stat(flex,layout="row")
+                            span.fa.fa-fw.fa-usd(flex="10",style="justify-content:center;align-self:center")
+                                md-tooltip Self Tax Rate ({{editable.selfTaxRate}}%)
+                            md-slider.md-accent.md-hue-2(flex="80",ng-model="editable.selfTaxRate",min="0",max="85",md-discrete,aria-label="Self Tax Rate",ng-change="updateSelfTax()")
                         div.vital-stat(quick-ng-repeat="tier in goldTiers",quick-repeat-list="goldTiers")
-                            span.fa.fa-fw.icon-money
+                            span.fa.fa-fw.icon-money(flex="10")
                             md-button.inline-button.md-primary(ng-click="donateGold(tier)") Donate {{tier | number:0}} gold
 
         div(flex="45",layout="column")

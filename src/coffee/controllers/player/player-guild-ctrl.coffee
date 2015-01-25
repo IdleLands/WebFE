@@ -6,7 +6,10 @@ angular.module 'IdleLands'
     $scope.initialize = ->
       $scope.guild = CurrentGuild.getGuild()
       $scope.guildInvites = CurrentGuildInvites.getGuildInvites()
-      $scope.currentlyInGuild = CurrentPlayer.getPlayer()?.guild
+
+      player = CurrentPlayer.getPlayer()
+      $scope.currentlyInGuild = player?.guild
+
       if $scope.guild
         $scope.setupGuildData()
         $scope.loadBuffsIntoHash()
@@ -101,6 +104,8 @@ angular.module 'IdleLands'
     $scope.editable =
       guildName: ''
       buffLevel: 1
+      guildTaxRate: 0
+      selfTaxRate: 0
 
     $scope.initialize()
 
@@ -111,6 +116,7 @@ angular.module 'IdleLands'
         $scope.setupGuildData()
         $scope.loadBuffsIntoHash()
         $scope.getDonationTiers()
+        $scope.editable.guildTaxRate = $scope.guild.taxPercent
 
     CurrentGuildInvites.observe().then null, null, (val) ->
       $scope.guildInvites = val
@@ -118,6 +124,7 @@ angular.module 'IdleLands'
     CurrentPlayer.observe().then null, null, (val) ->
       $scope.currentlyInGuild = val?.guild
       $scope.getDonationTiers()
+      $scope.editable.selfTaxRate = val?.guildTax
 
     # API calls
     $scope.createGuild = ->
@@ -152,5 +159,11 @@ angular.module 'IdleLands'
 
     $scope.donateGold = (gold) ->
       API.guild.donate {gold: gold}
+
+    $scope.updateGuildTax = ->
+      API.guild.tax {taxPercent: $scope.editable.guildTaxRate}
+
+    $scope.updateSelfTax = ->
+      API.guild.selftax {taxPercent: $scope.editable.selfTaxRate}
 
 ]

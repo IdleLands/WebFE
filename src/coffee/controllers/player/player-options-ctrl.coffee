@@ -191,7 +191,7 @@ angular.module 'IdleLands'
     $scope.submit = ->
       data = $scope.data
       data._name = data._name?.trim()
-      data.content = data.content?.trim() or ""
+      data.content = data.content?.trim() or ''
 
       requiresName = $scope.data.type.requiresName
       requiresContent = $scope.data.type.requiresContent
