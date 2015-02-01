@@ -756,9 +756,6 @@
             return TurnTaker.beginTakingTurns(Player.getPlayer());
           }
         }), (function() {
-          $mdToast.show({
-            template: "<md-toast>You don't appear to be logged in! Redirecting you to the login page...</md-toast>"
-          });
           return $state.go('login');
         }));
       }
@@ -1738,7 +1735,6 @@
         'party': 'fa-users',
         'exp': 'fa-support',
         'gold': 'icon-money',
-        'guild': 'fa-network',
         'combat': 'fa-newspaper-o faa-pulse animated',
         'event': 'fa-gift faa-shake animated',
         'pet': 'fa-paw',
