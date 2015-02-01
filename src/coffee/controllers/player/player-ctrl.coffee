@@ -13,7 +13,7 @@ angular.module 'IdleLands'
           TurnTaker.beginTakingTurns Player.getPlayer()
         ),
         (->
-          $mdToast.show template: "<md-toast>You don't appear to be logged in! Redirecting you to the login page...</md-toast>"
+          #$mdToast.show template: "<md-toast>You don't appear to be logged in! Redirecting you to the login page...</md-toast>"
           $state.go 'login'
         )
 
