@@ -165,6 +165,7 @@ angular.module 'IdleLands'
       {folder: 'events',      type: 'party' }
       {folder: 'events',      type: 'providence' }
       {folder: 'events',      type: 'tinker' }
+      {folder: 'events',      type: 'towncrier' }
       {folder: 'ingredients', type: 'bread',    requiresName: yes, requiresContent: yes }
       {folder: 'ingredients', type: 'meat',     requiresName: yes, requiresContent: yes }
       {folder: 'ingredients', type: 'veg',      requiresName: yes, requiresContent: yes }
