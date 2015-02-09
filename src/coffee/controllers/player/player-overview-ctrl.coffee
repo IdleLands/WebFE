@@ -86,7 +86,14 @@ angular.module 'IdleLands'
 
     # click on button
     $scope.clickOnEvent = (extraData) ->
-      $scope.retrieveBattle extraData.battleId if extraData.battleId
+      if extraData.battleId then $scope.retrieveBattle extraData.battleId
+      if extraData.giftId then $scope.redeemGift extraData
+
+    # gift
+    $scope.redeemGift = (data) ->
+      {giftId, crierId} = data
+      window.open data.link, '_target' if data.link
+      API.custom.redeem {giftId, crierId}
 
     # battle
     $scope.retrieveBattle = (id) ->

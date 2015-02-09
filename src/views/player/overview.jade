@@ -105,10 +105,10 @@ script(id="player-overview", type="text/ng-template")
                md-content.is-flex.auto-flex(style="flex-basis:120px;height:120px;overflow-x:hidden",layout="column")
                   div.is-flex.auto-flex.adventure-log-item(style="min-height:100px",flex="100",ng-repeat="event in _recentEvents",layout="row")
                      div.text-center.vertical-center(flex="10")
-                        span.fa.fa-fw.fa-2x(class="{{::eventTypeToIcon[event.type]}}", ng-click="clickOnEvent(event.extra)", ng-class="{'hover-cursor': event.extra.battleId}")
+                        span.fa.fa-fw.fa-2x(class="{{::eventTypeToIcon[event.type]}}", ng-click="clickOnEvent(event.extra)", ng-class="{'hover-cursor': event.extra.battleId, 'hover-cursor faa-horizontal animated': event.extra.gift, 'hover-cursor text-gold': event.extra.link}")
                      div(flex="90")
                         small(am-time-ago="event.createdAt")
-                        div {{event.message}}
+                        div(ng-bind-html="event.message | linky:'_blank'")
 
       div(flex="20",layout="column")
          md-card.is-flex.auto-flex.inner-card(layout="column")
