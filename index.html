@@ -837,8 +837,9 @@
       </div>
     </md-content>
     <div layout="row" class="md-actions">
-      <md-button target="_blank" href="https://github.com/IdleLands/IdleLands/wiki/Content-Crafting" class="md-accent">Help</md-button>
-      <md-button target="_blank" href="https://github.com/IdleLands/IdleLands/tree/master/assets/data/{{data.type.folder}}/{{data.type.type}}.txt" class="md-accent">Show Example</md-button>
+      <md-button target="_blank" href="https://github.com/IdleLands/IdleLands/wiki/Content-Crafting" ng-if="data.type.type !== 'towncrier'" class="md-accent">Help</md-button>
+      <md-button target="_blank" href="https://github.com/IdleLands/IdleLands/wiki/Town-Crier-Guide" ng-if="data.type.type === 'towncrier'" class="md-accent">Help</md-button>
+      <md-button target="_blank" href="https://github.com/IdleLands/IdleLands/tree/master/assets/data/{{data.type.folder}}/{{data.type.type}}.txt" ng-if="data.type.type !== 'towncrier'" class="md-accent">Show Example</md-button>
       <md-button ng-click="cancel()">Cancel</md-button>
       <md-button ng-click="submit()" class="md-primary md-raised">Submit</md-button>
     </div>
@@ -940,9 +941,9 @@
           </md-toolbar>
           <md-content style="flex-basis:120px;height:120px;overflow-x:hidden" layout="column" class="is-flex auto-flex">
             <div style="min-height:100px" flex="100" ng-repeat="event in _recentEvents" layout="row" class="is-flex auto-flex adventure-log-item">
-              <div flex="10" class="text-center vertical-center"><span ng-click="clickOnEvent(event.extra)" ng-class="{'hover-cursor': event.extra.battleId}" class="fa fa-fw fa-2x {{::eventTypeToIcon[event.type]}}"></span></div>
+              <div flex="10" class="text-center vertical-center"><span ng-click="clickOnEvent(event.extra)" ng-class="{'hover-cursor': event.extra.battleId, 'hover-cursor faa-horizontal animated': event.extra.gift, 'hover-cursor text-gold': event.extra.link}" class="fa fa-fw fa-2x {{::eventTypeToIcon[event.type]}}"></span></div>
               <div flex="90"><small am-time-ago="event.createdAt"></small>
-                <div>{{event.message}}</div>
+                <div ng-bind-html="event.message | linky:'_blank'"></div>
               </div>
             </div>
           </md-content>

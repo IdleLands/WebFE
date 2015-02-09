@@ -1552,6 +1552,9 @@
           folder: 'events',
           type: 'tinker'
         }, {
+          folder: 'events',
+          type: 'towncrier'
+        }, {
           folder: 'ingredients',
           type: 'bread',
           requiresName: true,
@@ -1738,7 +1741,8 @@
         'combat': 'fa-newspaper-o faa-pulse animated',
         'event': 'fa-gift faa-shake animated',
         'pet': 'fa-paw',
-        'guild': 'fa-sitemap'
+        'guild': 'fa-sitemap',
+        'towncrier': 'fa-quote-left'
       };
       $scope.praying = false;
       $scope.prayText = 'Pray to RNGesus';
@@ -1787,8 +1791,22 @@
       };
       $scope.clickOnEvent = function(extraData) {
         if (extraData.battleId) {
-          return $scope.retrieveBattle(extraData.battleId);
+          $scope.retrieveBattle(extraData.battleId);
         }
+        if (extraData.giftId) {
+          return $scope.redeemGift(extraData);
+        }
+      };
+      $scope.redeemGift = function(data) {
+        var crierId, giftId;
+        giftId = data.giftId, crierId = data.crierId;
+        if (data.link) {
+          window.open(data.link, '_target');
+        }
+        return API.custom.redeem({
+          giftId: giftId,
+          crierId: crierId
+        });
       };
       $scope.retrieveBattle = function(id) {
         return API.battle.get({
@@ -2215,6 +2233,9 @@
         },
         reject: function(data) {
           return $http.patch("" + url + "/mod/reject", data);
+        },
+        redeem: function(data) {
+          return $http.post("" + url + "/redeem", data);
         }
       };
     }
