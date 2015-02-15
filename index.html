@@ -960,7 +960,7 @@
           </md-toolbar>
           <md-content style="flex-basis:50px;height:50px" layout="column" class="is-flex auto-flex">
             <div style="min-height:30px" quick-repeat-list="_personalities" quick-ng-repeat="personality in _personalities" class="is-flex auto-flex adventure-log-item">
-              <div flex="30">
+              <div flex="30" class="top-margin-15">
                 <md-switch ng-model="personalityToggle[personality]" aria-label="Personality Switch" ng-change="togglePersonality(personality)" class="personality-switch"></md-switch>
               </div>
               <div flex="70">
