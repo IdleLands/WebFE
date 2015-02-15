@@ -120,7 +120,7 @@ script(id="player-overview", type="text/ng-template")
 
                md-content.is-flex.auto-flex(style="flex-basis:50px;height:50px",layout="column")
                   div.is-flex.auto-flex.adventure-log-item(style="min-height:30px",quick-repeat-list="_personalities",quick-ng-repeat="personality in _personalities")
-                     div(flex="30")
+                     div.top-margin-15(flex="30")
                         md-switch.personality-switch(ng-model="personalityToggle[personality]",aria-label="Personality Switch",ng-change="togglePersonality(personality)")
                      div(flex="70")
                         div(style="margin-top:10px") {{::personality}}
