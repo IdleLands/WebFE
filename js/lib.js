@@ -56584,40 +56584,47 @@ if (typeof module !== "undefined" && typeof exports !== "undefined" && module.ex
     angular.module("ui.router.state").filter("isState", $IsStateFilter).filter("includedByState", $IncludedByStateFilter);
 })(window, window.angular);
 
-angular.module("ngMaterial", [ "ng", "ngAnimate", "ngAria", "material.core", "material.core.theming.palette", "material.core.theming", "material.components.backdrop", "material.components.bottomSheet", "material.components.button", "material.components.checkbox", "material.components.card", "material.components.content", "material.components.dialog", "material.components.divider", "material.components.icon", "material.components.input", "material.components.list", "material.components.progressCircular", "material.components.progressLinear", "material.components.radioButton", "material.components.sidenav", "material.components.slider", "material.components.sticky", "material.components.subheader", "material.components.swipe", "material.components.switch", "material.components.tabs", "material.components.textField", "material.components.toast", "material.components.toolbar", "material.components.whiteframe", "material.components.tooltip" ]);
+angular.module("ngMaterial", [ "ng", "ngAnimate", "ngAria", "material.core", "material.core.theming.palette", "material.core.theming", "material.components.autocomplete", "material.components.backdrop", "material.components.bottomSheet", "material.components.button", "material.components.card", "material.components.checkbox", "material.components.content", "material.components.dialog", "material.components.divider", "material.components.gridList", "material.components.icon", "material.components.input", "material.components.list", "material.components.progressCircular", "material.components.progressLinear", "material.components.radioButton", "material.components.sidenav", "material.components.slider", "material.components.sticky", "material.components.subheader", "material.components.swipe", "material.components.switch", "material.components.tabs", "material.components.textField", "material.components.toast", "material.components.toolbar", "material.components.tooltip", "material.components.whiteframe" ]);
 
 (function() {
     "use strict";
-    angular.module("material.core", [ "material.core.theming" ]).run(MdCoreInitialize).config(MdCoreConfigure);
-    function MdCoreInitialize() {
-        if (typeof Hammer === "undefined") {
-            throw new Error("ngMaterial requires HammerJS to be preloaded.");
-        }
-        Hammer.defaults.cssProps.userSelect = "";
+    var iconProvider;
+    angular.module("material.core", [ "material.core.theming" ]).config(MdCoreConfigure).run([ "$templateCache", function($templateCache) {
+        var svgRegistry = [ {
+            id: "tabs-arrow",
+            url: "tabs-arrow.svg",
+            svg: '<svg version="1.1" x="0px" y="0px" viewBox="0 0 24 24"><g id="tabs-arrow"><polygon points="15.4,7.4 14,6 8,12 14,18 15.4,16.6 10.8,12 "/></g></svg>'
+        } ];
+        svgRegistry.forEach(function(asset) {
+            iconProvider.icon(asset.id, asset.url);
+            $templateCache.put(asset.url, asset.svg);
+        });
+        iconProvider = null;
+    } ]);
+    function MdCoreConfigure($provide, $mdThemingProvider, $mdIconProvider) {
+        iconProvider = $mdIconProvider;
+        $provide.decorator("$$rAF", [ "$delegate", rAFDecorator ]);
+        $mdThemingProvider.theme("default").primaryPalette("indigo").accentPalette("pink").warnPalette("red").backgroundPalette("grey");
     }
-    function MdCoreConfigure($provide, $mdThemingProvider) {
-        $provide.decorator("$$rAF", [ "$delegate", "$rootScope", rAFDecorator ]);
-        $mdThemingProvider.theme("default").primaryColor("blue").accentColor("green").warnColor("red").backgroundColor("grey");
-        function rAFDecorator($$rAF, $rootScope) {
-            $$rAF.debounce = function(cb) {
-                var queueArgs, alreadyQueued, queueCb, context;
-                return function debounced() {
-                    queueArgs = arguments;
-                    context = this;
-                    queueCb = cb;
-                    if (!alreadyQueued) {
-                        alreadyQueued = true;
-                        $$rAF(function() {
-                            queueCb.apply(context, queueArgs);
-                            alreadyQueued = false;
-                        });
-                    }
-                };
+    MdCoreConfigure.$inject = [ "$provide", "$mdThemingProvider", "$mdIconProvider" ];
+    function rAFDecorator($delegate) {
+        $delegate.throttle = function(cb) {
+            var queueArgs, alreadyQueued, queueCb, context;
+            return function debounced() {
+                queueArgs = arguments;
+                context = this;
+                queueCb = cb;
+                if (!alreadyQueued) {
+                    alreadyQueued = true;
+                    $delegate(function() {
+                        queueCb.apply(context, queueArgs);
+                        alreadyQueued = false;
+                    });
+                }
             };
-            return $$rAF;
-        }
+        };
+        return $delegate;
     }
-    MdCoreConfigure.$inject = [ "$provide", "$mdThemingProvider" ];
 })();
 
 (function() {
@@ -56642,6 +56649,7 @@ angular.module("ngMaterial", [ "ng", "ngAnimate", "ngAria", "material.core", "ma
                 TRANSITIONEND: "transitionend" + (webkit ? " webkitTransitionEnd" : ""),
                 ANIMATIONEND: "animationend" + (webkit ? " webkitAnimationEnd" : ""),
                 TRANSFORM: vendorProperty("transform"),
+                TRANSFORM_ORIGIN: vendorProperty("transformOrigin"),
                 TRANSITION: vendorProperty("transition"),
                 TRANSITION_DURATION: vendorProperty("transitionDuration"),
                 ANIMATION_PLAY_STATE: vendorProperty("animationPlayState"),
@@ -56657,7 +56665,8 @@ angular.module("ngMaterial", [ "ng", "ngAnimate", "ngAria", "material.core", "ma
                 "gt-md": "(min-width: 960px)",
                 lg: "(min-width: 960px) and (max-width: 1200px)",
                 "gt-lg": "(min-width: 1200px)"
-            }
+            },
+            MEDIA_PRIORITY: [ "gt-lg", "lg", "gt-md", "md", "gt-sm", "sm" ]
         };
     }
     MdConstantFactory.$inject = [ "$$rAF", "$sniffer" ];
@@ -56674,6 +56683,9 @@ angular.module("ngMaterial", [ "ng", "ngAnimate", "ngAria", "material.core", "ma
         var trueFn = function() {
             return true;
         };
+        if (items && !angular.isArray(items)) {
+            items = Array.prototype.slice.call(items);
+        }
         reloop = !!reloop;
         var _items = items || [];
         return {
@@ -56768,21 +56780,21 @@ angular.module("ngMaterial", [ "ng", "ngAnimate", "ngAria", "material.core", "ma
 
 angular.module("material.core").factory("$mdMedia", mdMediaFactory);
 
-function mdMediaFactory($mdConstant, $mdUtil, $rootScope, $window) {
-    var queriesCache = $mdUtil.cacheFactory("$mdMedia:queries", {
-        capacity: 15
-    });
-    var resultsCache = $mdUtil.cacheFactory("$mdMedia:results", {
-        capacity: 15
-    });
-    angular.element($window).on("resize", updateAll);
+function mdMediaFactory($mdConstant, $rootScope, $window) {
+    var queries = {};
+    var mqls = {};
+    var results = {};
+    var normalizeCache = {};
+    $mdMedia.getResponsiveAttribute = getResponsiveAttribute;
+    $mdMedia.getQuery = getQuery;
+    $mdMedia.watchResponsiveAttributes = watchResponsiveAttributes;
     return $mdMedia;
     function $mdMedia(query) {
-        var validated = queriesCache.get(query);
+        var validated = queries[query];
         if (angular.isUndefined(validated)) {
-            validated = queriesCache.put(query, validate(query));
+            validated = queries[query] = validate(query);
         }
-        var result = resultsCache.get(validated);
+        var result = results[validated];
         if (angular.isUndefined(result)) {
             result = add(validated);
         }
@@ -56792,45 +56804,120 @@ function mdMediaFactory($mdConstant, $mdUtil, $rootScope, $window) {
         return $mdConstant.MEDIA[query] || (query.charAt(0) !== "(" ? "(" + query + ")" : query);
     }
     function add(query) {
-        return resultsCache.put(query, !!$window.matchMedia(query).matches);
+        var result = mqls[query] = $window.matchMedia(query);
+        result.addListener(onQueryChange);
+        return results[result.media] = !!result.matches;
     }
-    function updateAll() {
-        var keys = resultsCache.keys();
-        var len = keys.length;
-        if (len) {
-            for (var i = 0; i < len; i++) {
-                add(keys[i]);
+    function onQueryChange(query) {
+        $rootScope.$evalAsync(function() {
+            results[query.media] = !!query.matches;
+        });
+    }
+    function getQuery(name) {
+        return mqls[name];
+    }
+    function getResponsiveAttribute(attrs, attrName) {
+        for (var i = 0; i < $mdConstant.MEDIA_PRIORITY.length; i++) {
+            var mediaName = $mdConstant.MEDIA_PRIORITY[i];
+            if (!mqls[queries[mediaName]].matches) {
+                continue;
             }
-            $rootScope.$evalAsync();
+            var normalizedName = getNormalizedName(attrs, attrName + "-" + mediaName);
+            if (attrs[normalizedName]) {
+                return attrs[normalizedName];
+            }
         }
+        return attrs[getNormalizedName(attrs, attrName)];
+    }
+    function watchResponsiveAttributes(attrNames, attrs, watchFn) {
+        var unwatchFns = [];
+        attrNames.forEach(function(attrName) {
+            var normalizedName = getNormalizedName(attrs, attrName);
+            if (attrs[normalizedName]) {
+                unwatchFns.push(attrs.$observe(normalizedName, angular.bind(void 0, watchFn, null)));
+            }
+            for (var mediaName in $mdConstant.MEDIA) {
+                var normalizedName = getNormalizedName(attrs, attrName + "-" + mediaName);
+                if (!attrs[normalizedName]) {
+                    return;
+                }
+                unwatchFns.push(attrs.$observe(normalizedName, angular.bind(void 0, watchFn, mediaName)));
+            }
+        });
+        return function unwatch() {
+            unwatchFns.forEach(function(fn) {
+                fn();
+            });
+        };
+    }
+    function getNormalizedName(attrs, attrName) {
+        return normalizeCache[attrName] || (normalizeCache[attrName] = attrs.$normalize(attrName));
     }
 }
 
-mdMediaFactory.$inject = [ "$mdConstant", "$mdUtil", "$rootScope", "$window" ];
+mdMediaFactory.$inject = [ "$mdConstant", "$rootScope", "$window" ];
 
 (function() {
     "use strict";
     var nextUniqueId = [ "0", "0", "0" ];
-    angular.module("material.core").factory("$mdUtil", [ "$cacheFactory", "$document", "$timeout", function($cacheFactory, $document, $timeout) {
+    angular.module("material.core").factory("$mdUtil", [ "$cacheFactory", "$document", "$timeout", "$q", "$mdConstant", function($cacheFactory, $document, $timeout, $q, $mdConstant) {
         var Util;
+        function getNode(el) {
+            return el[0] || el;
+        }
         return Util = {
             now: window.performance ? angular.bind(window.performance, window.performance.now) : Date.now,
-            attachDragBehavior: attachDragBehavior,
-            elementRect: function(element, offsetParent) {
-                var node = element[0];
-                offsetParent = offsetParent || node.offsetParent || document.body;
-                offsetParent = offsetParent[0] || offsetParent;
+            clientRect: function(element, offsetParent, isOffsetRect) {
+                var node = getNode(element);
+                offsetParent = getNode(offsetParent || node.offsetParent || document.body);
                 var nodeRect = node.getBoundingClientRect();
-                var parentRect = offsetParent.getBoundingClientRect();
+                var offsetRect = isOffsetRect ? offsetParent.getBoundingClientRect() : {
+                    left: 0,
+                    top: 0,
+                    width: 0,
+                    height: 0
+                };
                 return {
-                    left: nodeRect.left - parentRect.left + offsetParent.scrollLeft,
-                    top: nodeRect.top - parentRect.top + offsetParent.scrollTop,
+                    left: nodeRect.left - offsetRect.left + offsetParent.scrollLeft,
+                    top: nodeRect.top - offsetRect.top + offsetParent.scrollTop,
                     width: nodeRect.width,
                     height: nodeRect.height
                 };
             },
+            offsetRect: function(element, offsetParent) {
+                return Util.clientRect(element, offsetParent, true);
+            },
+            forceFocus: function(element) {
+                var node = element[0] || element;
+                document.addEventListener("click", function focusOnClick(ev) {
+                    if (ev.target === node && ev.$focus) {
+                        node.focus();
+                        ev.stopImmediatePropagation();
+                        ev.preventDefault();
+                        node.removeEventListener("click", focusOnClick);
+                    }
+                }, true);
+                var newEvent = document.createEvent("MouseEvents");
+                newEvent.initMouseEvent("click", false, true, window, {}, 0, 0, 0, 0, false, false, false, false, 0, null);
+                newEvent.$material = true;
+                newEvent.$focus = true;
+                node.dispatchEvent(newEvent);
+            },
+            transitionEndPromise: function(element) {
+                var deferred = $q.defer();
+                element.on($mdConstant.CSS.TRANSITIONEND, finished);
+                function finished(ev) {
+                    if (ev.target === element[0]) {
+                        element.off($mdConstant.CSS.TRANSITIONEND, finished);
+                        deferred.resolve();
+                    }
+                }
+                return deferred.promise;
+            },
             fakeNgModel: function() {
                 return {
+                    $fake: true,
+                    $setTouched: angular.noop,
                     $setViewValue: function(value) {
                         this.$viewValue = value;
                         this.$render(value);
@@ -56838,13 +56925,15 @@ mdMediaFactory.$inject = [ "$mdConstant", "$mdUtil", "$rootScope", "$window" ];
                             cb();
                         });
                     },
+                    $isEmpty: function(value) {
+                        return ("" + value).length === 0;
+                    },
                     $parsers: [],
                     $formatters: [],
                     $viewChangeListeners: [],
                     $render: angular.noop
                 };
             },
-            cacheFactory: cacheFactory,
             debounce: function(func, wait, scope, invokeApply) {
                 var timer;
                 return function debounced() {
@@ -56867,6 +56956,11 @@ mdMediaFactory.$inject = [ "$mdConstant", "$mdUtil", "$rootScope", "$window" ];
                         recent = now;
                     }
                 };
+            },
+            time: function time(cb) {
+                var start = Util.now();
+                cb();
+                return Util.now() - start;
             },
             nextUid: function() {
                 var index = nextUniqueId.length;
@@ -56925,103 +57019,6 @@ mdMediaFactory.$inject = [ "$mdConstant", "$mdUtil", "$rootScope", "$window" ];
                 return null;
             }
         };
-        function attachDragBehavior(scope, element, options) {
-            var drag;
-            var previousDrag;
-            var pointerIsDown;
-            var START_EVENTS = "mousedown touchstart pointerdown";
-            var MOVE_EVENTS = "mousemove touchmove pointermove";
-            var END_EVENTS = "mouseup mouseleave touchend touchcancel pointerup pointercancel";
-            element.on(START_EVENTS, startDrag);
-            $document.on(MOVE_EVENTS, doDrag).on(END_EVENTS, endDrag);
-            scope.$on("$destroy", cleanup);
-            return cleanup;
-            function cleanup() {
-                if (cleanup.called) return;
-                cleanup.called = true;
-                element.off(START_EVENTS, startDrag);
-                $document.off(MOVE_EVENTS, doDrag).off(END_EVENTS, endDrag);
-                drag = pointerIsDown = false;
-            }
-            function startDrag(ev) {
-                var eventType = ev.type.charAt(0);
-                var now = Util.now();
-                if (previousDrag && previousDrag.pointerType !== eventType && now - previousDrag.endTime < 400) {
-                    return;
-                }
-                if (pointerIsDown) return;
-                pointerIsDown = true;
-                drag = {
-                    pointerType: eventType,
-                    startX: getPosition(ev),
-                    startTime: now
-                };
-                element.one("$md.dragstart", function(ev) {
-                    if (ev.defaultPrevented) drag = null;
-                });
-                element.triggerHandler("$md.dragstart", drag);
-            }
-            function doDrag(ev) {
-                if (!drag || !isProperEventType(ev, drag)) return;
-                if (drag.pointerType === "t" || drag.pointerType === "p") {
-                    ev.preventDefault();
-                }
-                updateDragState(ev);
-                element.triggerHandler("$md.drag", drag);
-            }
-            function endDrag(ev) {
-                pointerIsDown = false;
-                if (!drag || !isProperEventType(ev, drag)) return;
-                drag.endTime = Util.now();
-                updateDragState(ev);
-                element.triggerHandler("$md.dragend", drag);
-                previousDrag = drag;
-                drag = null;
-            }
-            function updateDragState(ev) {
-                var x = getPosition(ev);
-                drag.distance = drag.startX - x;
-                drag.direction = drag.distance > 0 ? "left" : drag.distance < 0 ? "right" : "";
-                drag.duration = drag.startTime - Util.now();
-                drag.velocity = Math.abs(drag.duration) / drag.time;
-            }
-            function getPosition(ev) {
-                ev = ev.originalEvent || ev;
-                var point = ev.touches && ev.touches[0] || ev.changedTouches && ev.changedTouches[0] || ev;
-                return point.pageX;
-            }
-            function isProperEventType(ev, drag) {
-                return drag && ev && (ev.type || "").charAt(0) === drag.pointerType;
-            }
-        }
-        function cacheFactory(id, options) {
-            var cache = $cacheFactory(id, options);
-            var keys = {};
-            cache._put = cache.put;
-            cache.put = function(k, v) {
-                keys[k] = true;
-                return cache._put(k, v);
-            };
-            cache._remove = cache.remove;
-            cache.remove = function(k) {
-                delete keys[k];
-                return cache._remove(k);
-            };
-            cache._removeAll = cache.removeAll;
-            cache.removeAll = function() {
-                keys = {};
-                return cache._removeAll();
-            };
-            cache._destroy = cache.destroy;
-            cache.destroy = function() {
-                keys = {};
-                return cache._destroy();
-            };
-            cache.keys = function() {
-                return Object.keys(keys);
-            };
-            return cache;
-        }
     } ]);
     angular.element.prototype.focus = angular.element.prototype.focus || function() {
         if (this.length) {
@@ -57049,7 +57046,7 @@ mdMediaFactory.$inject = [ "$mdConstant", "$mdUtil", "$rootScope", "$window" ];
         function expect(element, attrName, defaultValue) {
             var node = element[0];
             if (!node.hasAttribute(attrName) && !childHasAttribute(node, attrName)) {
-                defaultValue = angular.isString(defaultValue) && defaultValue.trim() || "";
+                defaultValue = angular.isString(defaultValue) ? defaultValue.trim() : "";
                 if (defaultValue.length) {
                     element.attr(attrName, defaultValue);
                 } else {
@@ -57064,8 +57061,11 @@ mdMediaFactory.$inject = [ "$mdConstant", "$mdUtil", "$rootScope", "$window" ];
         }
         function expectWithText(element, attrName) {
             expectAsync(element, attrName, function() {
-                return element.text().trim();
+                return getText(element);
             });
+        }
+        function getText(element) {
+            return element.text().trim();
         }
         function childHasAttribute(node, attrName) {
             var hasChildren = node.hasChildNodes(), hasAttr = false;
@@ -57151,6 +57151,434 @@ mdMediaFactory.$inject = [ "$mdConstant", "$mdUtil", "$rootScope", "$window" ];
 
 (function() {
     "use strict";
+    var START_EVENTS = "mousedown touchstart pointerdown";
+    var MOVE_EVENTS = "mousemove touchmove pointermove";
+    var END_EVENTS = "mouseup mouseleave touchend touchcancel pointerup pointercancel";
+    var HANDLERS;
+    document.contains || (document.contains = function(node) {
+        return document.body.contains(node);
+    });
+    var userAgent = navigator.userAgent || navigator.vendor || window.opera;
+    var isIos = userAgent.match(/iPad/i) || userAgent.match(/iPhone/i) || userAgent.match(/iPod/i);
+    var isAndroid = userAgent.match(/Android/i);
+    var shouldHijackClicks = isIos || isAndroid;
+    if (shouldHijackClicks) {
+        document.addEventListener("click", function(ev) {
+            var isKeyClick = ev.clientX === 0 && ev.clientY === 0;
+            if (isKeyClick || ev.$material) return;
+            ev.preventDefault();
+            ev.stopPropagation();
+        }, true);
+    }
+    angular.element(document).on(START_EVENTS, gestureStart).on(MOVE_EVENTS, gestureMove).on(END_EVENTS, gestureEnd).on("$$mdGestureReset", function() {
+        lastPointer = pointer = null;
+    });
+    var pointer, lastPointer;
+    function runHandlers(handlerEvent, event) {
+        var handler;
+        for (var handlerName in HANDLERS) {
+            handler = HANDLERS[handlerName];
+            if (handlerEvent === "start") {
+                handler.cancel();
+            }
+            handler[handlerEvent](event, pointer);
+        }
+    }
+    function gestureStart(ev) {
+        if (pointer) return;
+        var now = +Date.now();
+        if (lastPointer && !typesMatch(ev, lastPointer) && now - lastPointer.endTime < 1500) {
+            return;
+        }
+        pointer = makeStartPointer(ev);
+        runHandlers("start", ev);
+    }
+    function gestureMove(ev) {
+        if (!pointer || !typesMatch(ev, pointer)) return;
+        updatePointerState(ev, pointer);
+        runHandlers("move", ev);
+    }
+    function gestureEnd(ev) {
+        if (!pointer || !typesMatch(ev, pointer)) return;
+        updatePointerState(ev, pointer);
+        pointer.endTime = +Date.now();
+        runHandlers("end", ev);
+        lastPointer = pointer;
+        pointer = null;
+    }
+    function typesMatch(ev, pointer) {
+        return ev && pointer && ev.type.charAt(0) === pointer.type;
+    }
+    function getEventPoint(ev) {
+        ev = ev.originalEvent || ev;
+        return ev.touches && ev.touches[0] || ev.changedTouches && ev.changedTouches[0] || ev;
+    }
+    function updatePointerState(ev, pointer) {
+        var point = getEventPoint(ev);
+        var x = pointer.x = point.pageX;
+        var y = pointer.y = point.pageY;
+        pointer.distanceX = x - pointer.startX;
+        pointer.distanceY = y - pointer.startY;
+        pointer.distance = Math.sqrt(pointer.distanceX * pointer.distanceX + pointer.distanceY * pointer.distanceY);
+        pointer.directionX = pointer.distanceX > 0 ? "right" : pointer.distanceX < 0 ? "left" : "";
+        pointer.directionY = pointer.distanceY > 0 ? "up" : pointer.distanceY < 0 ? "down" : "";
+        pointer.duration = +Date.now() - pointer.startTime;
+        pointer.velocityX = pointer.distanceX / pointer.duration;
+        pointer.velocityY = pointer.distanceY / pointer.duration;
+    }
+    function makeStartPointer(ev) {
+        var point = getEventPoint(ev);
+        var startPointer = {
+            startTime: +Date.now(),
+            target: ev.target,
+            type: ev.type.charAt(0)
+        };
+        startPointer.startX = startPointer.x = point.pageX;
+        startPointer.startY = startPointer.y = point.pageY;
+        return startPointer;
+    }
+    angular.module("material.core").run([ "$mdGesture", function($mdGesture) {} ]).factory("$mdGesture", [ "$$MdGestureHandler", "$$rAF", "$timeout", function($$MdGestureHandler, $$rAF, $timeout) {
+        HANDLERS = {};
+        if (shouldHijackClicks) {
+            addHandler("click", {
+                options: {
+                    maxDistance: 6
+                },
+                onEnd: function(ev, pointer) {
+                    if (pointer.distance < this.state.options.maxDistance) {
+                        this.dispatchEvent(ev, "click");
+                    }
+                }
+            });
+        }
+        addHandler("press", {
+            onStart: function(ev, pointer) {
+                this.dispatchEvent(ev, "$md.pressdown");
+            },
+            onEnd: function(ev, pointer) {
+                this.dispatchEvent(ev, "$md.pressup");
+            }
+        });
+        addHandler("hold", {
+            options: {
+                maxDistance: 6,
+                delay: 500
+            },
+            onCancel: function() {
+                $timeout.cancel(this.state.timeout);
+            },
+            onStart: function(ev, pointer) {
+                if (!this.state.registeredParent) return this.cancel();
+                this.state.pos = {
+                    x: pointer.x,
+                    y: pointer.y
+                };
+                this.state.timeout = $timeout(angular.bind(this, function holdDelayFn() {
+                    this.dispatchEvent(ev, "$md.hold");
+                    this.cancel();
+                }), this.state.options.delay, false);
+            },
+            onMove: function(ev, pointer) {
+                ev.preventDefault();
+                var dx = this.state.pos.x - pointer.x;
+                var dy = this.state.pos.y - pointer.y;
+                if (Math.sqrt(dx * dx + dy * dy) > this.options.maxDistance) {
+                    this.cancel();
+                }
+            },
+            onEnd: function(ev, pointer) {
+                this.onCancel();
+            }
+        });
+        addHandler("drag", {
+            options: {
+                minDistance: 6,
+                horizontal: true
+            },
+            onStart: function(ev) {
+                if (!this.state.registeredParent) this.cancel();
+            },
+            onMove: function(ev, pointer) {
+                var shouldStartDrag, shouldCancel;
+                ev.preventDefault();
+                if (!this.state.dragPointer) {
+                    if (this.state.options.horizontal) {
+                        shouldStartDrag = Math.abs(pointer.distanceX) > this.state.options.minDistance;
+                        shouldCancel = Math.abs(pointer.distanceY) > this.state.options.minDistance * 1.5;
+                    } else {
+                        shouldStartDrag = Math.abs(pointer.distanceY) > this.state.options.minDistance;
+                        shouldCancel = Math.abs(pointer.distanceX) > this.state.options.minDistance * 1.5;
+                    }
+                    if (shouldStartDrag) {
+                        this.state.dragPointer = makeStartPointer(ev);
+                        updatePointerState(ev, this.state.dragPointer);
+                        this.dispatchEvent(ev, "$md.dragstart", this.state.dragPointer);
+                    } else if (shouldCancel) {
+                        this.cancel();
+                    }
+                } else {
+                    this.dispatchDragMove(ev);
+                }
+            },
+            dispatchDragMove: $$rAF.throttle(function(ev) {
+                if (this.state.isRunning) {
+                    updatePointerState(ev, this.state.dragPointer);
+                    this.dispatchEvent(ev, "$md.drag", this.state.dragPointer);
+                }
+            }),
+            onEnd: function(ev, pointer) {
+                if (this.state.dragPointer) {
+                    updatePointerState(ev, this.state.dragPointer);
+                    this.dispatchEvent(ev, "$md.dragend", this.state.dragPointer);
+                }
+            }
+        });
+        addHandler("swipe", {
+            options: {
+                minVelocity: .65,
+                minDistance: 10
+            },
+            onEnd: function(ev, pointer) {
+                if (Math.abs(pointer.velocityX) > this.state.options.minVelocity && Math.abs(pointer.distanceX) > this.state.options.minDistance) {
+                    var eventType = pointer.directionX == "left" ? "$md.swipeleft" : "$md.swiperight";
+                    this.dispatchEvent(ev, eventType);
+                }
+            }
+        });
+        var self;
+        return self = {
+            handler: addHandler,
+            register: register
+        };
+        function addHandler(name, definition) {
+            var handler = new $$MdGestureHandler(name);
+            angular.extend(handler, definition);
+            HANDLERS[name] = handler;
+            return self;
+        }
+        function register(element, handlerName, options) {
+            var handler = HANDLERS[handlerName.replace(/^\$md./, "")];
+            if (!handler) {
+                throw new Error("Failed to register element with handler " + handlerName + ". " + "Available handlers: " + Object.keys(HANDLERS).join(", "));
+            }
+            return handler.registerElement(element, options);
+        }
+    } ]).factory("$$MdGestureHandler", [ "$$rAF", function($$rAF) {
+        function GestureHandler(name) {
+            this.name = name;
+            this.state = {};
+        }
+        GestureHandler.prototype = {
+            onStart: angular.noop,
+            onMove: angular.noop,
+            onEnd: angular.noop,
+            onCancel: angular.noop,
+            options: {},
+            dispatchEvent: typeof window.jQuery !== "undefined" && angular.element === window.jQuery ? jQueryDispatchEvent : nativeDispatchEvent,
+            start: function(ev, pointer) {
+                if (this.state.isRunning) return;
+                var parentTarget = this.getNearestParent(ev.target);
+                var parentTargetOptions = parentTarget && parentTarget.$mdGesture[this.name] || {};
+                this.state = {
+                    isRunning: true,
+                    options: angular.extend({}, this.options, parentTargetOptions),
+                    registeredParent: parentTarget
+                };
+                this.onStart(ev, pointer);
+            },
+            move: function(ev, pointer) {
+                if (!this.state.isRunning) return;
+                this.onMove(ev, pointer);
+            },
+            end: function(ev, pointer) {
+                if (!this.state.isRunning) return;
+                this.onEnd(ev, pointer);
+                this.state.isRunning = false;
+            },
+            cancel: function(ev, pointer) {
+                this.onCancel(ev, pointer);
+                this.state = {};
+            },
+            getNearestParent: function(node) {
+                var current = node;
+                while (current) {
+                    if ((current.$mdGesture || {})[this.name]) {
+                        return current;
+                    }
+                    current = current.parentNode;
+                }
+            },
+            registerElement: function(element, options) {
+                var self = this;
+                element[0].$mdGesture = element[0].$mdGesture || {};
+                element[0].$mdGesture[this.name] = options || {};
+                element.on("$destroy", onDestroy);
+                return onDestroy;
+                function onDestroy() {
+                    delete element[0].$mdGesture[self.name];
+                    element.off("$destroy", onDestroy);
+                }
+            }
+        };
+        function jQueryDispatchEvent(srcEvent, eventType, eventPointer) {
+            eventPointer = eventPointer || pointer;
+            var eventObj = new angular.element.Event(eventType);
+            eventObj.$material = true;
+            eventObj.pointer = eventPointer;
+            eventObj.srcEvent = srcEvent;
+            angular.extend(eventObj, {
+                clientX: eventPointer.x,
+                clientY: eventPointer.y,
+                screenX: eventPointer.x,
+                screenY: eventPointer.y,
+                pageX: eventPointer.x,
+                pageY: eventPointer.y,
+                ctrlKey: srcEvent.ctrlKey,
+                altKey: srcEvent.altKey,
+                shiftKey: srcEvent.shiftKey,
+                metaKey: srcEvent.metaKey
+            });
+            angular.element(eventPointer.target).trigger(eventObj);
+        }
+        function nativeDispatchEvent(srcEvent, eventType, eventPointer) {
+            eventPointer = eventPointer || pointer;
+            var eventObj;
+            if (eventType === "click") {
+                eventObj = document.createEvent("MouseEvents");
+                eventObj.initMouseEvent("click", true, true, window, srcEvent.detail, eventPointer.x, eventPointer.y, eventPointer.x, eventPointer.y, srcEvent.ctrlKey, srcEvent.altKey, srcEvent.shiftKey, srcEvent.metaKey, srcEvent.button, srcEvent.relatedTarget || null);
+            } else {
+                eventObj = document.createEvent("CustomEvent");
+                eventObj.initCustomEvent(eventType, true, true, {});
+            }
+            eventObj.$material = true;
+            eventObj.pointer = eventPointer;
+            eventObj.srcEvent = srcEvent;
+            eventPointer.target.dispatchEvent(eventObj);
+        }
+        return GestureHandler;
+    } ]);
+})();
+
+(function() {
+    "use strict";
+    angular.module("material.core").provider("$mdIcon", MdIconProvider);
+    var config = {
+        defaultIconSize: 24
+    };
+    function MdIconProvider() {}
+    MdIconProvider.prototype = {
+        icon: function icon(id, url, iconSize) {
+            if (id.indexOf(":") == -1) id = "$default:" + id;
+            config[id] = new ConfigurationItem(url, iconSize);
+            return this;
+        },
+        iconSet: function iconSet(id, url, iconSize) {
+            config[id] = new ConfigurationItem(url, iconSize);
+            return this;
+        },
+        defaultIconSet: function defaultIconSet(url, iconSize) {
+            var setName = "$default";
+            if (!config[setName]) {
+                config[setName] = new ConfigurationItem(url, iconSize);
+            }
+            return this;
+        },
+        defaultIconSize: function defaultIconSize(iconSize) {
+            config.defaultIconSize = iconSize;
+            return this;
+        },
+        $get: [ "$http", "$q", "$log", "$templateCache", function($http, $q, $log, $templateCache) {
+            return new MdIconService(config, $http, $q, $log, $templateCache);
+        } ]
+    };
+    function ConfigurationItem(url, iconSize) {
+        this.url = url;
+        this.iconSize = iconSize || config.defaultIconSize;
+    }
+    function MdIconService(config, $http, $q, $log, $templateCache) {
+        var iconCache = {};
+        var urlRegex = /[-a-zA-Z0-9@:%_\+.~#?&//=]{2,256}\.[a-z]{2,4}\b(\/[-a-zA-Z0-9@:%_\+.~#?&//=]*)?/i;
+        return function getIcon(id) {
+            id = id || "";
+            if (iconCache[id]) return $q.when(iconCache[id].clone());
+            if (urlRegex.test(id)) return loadByURL(id).then(cacheIcon(id));
+            if (id.indexOf(":") == -1) id = "$default:" + id;
+            return loadByID(id).catch(loadFromIconSet).catch(announceNotFound).then(cacheIcon(id));
+        };
+        function cacheIcon(id) {
+            return function updateCache(icon) {
+                var iconConfig = config[id];
+                icon = !isIcon(icon) ? new Icon(icon, iconConfig) : icon;
+                icon = prepareAndStyle(icon);
+                iconCache[id] = icon;
+                return icon.clone();
+            };
+        }
+        function loadByID(id) {
+            var iconConfig = config[id];
+            return !iconConfig ? $q.reject(id) : loadByURL(iconConfig.url).then(function(icon) {
+                return new Icon(icon, iconConfig);
+            });
+        }
+        function loadFromIconSet(id) {
+            var setName = id.substring(0, id.lastIndexOf(":")) || "$default";
+            var iconSetConfig = config[setName];
+            return !iconSetConfig ? $q.reject(id) : loadByURL(iconSetConfig.url).then(extractFromSet);
+            function extractFromSet(set) {
+                var iconName = id.slice(id.lastIndexOf(":") + 1);
+                var icon = set.querySelector("#" + iconName);
+                return !icon ? $q.reject(id) : new Icon(icon, iconSetConfig);
+            }
+        }
+        function prepareAndStyle(icon) {
+            var iconSize = icon.config ? icon.config.iconSize : config.defaultIconSize;
+            var svg = angular.element(icon.element);
+            return svg.attr({
+                fit: "",
+                height: "100%",
+                width: "100%",
+                preserveAspectRatio: "xMidYMid meet",
+                viewBox: svg.attr("viewBox") || "0 0 " + iconSize + " " + iconSize
+            }).css({
+                "pointer-events": "none",
+                display: "block"
+            });
+        }
+        function loadByURL(url) {
+            return $http.get(url, {
+                cache: $templateCache
+            }).then(function(response) {
+                var els = angular.element(response.data);
+                for (var i = 0; i < els.length; ++i) {
+                    if (els[i].nodeName == "svg") {
+                        return els[i];
+                    }
+                }
+            });
+        }
+        function announceNotFound(id) {
+            var msg = "icon " + id + " not found";
+            $log.warn(msg);
+            throw new Error(msg);
+        }
+        function isIcon(target) {
+            return angular.isDefined(target.element) && angular.isDefined(target.config);
+        }
+        function Icon(el, config) {
+            if (el.tagName != "svg") {
+                el = angular.element('<svg xmlns="http://www.w3.org/2000/svg">').append(el)[0];
+            }
+            this.element = el;
+            this.config = config;
+        }
+        Icon.prototype.clone = function() {
+            return this.element.cloneNode(true)[0];
+        };
+    }
+})();
+
+(function() {
+    "use strict";
     angular.module("material.core").provider("$$interimElement", InterimElementProvider);
     function InterimElementProvider() {
         createInterimElementProvider.$get = InterimElementFactory;
@@ -57158,12 +57586,14 @@ mdMediaFactory.$inject = [ "$mdConstant", "$mdUtil", "$rootScope", "$window" ];
         return createInterimElementProvider;
         function createInterimElementProvider(interimFactoryName) {
             var EXPOSED_METHODS = [ "onHide", "onShow", "onRemove" ];
+            var customMethods = {};
             var providerConfig = {
                 presets: {}
             };
             var provider = {
                 setDefaults: setDefaults,
                 addPreset: addPreset,
+                addMethod: addMethod,
                 $get: factory
             };
             provider.addPreset("build", {
@@ -57174,6 +57604,10 @@ mdMediaFactory.$inject = [ "$mdConstant", "$mdUtil", "$rootScope", "$window" ];
             function setDefaults(definition) {
                 providerConfig.optionsFactory = definition.options;
                 providerConfig.methods = (definition.methods || []).concat(EXPOSED_METHODS);
+                return provider;
+            }
+            function addMethod(name, fn) {
+                customMethods[name] = fn;
                 return provider;
             }
             function addPreset(name, definition) {
@@ -57206,6 +57640,9 @@ mdMediaFactory.$inject = [ "$mdConstant", "$mdUtil", "$rootScope", "$window" ];
                 };
                 defaultMethods = providerConfig.methods || [];
                 defaultOptions = invokeFactory(providerConfig.optionsFactory, {});
+                angular.forEach(customMethods, function(fn, name) {
+                    publicService[name] = fn;
+                });
                 angular.forEach(providerConfig.presets, function(definition, name) {
                     var presetDefaults = invokeFactory(definition.optionsFactory, {});
                     var presetMethods = (definition.methods || []).concat(defaultMethods);
@@ -57262,33 +57699,35 @@ mdMediaFactory.$inject = [ "$mdConstant", "$mdUtil", "$rootScope", "$window" ];
                 };
                 function show(options) {
                     if (stack.length) {
-                        service.cancel();
+                        return service.cancel().then(function() {
+                            return show(options);
+                        });
+                    } else {
+                        var interimElement = new InterimElement(options);
+                        stack.push(interimElement);
+                        return interimElement.show().then(function() {
+                            return interimElement.deferred.promise;
+                        });
                     }
-                    var interimElement = new InterimElement(options);
-                    stack.push(interimElement);
-                    return interimElement.show().then(function() {
-                        return interimElement.deferred.promise;
-                    });
                 }
                 function hide(response) {
                     var interimElement = stack.shift();
-                    interimElement && interimElement.remove().then(function() {
+                    return interimElement && interimElement.remove().then(function() {
                         interimElement.deferred.resolve(response);
                     });
-                    return interimElement ? interimElement.deferred.promise : $q.when(response);
                 }
                 function cancel(reason) {
                     var interimElement = stack.shift();
-                    interimElement && interimElement.remove().then(function() {
+                    return interimElement && interimElement.remove().then(function() {
                         interimElement.deferred.reject(reason);
                     });
-                    return interimElement ? interimElement.deferred.promise : $q.reject(reason);
                 }
                 function InterimElement(options) {
                     var self;
                     var hideTimeout, element;
                     options = options || {};
                     options = angular.extend({
+                        preserveScope: false,
                         scope: options.scope || $rootScope.$new(options.isolateScope),
                         onShow: function(scope, element, options) {
                             return $animate.enter(element, options.parent);
@@ -57300,19 +57739,24 @@ mdMediaFactory.$inject = [ "$mdConstant", "$mdUtil", "$rootScope", "$window" ];
                     if (options.template) {
                         options.template = processTemplate(options.template);
                     }
+                    var showFailed;
                     return self = {
                         options: options,
                         deferred: $q.defer(),
                         show: function() {
+                            showFailed = false;
                             return $mdCompiler.compile(options).then(function(compileData) {
                                 angular.extend(compileData.locals, self.options);
-                                if (angular.isString(options.parent)) {
+                                element = compileData.link(options.scope);
+                                if (angular.isFunction(options.parent)) {
+                                    options.parent = options.parent(options.scope, element, options);
+                                } else if (angular.isString(options.parent)) {
                                     options.parent = angular.element($document[0].querySelector(options.parent));
-                                } else if (!options.parent) {
+                                }
+                                if (!(options.parent || {}).length) {
                                     options.parent = $rootElement.find("body");
                                     if (!options.parent.length) options.parent = $rootElement;
                                 }
-                                element = compileData.link(options.scope);
                                 if (options.themable) $mdTheming(element);
                                 var ret = options.onShow(options.scope, element, options);
                                 return $q.when(ret).then(function() {
@@ -57324,6 +57768,9 @@ mdMediaFactory.$inject = [ "$mdConstant", "$mdUtil", "$rootScope", "$window" ];
                                         hideTimeout = $timeout(service.cancel, options.hideDelay);
                                     }
                                 }
+                            }, function(reason) {
+                                showFailed = true;
+                                self.deferred.reject(reason);
                             });
                         },
                         cancelTimeout: function() {
@@ -57334,9 +57781,14 @@ mdMediaFactory.$inject = [ "$mdConstant", "$mdUtil", "$rootScope", "$window" ];
                         },
                         remove: function() {
                             self.cancelTimeout();
-                            var ret = options.onRemove(options.scope, element, options);
+                            var ret;
+                            if (showFailed) {
+                                ret = true;
+                            } else {
+                                ret = options.onRemove(options.scope, element, options);
+                            }
                             return $q.when(ret).then(function() {
-                                options.scope.$destroy();
+                                if (!options.preserveScope) options.scope.$destroy();
                             });
                         }
                     };
@@ -57450,7 +57902,8 @@ mdMediaFactory.$inject = [ "$mdConstant", "$mdUtil", "$rootScope", "$window" ];
         function attachCheckboxBehavior(scope, element, options) {
             return attach(scope, element, angular.extend({
                 center: true,
-                dimBackground: false
+                dimBackground: false,
+                fitRipple: true
             }, options));
         }
         function attachTabBehavior(scope, element, options) {
@@ -57472,11 +57925,22 @@ mdMediaFactory.$inject = [ "$mdConstant", "$mdUtil", "$rootScope", "$window" ];
                 dimBackground: false,
                 outline: false,
                 isFAB: false,
-                isMenuItem: false
+                isMenuItem: false,
+                fitRipple: false
             }, options);
-            var rippleContainer, rippleSize, controller = element.controller("mdInkRipple") || {}, counter = 0, ripples = [], states = [], isActiveExpr = element.attr("md-highlight"), isActive = false, isHeld = false, node = element[0], hammertime = new Hammer(node), color = parseColor(element.attr("md-ink-ripple")) || parseColor($window.getComputedStyle(options.colorElement[0]).color || "rgb(0, 0, 0)");
-            scope._onInput = onInput;
-            options.mousedown && hammertime.on("hammer.input", onInput);
+            var rippleSize, controller = element.controller("mdInkRipple") || {}, counter = 0, ripples = [], states = [], isActiveExpr = element.attr("md-highlight"), isActive = false, isHeld = false, node = element[0], rippleSizeSetting = element.attr("md-ripple-size"), color = parseColor(element.attr("md-ink-ripple")) || parseColor($window.getComputedStyle(options.colorElement[0]).color || "rgb(0, 0, 0)");
+            switch (rippleSizeSetting) {
+              case "full":
+                options.isFAB = true;
+                break;
+
+              case "partial":
+                options.isFAB = false;
+                break;
+            }
+            if (options.mousedown) {
+                element.on("$md.pressdown", onPressDown).on("$md.pressup", onPressUp);
+            }
             controller.createRipple = createRipple;
             if (isActiveExpr) {
                 scope.$watch(isActiveExpr, function watchActive(newValue) {
@@ -57490,9 +57954,17 @@ mdMediaFactory.$inject = [ "$mdConstant", "$mdUtil", "$rootScope", "$window" ];
                 });
             }
             return function detach() {
-                hammertime.destroy();
-                rippleContainer && rippleContainer.remove();
+                element.off("$md.pressdown", onPressDown).off("$md.pressup", onPressUp);
+                getRippleContainer().remove();
             };
+            function getRippleContainer() {
+                var container = element.data("$mdRippleContainer");
+                if (container) return container;
+                container = angular.element('<div class="md-ripple-container">');
+                element.append(container);
+                element.data("$mdRippleContainer", container);
+                return container;
+            }
             function parseColor(color) {
                 if (!color) return;
                 if (color.indexOf("rgba") === 0) return color.replace(/\d?\.?\d*\s*\)\s*$/, "0.1)");
@@ -57514,7 +57986,7 @@ mdMediaFactory.$inject = [ "$mdConstant", "$mdUtil", "$rootScope", "$window" ];
             function removeElement(elem, wait) {
                 ripples.splice(ripples.indexOf(elem), 1);
                 if (ripples.length === 0) {
-                    rippleContainer && rippleContainer.css({
+                    getRippleContainer().css({
                         backgroundColor: ""
                     });
                 }
@@ -57593,7 +58065,10 @@ mdMediaFactory.$inject = [ "$mdConstant", "$mdUtil", "$rootScope", "$window" ];
                         size = 2 * Math.sqrt(Math.pow(width, 2) + Math.pow(height, 2));
                     } else {
                         multiplier = options.isFAB ? 1.1 : .8;
-                        size = Math.max(width, height) * multiplier;
+                        size = Math.sqrt(Math.pow(width, 2) + Math.pow(height, 2)) * multiplier;
+                        if (options.fitRipple) {
+                            size = Math.min(height, width, size);
+                        }
                     }
                     return size;
                 }
@@ -57622,35 +58097,26 @@ mdMediaFactory.$inject = [ "$mdConstant", "$mdUtil", "$rootScope", "$window" ];
                         return color.replace("rgba", "rgb").replace(/,[^\)\,]+\)/, ")");
                     }
                 }
-                function getRippleContainer() {
-                    if (rippleContainer) return rippleContainer;
-                    var container = angular.element('<div class="md-ripple-container"></div>');
-                    rippleContainer = container;
-                    element.append(container);
-                    return container;
-                }
             }
-            function onInput(ev) {
-                var ripple, index;
-                if (ev.eventType === Hammer.INPUT_START && ev.isFirst && isRippleAllowed()) {
-                    ripple = createRipple(ev.center.x, ev.center.y);
-                    isHeld = true;
-                } else if (ev.eventType === Hammer.INPUT_END && ev.isFinal) {
-                    isHeld = false;
-                    index = ripples.length - 1;
-                    ripple = ripples[index];
-                    $timeout(function() {
-                        updateElement(ripple);
-                    }, 0, false);
-                }
-                function isRippleAllowed() {
-                    var parent = node.parentNode;
-                    var grandparent = parent && parent.parentNode;
-                    var ancestor = grandparent && grandparent.parentNode;
-                    return !isDisabled(node) && !isDisabled(parent) && !isDisabled(grandparent) && !isDisabled(ancestor);
-                    function isDisabled(elem) {
-                        return elem && elem.hasAttribute && elem.hasAttribute("disabled");
-                    }
+            function onPressDown(ev) {
+                if (!isRippleAllowed()) return;
+                var ripple = createRipple(ev.pointer.x, ev.pointer.y);
+                isHeld = true;
+            }
+            function onPressUp(ev) {
+                isHeld = false;
+                var ripple = ripples[ripples.length - 1];
+                $timeout(function() {
+                    updateElement(ripple);
+                }, 0, false);
+            }
+            function isRippleAllowed() {
+                var parent = node.parentNode;
+                var grandparent = parent && parent.parentNode;
+                var ancestor = grandparent && grandparent.parentNode;
+                return !isDisabled(node) && !isDisabled(parent) && !isDisabled(grandparent) && !isDisabled(ancestor);
+                function isDisabled(elem) {
+                    return elem && elem.hasAttribute && elem.hasAttribute("disabled");
                 }
             }
         }
@@ -57684,7 +58150,8 @@ mdMediaFactory.$inject = [ "$mdConstant", "$mdUtil", "$rootScope", "$window" ];
             A400: "#ff1744",
             A700: "#d50000",
             contrastDefaultColor: "light",
-            contrastDarkColors: "50 100 200 300 400 A100"
+            contrastDarkColors: "50 100 200 300 400 A100",
+            contrastStrongLightColors: "500 600 700 A200 A400 A700"
         },
         pink: {
             "50": "#fce4ec",
@@ -57702,7 +58169,8 @@ mdMediaFactory.$inject = [ "$mdConstant", "$mdUtil", "$rootScope", "$window" ];
             A400: "#f50057",
             A700: "#c51162",
             contrastDefaultColor: "light",
-            contrastDarkColors: "50 100 200 300 400 A100"
+            contrastDarkColors: "50 100 200 300 400 A100",
+            contrastStrongLightColors: "500 600 A200 A400 A700"
         },
         purple: {
             "50": "#f3e5f5",
@@ -57720,7 +58188,8 @@ mdMediaFactory.$inject = [ "$mdConstant", "$mdUtil", "$rootScope", "$window" ];
             A400: "#d500f9",
             A700: "#aa00ff",
             contrastDefaultColor: "light",
-            contrastDarkColors: "50 100 200 A100"
+            contrastDarkColors: "50 100 200 A100",
+            contrastStrongLightColors: "300 400 A200 A400 A700"
         },
         "deep-purple": {
             "50": "#ede7f6",
@@ -57738,7 +58207,8 @@ mdMediaFactory.$inject = [ "$mdConstant", "$mdUtil", "$rootScope", "$window" ];
             A400: "#651fff",
             A700: "#6200ea",
             contrastDefaultColor: "light",
-            contrastDarkColors: "50 100 200 A100"
+            contrastDarkColors: "50 100 200 A100",
+            contrastStrongLightColors: "300 400 A200"
         },
         indigo: {
             "50": "#e8eaf6",
@@ -57756,7 +58226,8 @@ mdMediaFactory.$inject = [ "$mdConstant", "$mdUtil", "$rootScope", "$window" ];
             A400: "#3d5afe",
             A700: "#304ffe",
             contrastDefaultColor: "light",
-            contrastDarkColors: "50 100 200 A100"
+            contrastDarkColors: "50 100 200 A100",
+            contrastStrongLightColors: "300 400 A200 A400"
         },
         blue: {
             "50": "#e3f2fd",
@@ -57774,7 +58245,8 @@ mdMediaFactory.$inject = [ "$mdConstant", "$mdUtil", "$rootScope", "$window" ];
             A400: "#2979ff",
             A700: "#2962ff",
             contrastDefaultColor: "light",
-            contrastDarkColors: "100 200 300 400 A100"
+            contrastDarkColors: "100 200 300 400 A100",
+            contrastStrongLightColors: "500 600 700 A200 A400 A700"
         },
         "light-blue": {
             "50": "#e1f5fe",
@@ -57792,7 +58264,8 @@ mdMediaFactory.$inject = [ "$mdConstant", "$mdUtil", "$rootScope", "$window" ];
             A400: "#00b0ff",
             A700: "#0091ea",
             contrastDefaultColor: "dark",
-            contrastLightColors: "500 600 700 800 900 A700"
+            contrastLightColors: "500 600 700 800 900 A700",
+            contrastStrongLightColors: "500 600 700 800 A700"
         },
         cyan: {
             "50": "#e0f7fa",
@@ -57810,7 +58283,8 @@ mdMediaFactory.$inject = [ "$mdConstant", "$mdUtil", "$rootScope", "$window" ];
             A400: "#00e5ff",
             A700: "#00b8d4",
             contrastDefaultColor: "dark",
-            contrastLightColors: "500 600 700 800 900"
+            contrastLightColors: "500 600 700 800 900",
+            contrastStrongLightColors: "500 600 700 800"
         },
         teal: {
             "50": "#e0f2f1",
@@ -57828,7 +58302,8 @@ mdMediaFactory.$inject = [ "$mdConstant", "$mdUtil", "$rootScope", "$window" ];
             A400: "#1de9b6",
             A700: "#00bfa5",
             contrastDefaultColor: "dark",
-            contrastLightColors: "500 600 700 800 900"
+            contrastLightColors: "500 600 700 800 900",
+            contrastStrongLightColors: "500 600 700"
         },
         green: {
             "50": "#e8f5e9",
@@ -57846,7 +58321,8 @@ mdMediaFactory.$inject = [ "$mdConstant", "$mdUtil", "$rootScope", "$window" ];
             A400: "#00e676",
             A700: "#00c853",
             contrastDefaultColor: "dark",
-            contrastLightColors: "500 600 700 800 900"
+            contrastLightColors: "500 600 700 800 900",
+            contrastStrongLightColors: "500 600 700"
         },
         "light-green": {
             "50": "#f1f8e9",
@@ -57864,7 +58340,8 @@ mdMediaFactory.$inject = [ "$mdConstant", "$mdUtil", "$rootScope", "$window" ];
             A400: "#76ff03",
             A700: "#64dd17",
             contrastDefaultColor: "dark",
-            contrastLightColors: "800 900"
+            contrastLightColors: "800 900",
+            contrastStrongLightColors: "800 900"
         },
         lime: {
             "50": "#f9fbe7",
@@ -57882,7 +58359,8 @@ mdMediaFactory.$inject = [ "$mdConstant", "$mdUtil", "$rootScope", "$window" ];
             A400: "#c6ff00",
             A700: "#aeea00",
             contrastDefaultColor: "dark",
-            contrastLightColors: "900"
+            contrastLightColors: "900",
+            contrastStrongLightColors: "900"
         },
         yellow: {
             "50": "#fffde7",
@@ -57934,7 +58412,8 @@ mdMediaFactory.$inject = [ "$mdConstant", "$mdUtil", "$rootScope", "$window" ];
             A400: "#ff9100",
             A700: "#ff6d00",
             contrastDefaultColor: "dark",
-            contrastLightColors: "800 900"
+            contrastLightColors: "800 900",
+            contrastStrongLightColors: "800 900"
         },
         "deep-orange": {
             "50": "#fbe9e7",
@@ -57952,7 +58431,8 @@ mdMediaFactory.$inject = [ "$mdConstant", "$mdUtil", "$rootScope", "$window" ];
             A400: "#ff3d00",
             A700: "#dd2c00",
             contrastDefaultColor: "light",
-            contrastDarkColors: "50 100 200 300 400 A100 A200"
+            contrastDarkColors: "50 100 200 300 400 A100 A200",
+            contrastStrongLightColors: "500 600 700 800 900 A400 A700"
         },
         brown: {
             "50": "#efebe9",
@@ -57970,7 +58450,8 @@ mdMediaFactory.$inject = [ "$mdConstant", "$mdUtil", "$rootScope", "$window" ];
             A400: "#8d6e63",
             A700: "#5d4037",
             contrastDefaultColor: "light",
-            contrastDarkColors: "50 100 200"
+            contrastDarkColors: "50 100 200",
+            contrastStrongLightColors: "300 400"
         },
         grey: {
             "0": "#ffffff",
@@ -58008,7 +58489,8 @@ mdMediaFactory.$inject = [ "$mdConstant", "$mdUtil", "$rootScope", "$window" ];
             A400: "#78909c",
             A700: "#455a64",
             contrastDefaultColor: "light",
-            contrastDarkColors: "50 100 200 300"
+            contrastDarkColors: "50 100 200 300",
+            contrastStrongLightColors: "400 500"
         }
     });
 })();
@@ -58037,15 +58519,16 @@ mdMediaFactory.$inject = [ "$mdConstant", "$mdUtil", "$rootScope", "$window" ];
     var DARK_SHADOW = "1px 1px 0px rgba(0,0,0,0.4), -1px -1px 0px rgba(0,0,0,0.4)";
     var LIGHT_SHADOW = "";
     var DARK_CONTRAST_COLOR = colorToRgbaArray("rgba(0,0,0,0.87)");
-    var LIGHT_CONTRAST_COLOR = colorToRgbaArray("rgb(255,255,255)");
+    var LIGHT_CONTRAST_COLOR = colorToRgbaArray("rgba(255,255,255,0.87");
+    var STRONG_LIGHT_CONTRAST_COLOR = colorToRgbaArray("rgb(255,255,255)");
     var THEME_COLOR_TYPES = [ "primary", "accent", "warn", "background" ];
     var DEFAULT_COLOR_TYPE = "primary";
     var LIGHT_DEFAULT_HUES = {
         accent: {
-            "default": "A700",
-            "hue-1": "A200",
+            "default": "A200",
+            "hue-1": "A100",
             "hue-2": "A400",
-            "hue-3": "A100"
+            "hue-3": "A700"
         }
     };
     var DARK_DEFAULT_HUES = {
@@ -58073,7 +58556,7 @@ mdMediaFactory.$inject = [ "$mdConstant", "$mdUtil", "$rootScope", "$window" ];
         var defaultTheme = "default";
         var alwaysWatchTheme = false;
         angular.extend(PALETTES, $mdColorPalette);
-        ThemingService.$inject = [ "$rootScope" ];
+        ThemingService.$inject = [ "$rootScope", "$log" ];
         return themingProvider = {
             definePalette: definePalette,
             extendPalette: extendPalette,
@@ -58154,7 +58637,7 @@ mdMediaFactory.$inject = [ "$mdConstant", "$mdUtil", "$rootScope", "$window" ];
             }
             THEME_COLOR_TYPES.forEach(function(colorType) {
                 var defaultHues = (self.isDark ? DARK_DEFAULT_HUES : LIGHT_DEFAULT_HUES)[colorType];
-                self[colorType + "Color"] = function setColorType(paletteName, hues) {
+                self[colorType + "Palette"] = function setPaletteType(paletteName, hues) {
                     var color = self.colors[colorType] = {
                         name: paletteName,
                         hues: angular.extend({}, defaultHues, hues)
@@ -58173,9 +58656,14 @@ mdMediaFactory.$inject = [ "$mdConstant", "$mdUtil", "$rootScope", "$window" ];
                     });
                     return self;
                 };
+                self[colorType + "Color"] = function() {
+                    var args = Array.prototype.slice.call(arguments);
+                    console.warn("$mdThemingProviderTheme." + colorType + "Color() has been deprecated. " + "Use $mdThemingProviderTheme." + colorType + "Palette() instead.");
+                    return self[colorType + "Palette"].apply(self, args);
+                };
             });
         }
-        function ThemingService($rootScope) {
+        function ThemingService($rootScope, $log) {
             applyTheme.inherit = function(el, parent) {
                 var ctrl = parent.controller("mdTheme");
                 var attrThemeValue = el.attr("md-theme-watch");
@@ -58189,13 +58677,24 @@ mdMediaFactory.$inject = [ "$mdConstant", "$mdUtil", "$rootScope", "$window" ];
                     changeTheme(theme);
                 }
                 function changeTheme(theme) {
+                    if (!registered(theme)) {
+                        $log.warn("Attempted to use unregistered theme '" + theme + "'. " + "Register it with $mdThemingProvider.theme().");
+                    }
                     var oldTheme = el.data("$mdThemeName");
                     if (oldTheme) el.removeClass("md-" + oldTheme + "-theme");
                     el.addClass("md-" + theme + "-theme");
                     el.data("$mdThemeName", theme);
                 }
             };
+            applyTheme.registered = registered;
+            applyTheme.defaultTheme = function() {
+                return defaultTheme;
+            };
             return applyTheme;
+            function registered(theme) {
+                if (theme === undefined || theme === "") return true;
+                return THEMES[theme] !== undefined;
+            }
             function applyTheme(scope, el) {
                 if (el === undefined) {
                     el = scope;
@@ -58209,13 +58708,16 @@ mdMediaFactory.$inject = [ "$mdConstant", "$mdUtil", "$rootScope", "$window" ];
         }
     }
     ThemingProvider.$inject = [ "$mdColorPalette" ];
-    function ThemingDirective($interpolate) {
+    function ThemingDirective($mdTheming, $interpolate, $log) {
         return {
             priority: 100,
             link: {
                 pre: function(scope, el, attrs) {
                     var ctrl = {
                         $setTheme: function(theme) {
+                            if (!$mdTheming.registered(theme)) {
+                                $log.warn("attempted to use unregistered theme '" + theme + "'");
+                            }
                             ctrl.$mdTheme = theme;
                         }
                     };
@@ -58226,7 +58728,7 @@ mdMediaFactory.$inject = [ "$mdConstant", "$mdUtil", "$rootScope", "$window" ];
             }
         };
     }
-    ThemingDirective.$inject = [ "$interpolate" ];
+    ThemingDirective.$inject = [ "$mdTheming", "$interpolate", "$log" ];
     function ThemableDirective($mdTheming) {
         return $mdTheming;
     }
@@ -58296,6 +58798,9 @@ mdMediaFactory.$inject = [ "$mdConstant", "$mdUtil", "$rootScope", "$window" ];
             THEME_COLOR_TYPES.forEach(function(colorType) {
                 styleString += parseRules(theme, colorType, rulesByType[colorType] + "");
             });
+            if (theme.colors.primary.name == theme.colors.accent.name) {
+                console.warn("$mdThemingProvider: Using the same palette for primary and" + " accent. This violates the material design spec.");
+            }
         });
         if (!generationIsDone) {
             var style = document.createElement("style");
@@ -58307,11 +58812,14 @@ mdMediaFactory.$inject = [ "$mdConstant", "$mdUtil", "$rootScope", "$window" ];
         function sanitizePalette(palette) {
             var defaultContrast = palette.contrastDefaultColor;
             var lightColors = palette.contrastLightColors || [];
+            var strongLightColors = palette.contrastStrongLightColors || [];
             var darkColors = palette.contrastDarkColors || [];
             if (typeof lightColors === "string") lightColors = lightColors.split(" ");
+            if (typeof strongLightColors === "string") strongLightColors = strongLightColors.split(" ");
             if (typeof darkColors === "string") darkColors = darkColors.split(" ");
             delete palette.contrastDefaultColor;
             delete palette.contrastLightColors;
+            delete palette.contrastStrongLightColors;
             delete palette.contrastDarkColors;
             angular.forEach(palette, function(hueValue, hueName) {
                 if (angular.isObject(hueValue)) return;
@@ -58325,9 +58833,17 @@ mdMediaFactory.$inject = [ "$mdConstant", "$mdUtil", "$rootScope", "$window" ];
                 };
                 function getContrastColor() {
                     if (defaultContrast === "light") {
-                        return darkColors.indexOf(hueName) > -1 ? DARK_CONTRAST_COLOR : LIGHT_CONTRAST_COLOR;
+                        if (darkColors.indexOf(hueName) > -1) {
+                            return DARK_CONTRAST_COLOR;
+                        } else {
+                            return strongLightColors.indexOf(hueName) > -1 ? STRONG_LIGHT_CONTRAST_COLOR : LIGHT_CONTRAST_COLOR;
+                        }
                     } else {
-                        return lightColors.indexOf(hueName) > -1 ? LIGHT_CONTRAST_COLOR : DARK_CONTRAST_COLOR;
+                        if (lightColors.indexOf(hueName) > -1) {
+                            return strongLightColors.indexOf(hueName) > -1 ? STRONG_LIGHT_CONTRAST_COLOR : LIGHT_CONTRAST_COLOR;
+                        } else {
+                            return DARK_CONTRAST_COLOR;
+                        }
                     }
                 }
             });
@@ -58342,8 +58858,8 @@ mdMediaFactory.$inject = [ "$mdConstant", "$mdUtil", "$rootScope", "$window" ];
     function colorToRgbaArray(clr) {
         if (angular.isArray(clr) && clr.length == 3) return clr;
         if (/^rgb/.test(clr)) {
-            return clr.replace(/(^\s*rgba?\(|\)\s*$)/g, "").split(",").map(function(value) {
-                return parseInt(value, 10);
+            return clr.replace(/(^\s*rgba?\(|\)\s*$)/g, "").split(",").map(function(value, i) {
+                return i == 3 ? parseFloat(value, 10) : parseInt(value, 10);
             });
         }
         if (clr.charAt(0) == "#") clr = clr.substring(1);
@@ -58360,9 +58876,17 @@ mdMediaFactory.$inject = [ "$mdConstant", "$mdUtil", "$rootScope", "$window" ];
         return [ parseInt(red, 16), parseInt(grn, 16), parseInt(blu, 16) ];
     }
     function rgba(rgbArray, opacity) {
-        if (rgbArray.length == 4) opacity = rgbArray.pop();
-        return opacity && opacity.length ? "rgba(" + rgbArray.join(",") + "," + opacity + ")" : "rgb(" + rgbArray.join(",") + ")";
+        if (rgbArray.length == 4) {
+            rgbArray = angular.copy(rgbArray);
+            opacity ? rgbArray.pop() : opacity = rgbArray.pop();
+        }
+        return opacity && (typeof opacity == "number" || typeof opacity == "string" && opacity.length) ? "rgba(" + rgbArray.join(",") + "," + opacity + ")" : "rgb(" + rgbArray.join(",") + ")";
     }
+})();
+
+(function() {
+    "use strict";
+    angular.module("material.components.autocomplete", [ "material.core" ]);
 })();
 
 (function() {
@@ -58383,30 +58907,38 @@ mdMediaFactory.$inject = [ "$mdConstant", "$mdUtil", "$rootScope", "$window" ];
         };
     }
     function MdBottomSheetProvider($$interimElementProvider) {
-        bottomSheetDefaults.$inject = [ "$animate", "$mdConstant", "$timeout", "$$rAF", "$compile", "$mdTheming", "$mdBottomSheet", "$rootElement" ];
+        var CLOSING_VELOCITY = .5;
+        var PADDING = 80;
+        bottomSheetDefaults.$inject = [ "$animate", "$mdConstant", "$timeout", "$$rAF", "$compile", "$mdTheming", "$mdBottomSheet", "$rootElement", "$rootScope", "$mdGesture" ];
         return $$interimElementProvider("$mdBottomSheet").setDefaults({
+            methods: [ "disableParentScroll", "escapeToClose", "targetEvent" ],
             options: bottomSheetDefaults
         });
-        function bottomSheetDefaults($animate, $mdConstant, $timeout, $$rAF, $compile, $mdTheming, $mdBottomSheet, $rootElement) {
+        function bottomSheetDefaults($animate, $mdConstant, $timeout, $$rAF, $compile, $mdTheming, $mdBottomSheet, $rootElement, $rootScope, $mdGesture) {
             var backdrop;
             return {
                 themable: true,
                 targetEvent: null,
                 onShow: onShow,
                 onRemove: onRemove,
-                escapeToClose: true
+                escapeToClose: true,
+                disableParentScroll: true
             };
             function onShow(scope, element, options) {
                 backdrop = $compile('<md-backdrop class="md-opaque md-bottom-sheet-backdrop">')(scope);
-                backdrop.on("click touchstart", function() {
+                backdrop.on("click", function() {
                     $timeout($mdBottomSheet.cancel);
                 });
                 $mdTheming.inherit(backdrop, options.parent);
                 $animate.enter(backdrop, options.parent, null);
-                var bottomSheet = new BottomSheet(element);
+                var bottomSheet = new BottomSheet(element, options.parent);
                 options.bottomSheet = bottomSheet;
                 options.targetEvent && angular.element(options.targetEvent.target).blur();
                 $mdTheming.inherit(bottomSheet.element, options.parent);
+                if (options.disableParentScroll) {
+                    options.lastOverflow = options.parent.css("overflow");
+                    options.parent.css("overflow", "hidden");
+                }
                 return $animate.enter(bottomSheet.element, options.parent).then(function() {
                     var focusable = angular.element(element[0].querySelector("button") || element[0].querySelector("a") || element[0].querySelector("[ng-click]"));
                     focusable.focus();
@@ -58424,69 +58956,46 @@ mdMediaFactory.$inject = [ "$mdConstant", "$mdUtil", "$rootScope", "$window" ];
                 var bottomSheet = options.bottomSheet;
                 $animate.leave(backdrop);
                 return $animate.leave(bottomSheet.element).then(function() {
+                    if (options.disableParentScroll) {
+                        options.parent.css("overflow", options.lastOverflow);
+                        delete options.lastOverflow;
+                    }
                     bottomSheet.cleanup();
                     options.targetEvent && angular.element(options.targetEvent.target).focus();
                 });
             }
-            function BottomSheet(element) {
-                var MAX_OFFSET = 80;
-                var WIGGLE_AMOUNT = 20;
-                var CLOSING_VELOCITY = 10;
-                var startY, lastY, velocity, transitionDelay, startTarget;
-                element = element.eq(0);
-                element.on("touchstart", onTouchStart).on("touchmove", onTouchMove).on("touchend", onTouchEnd);
+            function BottomSheet(element, parent) {
+                var deregister = $mdGesture.register(parent, "drag", {
+                    horizontal: false
+                });
+                parent.on("$md.dragstart", onDragStart).on("$md.drag", onDrag).on("$md.dragend", onDragEnd);
                 return {
                     element: element,
                     cleanup: function cleanup() {
-                        element.off("touchstart", onTouchStart).off("touchmove", onTouchMove).off("touchend", onTouchEnd);
+                        deregister();
+                        parent.off("$md.dragstart", onDragStart).off("$md.drag", onDrag).off("$md.dragend", onDragEnd);
                     }
                 };
-                function onTouchStart(e) {
-                    e.preventDefault();
-                    startTarget = e.target;
-                    startY = getY(e);
-                    transitionDelay = element.css($mdConstant.CSS.TRANSITION_DURATION);
-                    element.css($mdConstant.CSS.TRANSITION_DURATION, "0s");
+                function onDragStart(ev) {
+                    element.css($mdConstant.CSS.TRANSITION_DURATION, "0ms");
                 }
-                function onTouchEnd(e) {
-                    element.css($mdConstant.CSS.TRANSITION_DURATION, transitionDelay);
-                    var currentY = getY(e);
-                    if (Math.abs(currentY - startY) < 5 && e.target == startTarget) {
-                        angular.element(e.target).triggerHandler("click");
-                    } else {
-                        if (velocity > CLOSING_VELOCITY) {
-                            $timeout($mdBottomSheet.cancel);
-                        } else {
-                            setTransformY(undefined);
-                        }
+                function onDrag(ev) {
+                    var transform = ev.pointer.distanceY;
+                    if (transform < 5) {
+                        transform = Math.max(-PADDING, transform / 2);
                     }
+                    element.css($mdConstant.CSS.TRANSFORM, "translate3d(0," + (PADDING + transform) + "px,0)");
                 }
-                function onTouchMove(e) {
-                    var currentY = getY(e);
-                    var delta = currentY - startY;
-                    velocity = currentY - lastY;
-                    lastY = currentY;
-                    delta = adjustedDelta(delta);
-                    setTransformY(delta + MAX_OFFSET);
-                }
-                function getY(e) {
-                    var touch = e.touches && e.touches.length ? e.touches[0] : e.changedTouches[0];
-                    return touch.clientY;
-                }
-                function setTransformY(amt) {
-                    if (amt === null || amt === undefined) {
+                function onDragEnd(ev) {
+                    if (ev.pointer.distanceY > 0 && (ev.pointer.distanceY > 20 || Math.abs(ev.pointer.velocityY) > CLOSING_VELOCITY)) {
+                        var distanceRemaining = element.prop("offsetHeight") - ev.pointer.distanceY;
+                        var transitionDuration = Math.min(distanceRemaining / ev.pointer.velocityY * .75, 500);
+                        element.css($mdConstant.CSS.TRANSITION_DURATION, transitionDuration + "ms");
+                        $timeout($mdBottomSheet.cancel);
+                    } else {
+                        element.css($mdConstant.CSS.TRANSITION_DURATION, "");
                         element.css($mdConstant.CSS.TRANSFORM, "");
-                    } else {
-                        element.css($mdConstant.CSS.TRANSFORM, "translate3d(0, " + amt + "px, 0)");
                     }
-                }
-                function adjustedDelta(delta) {
-                    if (delta < 0 && delta < -MAX_OFFSET + WIGGLE_AMOUNT) {
-                        delta = -delta;
-                        var base = MAX_OFFSET - WIGGLE_AMOUNT;
-                        delta = Math.max(-MAX_OFFSET, -Math.min(MAX_OFFSET - 5, base + WIGGLE_AMOUNT * (delta - base) / MAX_OFFSET) - delta / 50);
-                    }
-                    return delta;
                 }
             }
         }
@@ -58531,6 +59040,20 @@ mdMediaFactory.$inject = [ "$mdConstant", "$mdUtil", "$rootScope", "$window" ];
 
 (function() {
     "use strict";
+    angular.module("material.components.card", [ "material.core" ]).directive("mdCard", mdCardDirective);
+    function mdCardDirective($mdTheming) {
+        return {
+            restrict: "E",
+            link: function($scope, $element, $attr) {
+                $mdTheming($element);
+            }
+        };
+    }
+    mdCardDirective.$inject = [ "$mdTheming" ];
+})();
+
+(function() {
+    "use strict";
     angular.module("material.components.checkbox", [ "material.core" ]).directive("mdCheckbox", MdCheckboxDirective);
     function MdCheckboxDirective(inputDirective, $mdInkRipple, $mdAria, $mdConstant, $mdTheming, $mdUtil) {
         inputDirective = inputDirective[0];
@@ -58550,15 +59073,15 @@ mdMediaFactory.$inject = [ "$mdConstant", "$mdUtil", "$rootScope", "$window" ];
                 ngModelCtrl = ngModelCtrl || $mdUtil.fakeNgModel();
                 var checked = false;
                 $mdTheming(element);
-                $mdAria.expectWithText(tElement, "aria-label");
+                if (attr.ngChecked) {
+                    scope.$watch(scope.$eval.bind(scope, attr.ngChecked), ngModelCtrl.$setViewValue.bind(ngModelCtrl));
+                }
+                $mdAria.expectWithText(element, "aria-label");
                 inputDirective.link.pre(scope, {
                     on: angular.noop,
                     0: {}
                 }, attr, [ ngModelCtrl ]);
-                if (!attr.mdNoClick) {
-                    element.on("click", listener);
-                }
-                element.on("keypress", keypressHandler);
+                element.on("click", listener).on("keypress", keypressHandler);
                 ngModelCtrl.$render = render;
                 function keypressHandler(ev) {
                     if (ev.which === $mdConstant.KEY_CODE.SPACE) {
@@ -58590,28 +59113,16 @@ mdMediaFactory.$inject = [ "$mdConstant", "$mdUtil", "$rootScope", "$window" ];
 
 (function() {
     "use strict";
-    angular.module("material.components.card", [ "material.core" ]).directive("mdCard", mdCardDirective);
-    function mdCardDirective($mdTheming) {
-        return {
-            restrict: "E",
-            link: function($scope, $element, $attr) {
-                $mdTheming($element);
-            }
-        };
-    }
-    mdCardDirective.$inject = [ "$mdTheming" ];
-})();
-
-(function() {
-    "use strict";
     angular.module("material.components.content", [ "material.core" ]).directive("mdContent", mdContentDirective);
     function mdContentDirective($mdTheming) {
         return {
             restrict: "E",
             controller: [ "$scope", "$element", ContentController ],
-            link: function($scope, $element, $attr) {
-                $mdTheming($element);
-                $scope.$broadcast("$mdContentLoaded", $element);
+            link: function(scope, element, attr) {
+                var node = element[0];
+                $mdTheming(element);
+                scope.$broadcast("$mdContentLoaded", element);
+                iosScrollFix(element[0]);
             }
         };
         function ContentController($scope, $element) {
@@ -58620,6 +59131,18 @@ mdMediaFactory.$inject = [ "$mdConstant", "$mdUtil", "$rootScope", "$window" ];
         }
     }
     mdContentDirective.$inject = [ "$mdTheming" ];
+    function iosScrollFix(node) {
+        angular.element(node).on("$md.pressdown", function(ev) {
+            if (ev.pointer.type !== "t") return;
+            if (ev.$materialScrollFixed) return;
+            ev.$materialScrollFixed = true;
+            if (node.scrollTop === 0) {
+                node.scrollTop = 1;
+            } else if (node.scrollHeight === node.scrollTop + node.offsetHeight) {
+                node.scrollTop -= 1;
+            }
+        });
+    }
 })();
 
 (function() {
@@ -58642,21 +59165,21 @@ mdMediaFactory.$inject = [ "$mdConstant", "$mdUtil", "$rootScope", "$window" ];
     MdDialogDirective.$inject = [ "$$rAF", "$mdTheming" ];
     function MdDialogProvider($$interimElementProvider) {
         var alertDialogMethods = [ "title", "content", "ariaLabel", "ok" ];
-        advancedDialogOptions.$inject = [ "$mdDialog" ];
+        advancedDialogOptions.$inject = [ "$mdDialog", "$mdTheming" ];
         dialogDefaultOptions.$inject = [ "$timeout", "$rootElement", "$compile", "$animate", "$mdAria", "$document", "$mdUtil", "$mdConstant", "$mdTheming", "$$rAF", "$q", "$mdDialog" ];
         return $$interimElementProvider("$mdDialog").setDefaults({
             methods: [ "disableParentScroll", "hasBackdrop", "clickOutsideToClose", "escapeToClose", "targetEvent" ],
             options: dialogDefaultOptions
         }).addPreset("alert", {
-            methods: [ "title", "content", "ariaLabel", "ok" ],
+            methods: [ "title", "content", "ariaLabel", "ok", "theme" ],
             options: advancedDialogOptions
         }).addPreset("confirm", {
-            methods: [ "title", "content", "ariaLabel", "ok", "cancel" ],
+            methods: [ "title", "content", "ariaLabel", "ok", "cancel", "theme" ],
             options: advancedDialogOptions
         });
-        function advancedDialogOptions($mdDialog) {
+        function advancedDialogOptions($mdDialog, $mdTheming) {
             return {
-                template: [ '<md-dialog aria-label="{{ dialog.ariaLabel }}">', "<md-content>", "<h2>{{ dialog.title }}</h2>", "<p>{{ dialog.content }}</p>", "</md-content>", '<div class="md-actions">', '<md-button ng-if="dialog.$type == \'confirm\'" ng-click="dialog.abort()">', "{{ dialog.cancel }}", "</md-button>", '<md-button ng-click="dialog.hide()" class="md-primary">', "{{ dialog.ok }}", "</md-button>", "</div>", "</md-dialog>" ].join(""),
+                template: [ '<md-dialog md-theme="{{ dialog.theme }}" aria-label="{{ dialog.ariaLabel }}">', "<md-content>", "<h2>{{ dialog.title }}</h2>", "<p>{{ dialog.content }}</p>", "</md-content>", '<div class="md-actions">', '<md-button ng-if="dialog.$type == \'confirm\'" ng-click="dialog.abort()">', "{{ dialog.cancel }}", "</md-button>", '<md-button ng-click="dialog.hide()" class="md-primary">', "{{ dialog.ok }}", "</md-button>", "</div>", "</md-dialog>" ].join(""),
                 controller: function mdDialogCtrl() {
                     this.hide = function() {
                         $mdDialog.hide(true);
@@ -58666,7 +59189,8 @@ mdMediaFactory.$inject = [ "$mdConstant", "$mdUtil", "$rootScope", "$window" ];
                     };
                 },
                 controllerAs: "dialog",
-                bindToController: true
+                bindToController: true,
+                theme: $mdTheming.defaultTheme()
             };
         }
         function dialogDefaultOptions($timeout, $rootElement, $compile, $animate, $mdAria, $document, $mdUtil, $mdConstant, $mdTheming, $$rAF, $q, $mdDialog) {
@@ -58689,12 +59213,14 @@ mdMediaFactory.$inject = [ "$mdConstant", "$mdUtil", "$rootScope", "$window" ];
                 var closeButton = findCloseButton();
                 configureAria(element.find("md-dialog"));
                 if (options.hasBackdrop) {
+                    var parentOffset = options.parent.prop("scrollTop");
                     options.backdrop = angular.element('<md-backdrop class="md-dialog-backdrop md-opaque">');
                     $mdTheming.inherit(options.backdrop, options.parent);
                     $animate.enter(options.backdrop, options.parent);
+                    element.css("top", parentOffset + "px");
                 }
                 if (options.disableParentScroll) {
-                    options.oldOverflowStyle = options.parent.css("overflow");
+                    options.lastOverflow = options.parent.css("overflow");
                     options.parent.css("overflow", "hidden");
                 }
                 return dialogPopIn(element, options.parent, options.popInTarget && options.popInTarget.length && options.popInTarget).then(function() {
@@ -58707,8 +59233,8 @@ mdMediaFactory.$inject = [ "$mdConstant", "$mdUtil", "$rootScope", "$window" ];
                         $rootElement.on("keyup", options.rootElementKeyupCallback);
                     }
                     if (options.clickOutsideToClose) {
-                        options.dialogClickOutsideCallback = function(e) {
-                            if (e.target === element[0]) {
+                        options.dialogClickOutsideCallback = function(ev) {
+                            if (ev.target === element[0]) {
                                 $timeout($mdDialog.cancel);
                             }
                         };
@@ -58730,8 +59256,8 @@ mdMediaFactory.$inject = [ "$mdConstant", "$mdUtil", "$rootScope", "$window" ];
                     $animate.leave(options.backdrop);
                 }
                 if (options.disableParentScroll) {
-                    options.parent.css("overflow", options.oldOverflowStyle);
-                    $document[0].removeEventListener("scroll", options.captureScroll, true);
+                    options.parent.css("overflow", options.lastOverflow);
+                    delete options.lastOverflow;
                 }
                 if (options.escapeToClose) {
                     $rootElement.off("keyup", options.rootElementKeyupCallback);
@@ -58766,13 +59292,13 @@ mdMediaFactory.$inject = [ "$mdConstant", "$mdUtil", "$rootScope", "$window" ];
                 $$rAF(function() {
                     dialogEl.addClass("transition-in").css($mdConstant.CSS.TRANSFORM, "");
                 });
-                return dialogTransitionEnd(dialogEl);
+                return $mdUtil.transitionEndPromise(dialogEl);
             }
             function dialogPopOut(container, parentElement, clickElement) {
                 var dialogEl = container.find("md-dialog");
                 dialogEl.addClass("transition-out").removeClass("transition-in");
                 transformToClickElement(dialogEl, clickElement);
-                return dialogTransitionEnd(dialogEl);
+                return $mdUtil.transitionEndPromise(dialogEl);
             }
             function transformToClickElement(dialogEl, clickElement) {
                 if (clickElement) {
@@ -58815,25 +59341,410 @@ mdMediaFactory.$inject = [ "$mdConstant", "$mdUtil", "$rootScope", "$window" ];
 
 (function() {
     "use strict";
-    angular.module("material.components.icon", [ "material.core" ]).directive("mdIcon", mdIconDirective);
-    function mdIconDirective() {
+    angular.module("material.components.gridList", [ "material.core" ]).directive("mdGridList", GridListDirective).directive("mdGridTile", GridTileDirective).directive("mdGridTileFooter", GridTileCaptionDirective).directive("mdGridTileHeader", GridTileCaptionDirective).factory("$mdGridLayout", GridLayoutFactory);
+    function GridListDirective($interpolate, $mdConstant, $mdGridLayout, $mdMedia, $mdUtil) {
         return {
             restrict: "E",
-            template: '<object class="md-icon"></object>',
-            compile: function(element, attr) {
-                var object = angular.element(element[0].children[0]);
-                if (angular.isDefined(attr.icon)) {
-                    object.attr("data", attr.icon);
+            controller: GridListController,
+            scope: {
+                mdOnLayout: "&"
+            },
+            link: postLink
+        };
+        function postLink(scope, element, attrs, ctrl) {
+            element.attr("role", "list");
+            ctrl.layoutDelegate = layoutDelegate;
+            var invalidateLayout = angular.bind(ctrl, ctrl.invalidateLayout), unwatchAttrs = watchMedia();
+            scope.$on("$destroy", unwatchMedia());
+            function watchMedia() {
+                for (var mediaName in $mdConstant.MEDIA) {
+                    $mdMedia(mediaName);
+                    $mdMedia.getQuery($mdConstant.MEDIA[mediaName]).addListener(invalidateLayout);
+                }
+                return $mdMedia.watchResponsiveAttributes([ "md-cols", "md-row-height" ], attrs, layoutIfMediaMatch);
+            }
+            function unwatchMedia() {
+                unwatchAttrs();
+                for (var mediaName in $mdConstant.MEDIA) {
+                    $mdMedia.getQuery($mdConstant.MEDIA[mediaName]).removeListener(invalidateLayout);
                 }
             }
+            function layoutIfMediaMatch(mediaName) {
+                if (mediaName == null) {
+                    ctrl.invalidateLayout();
+                } else if ($mdMedia(mediaName)) {
+                    ctrl.invalidateLayout();
+                }
+            }
+            function layoutDelegate() {
+                var tiles = getTileElements(), colCount = getColumnCount(), rowMode = getRowMode(), rowHeight = getRowHeight(), gutter = getGutter(), performance = $mdGridLayout(colCount, getTileSpans(), getTileElements()).map(function(ps, rowCount, i) {
+                    var element = angular.element(tiles[i]);
+                    element.scope().$mdGridPosition = ps;
+                    return {
+                        element: element,
+                        styles: getStyles(ps.position, ps.spans, colCount, rowCount, gutter, rowMode, rowHeight)
+                    };
+                }).reflow().performance();
+                scope.mdOnLayout({
+                    $event: {
+                        performance: performance
+                    }
+                });
+            }
+            var UNIT = $interpolate("{{ share }}% - ({{ gutter }} * {{ gutterShare }})");
+            var POSITION = $interpolate("calc(({{ unit }}) * {{ offset }} + {{ offset }} * {{ gutter }})");
+            var DIMENSION = $interpolate("calc(({{ unit }}) * {{ span }} + ({{ span }} - 1) * {{ gutter }})");
+            function getStyles(position, spans, colCount, rowCount, gutter, rowMode, rowHeight) {
+                var hShare = 1 / colCount * 100, hGutterShare = colCount === 1 ? 0 : (colCount - 1) / colCount, hUnit = UNIT({
+                    share: hShare,
+                    gutterShare: hGutterShare,
+                    gutter: gutter
+                });
+                var style = {
+                    left: POSITION({
+                        unit: hUnit,
+                        offset: position.col,
+                        gutter: gutter
+                    }),
+                    width: DIMENSION({
+                        unit: hUnit,
+                        span: spans.col,
+                        gutter: gutter
+                    }),
+                    paddingTop: "",
+                    marginTop: "",
+                    top: "",
+                    height: ""
+                };
+                switch (rowMode) {
+                  case "fixed":
+                    style.top = POSITION({
+                        unit: rowHeight,
+                        offset: position.row,
+                        gutter: gutter
+                    });
+                    style.height = DIMENSION({
+                        unit: rowHeight,
+                        span: spans.row,
+                        gutter: "0px"
+                    });
+                    break;
+
+                  case "ratio":
+                    var vShare = hShare * (1 / rowHeight), vUnit = UNIT({
+                        share: vShare,
+                        gutterShare: hGutterShare,
+                        gutter: gutter
+                    });
+                    style.paddingTop = DIMENSION({
+                        unit: vUnit,
+                        span: spans.row,
+                        gutter: gutter
+                    });
+                    style.marginTop = POSITION({
+                        unit: vUnit,
+                        offset: position.row,
+                        gutter: gutter
+                    });
+                    break;
+
+                  case "fit":
+                    var vGutterShare = rowCount === 1 ? 0 : (rowCount - 1) / rowCount, vShare = 1 / rowCount * 100, vUnit = UNIT({
+                        share: vShare,
+                        gutterShare: vGutterShare,
+                        gutter: gutter
+                    });
+                    style.top = POSITION({
+                        unit: vUnit,
+                        offset: position.row,
+                        gutter: gutter
+                    });
+                    style.height = DIMENSION({
+                        unit: vUnit,
+                        span: spans.row,
+                        gutter: gutter
+                    });
+                    break;
+                }
+                return style;
+            }
+            function getTileElements() {
+                return Array.prototype.slice.call(element[0].childNodes).filter(function(child) {
+                    return child.tagName == "MD-GRID-TILE";
+                });
+            }
+            function getTileSpans() {
+                return ctrl.tiles.map(function(tileAttrs) {
+                    return {
+                        row: parseInt($mdMedia.getResponsiveAttribute(tileAttrs, "md-rowspan"), 10) || 1,
+                        col: parseInt($mdMedia.getResponsiveAttribute(tileAttrs, "md-colspan"), 10) || 1
+                    };
+                });
+            }
+            function getColumnCount() {
+                return parseInt($mdMedia.getResponsiveAttribute(attrs, "md-cols"), 10);
+            }
+            function getGutter() {
+                return applyDefaultUnit($mdMedia.getResponsiveAttribute(attrs, "md-gutter") || 1);
+            }
+            function getRowHeight() {
+                var rowHeight = $mdMedia.getResponsiveAttribute(attrs, "md-row-height");
+                switch (getRowMode()) {
+                  case "fixed":
+                    return applyDefaultUnit(rowHeight);
+
+                  case "ratio":
+                    var whRatio = rowHeight.split(":");
+                    return parseFloat(whRatio[0]) / parseFloat(whRatio[1]);
+
+                  case "fit":
+                    return 0;
+                }
+            }
+            function getRowMode() {
+                var rowHeight = $mdMedia.getResponsiveAttribute(attrs, "md-row-height");
+                if (rowHeight == "fit") {
+                    return "fit";
+                } else if (rowHeight.indexOf(":") !== -1) {
+                    return "ratio";
+                } else {
+                    return "fixed";
+                }
+            }
+            function applyDefaultUnit(val) {
+                return /\D$/.test(val) ? val : val + "px";
+            }
+        }
+    }
+    GridListDirective.$inject = [ "$interpolate", "$mdConstant", "$mdGridLayout", "$mdMedia", "$mdUtil" ];
+    function GridListController($timeout) {
+        this.invalidated = false;
+        this.$timeout_ = $timeout;
+        this.tiles = [];
+        this.layoutDelegate = angular.noop;
+    }
+    GridListController.$inject = [ "$timeout" ];
+    GridListController.prototype = {
+        addTile: function(tileAttrs, idx) {
+            if (angular.isUndefined(idx)) {
+                this.tiles.push(tileAttrs);
+            } else {
+                this.tiles.splice(idx, 0, tileAttrs);
+            }
+            this.invalidateLayout();
+        },
+        removeTile: function(tileAttrs) {
+            var idx = this.tiles.indexOf(tileAttrs);
+            if (idx === -1) {
+                return;
+            }
+            this.tiles.splice(idx, 1);
+            this.invalidateLayout();
+        },
+        invalidateLayout: function(tile) {
+            if (this.invalidated) {
+                return;
+            }
+            this.invalidated = true;
+            this.$timeout_(angular.bind(this, this.layout));
+        },
+        layout: function() {
+            try {
+                this.layoutDelegate();
+            } finally {
+                this.invalidated = false;
+            }
+        }
+    };
+    function GridLayoutFactory($mdUtil) {
+        return function(colCount, tileSpans) {
+            var self, layoutInfo, tiles, layoutTime, mapTime, reflowTime, layoutInfo;
+            layoutTime = $mdUtil.time(function() {
+                layoutInfo = calculateGridFor(colCount, tileSpans);
+            });
+            return self = {
+                layoutInfo: function() {
+                    return layoutInfo;
+                },
+                map: function(updateFn) {
+                    mapTime = $mdUtil.time(function() {
+                        tiles = layoutInfo.positioning.map(function(ps, i) {
+                            return updateFn(ps, self.layoutInfo().rowCount, i);
+                        });
+                    });
+                    return self;
+                },
+                reflow: function(customAnimatorFn) {
+                    reflowTime = $mdUtil.time(function() {
+                        var animator = customAnimatorFn || defaultAnimator;
+                        tiles.forEach(function(it) {
+                            animator(it.element, it.styles);
+                        });
+                    });
+                    return self;
+                },
+                performance: function() {
+                    return {
+                        tileCount: tileSpans.length,
+                        layoutTime: layoutTime,
+                        mapTime: mapTime,
+                        reflowTime: reflowTime,
+                        totalTime: layoutTime + mapTime + reflowTime
+                    };
+                }
+            };
+        };
+        function defaultAnimator(element, styles) {
+            element.css(styles);
+        }
+        function calculateGridFor(colCount, tileSpans) {
+            var curCol = 0, curRow = 0, spaceTracker = newSpaceTracker();
+            return {
+                positioning: tileSpans.map(function(spans, i) {
+                    return {
+                        spans: spans,
+                        position: reserveSpace(spans, i)
+                    };
+                }),
+                rowCount: curRow + Math.max.apply(Math, spaceTracker)
+            };
+            function reserveSpace(spans, i) {
+                if (spans.col > colCount) {
+                    throw "md-grid-list: Tile at position " + i + " has a colspan " + "(" + spans.col + ") that exceeds the column count " + "(" + colCount + ")";
+                }
+                var start = 0, end = 0;
+                while (end - start < spans.col) {
+                    if (curCol >= colCount) {
+                        nextRow();
+                        continue;
+                    }
+                    start = spaceTracker.indexOf(0, curCol);
+                    if (start === -1 || (end = findEnd(start + 1)) === -1) {
+                        start = end = 0;
+                        nextRow();
+                        continue;
+                    }
+                    curCol = end + 1;
+                }
+                adjustRow(start, spans.col, spans.row);
+                curCol = start + spans.col;
+                return {
+                    col: start,
+                    row: curRow
+                };
+            }
+            function nextRow() {
+                curCol = 0;
+                curRow++;
+                adjustRow(0, colCount, -1);
+            }
+            function adjustRow(from, cols, by) {
+                for (var i = from; i < from + cols; i++) {
+                    spaceTracker[i] = Math.max(spaceTracker[i] + by, 0);
+                }
+            }
+            function findEnd(start) {
+                var i;
+                for (i = start; i < spaceTracker.length; i++) {
+                    if (spaceTracker[i] !== 0) {
+                        return i;
+                    }
+                }
+                if (i === spaceTracker.length) {
+                    return i;
+                }
+            }
+            function newSpaceTracker() {
+                var tracker = [];
+                for (var i = 0; i < colCount; i++) {
+                    tracker.push(0);
+                }
+                return tracker;
+            }
+        }
+    }
+    GridLayoutFactory.$inject = [ "$mdUtil" ];
+    function GridTileDirective($mdMedia) {
+        return {
+            restrict: "E",
+            require: "^mdGridList",
+            template: "<figure ng-transclude></figure>",
+            transclude: true,
+            link: postLink
+        };
+        function postLink(scope, element, attrs, gridCtrl) {
+            element.attr("role", "listitem");
+            var unwatchAttrs = $mdMedia.watchResponsiveAttributes([ "md-colspan", "md-rowspan" ], attrs, angular.bind(gridCtrl, gridCtrl.invalidateLayout));
+            gridCtrl.addTile(attrs, scope.$parent.$index);
+            scope.$on("$destroy", function() {
+                unwatchAttrs();
+                gridCtrl.removeTile(attrs);
+            });
+        }
+    }
+    GridTileDirective.$inject = [ "$mdMedia" ];
+    function GridTileCaptionDirective() {
+        return {
+            template: "<figcaption ng-transclude></figcaption>",
+            transclude: true
         };
     }
 })();
 
 (function() {
-    angular.module("material.components.input", [ "material.core" ]).directive("mdInputContainer", mdInputContainerDirective).directive("label", labelDirective).directive("input", inputTextareaDirective).directive("textarea", inputTextareaDirective).directive("mdMaxlength", mdMaxlengthDirective);
-    function mdInputContainerDirective($mdTheming) {
-        ContainerCtrl.$inject = [ "$scope", "$element", "$mdUtil" ];
+    "use strict";
+    angular.module("material.components.icon", [ "material.core" ]).directive("mdIcon", mdIconDirective);
+    function mdIconDirective($mdIcon, $mdAria) {
+        return {
+            scope: {
+                fontIcon: "@mdFontIcon",
+                svgIcon: "@mdSvgIcon",
+                svgSrc: "@mdSvgSrc"
+            },
+            restrict: "E",
+            template: getTemplate,
+            link: postLink
+        };
+        function getTemplate(element, attr) {
+            return attr.mdFontIcon ? '<span class="md-font" ng-class="fontIcon"></span>' : "";
+        }
+        function postLink(scope, element, attr) {
+            var ariaLabel = attr.alt || scope.fontIcon || scope.svgIcon;
+            var attrName = attr.$normalize(attr.$attr.mdSvgIcon || attr.$attr.mdSvgSrc || "");
+            if (attr.alt != "" && !parentsHaveText()) {
+                $mdAria.expect(element, "aria-label", ariaLabel);
+                $mdAria.expect(element, "role", "img");
+            } else {
+                $mdAria.expect(element, "aria-hidden", "true");
+            }
+            if (attrName) {
+                attr.$observe(attrName, function(attrVal) {
+                    element.empty();
+                    if (attrVal) {
+                        $mdIcon(attrVal).then(function(svg) {
+                            element.append(svg);
+                        });
+                    }
+                });
+            }
+            function parentsHaveText() {
+                var parent = element.parent();
+                if (parent.attr("aria-label") || parent.text()) {
+                    return true;
+                } else if (parent.parent().attr("aria-label") || parent.parent().text()) {
+                    return true;
+                }
+                return false;
+            }
+        }
+    }
+    mdIconDirective.$inject = [ "$mdIcon", "$mdAria" ];
+})();
+
+(function() {
+    angular.module("material.components.input", [ "material.core" ]).directive("mdInputContainer", mdInputContainerDirective).directive("label", labelDirective).directive("input", inputTextareaDirective).directive("textarea", inputTextareaDirective).directive("mdMaxlength", mdMaxlengthDirective).directive("placeholder", placeholderDirective);
+    function mdInputContainerDirective($mdTheming, $parse) {
+        ContainerCtrl.$inject = [ "$scope", "$element", "$attrs" ];
         return {
             restrict: "E",
             link: postLink,
@@ -58842,8 +59753,9 @@ mdMediaFactory.$inject = [ "$mdConstant", "$mdUtil", "$rootScope", "$window" ];
         function postLink(scope, element, attr) {
             $mdTheming(element);
         }
-        function ContainerCtrl($scope, $element, $mdUtil) {
+        function ContainerCtrl($scope, $element, $attrs) {
             var self = this;
+            self.isErrorGetter = $attrs.mdIsError && $parse($attrs.mdIsError);
             self.element = $element;
             self.setFocused = function(isFocused) {
                 $element.toggleClass("md-input-focused", !!isFocused);
@@ -58863,13 +59775,13 @@ mdMediaFactory.$inject = [ "$mdConstant", "$mdUtil", "$rootScope", "$window" ];
             });
         }
     }
-    mdInputContainerDirective.$inject = [ "$mdTheming" ];
+    mdInputContainerDirective.$inject = [ "$mdTheming", "$parse" ];
     function labelDirective() {
         return {
             restrict: "E",
             require: "^?mdInputContainer",
             link: function(scope, element, attr, containerCtrl) {
-                if (!containerCtrl) return;
+                if (!containerCtrl || attr.mdNoFloat) return;
                 containerCtrl.label = element;
                 scope.$on("$destroy", function() {
                     containerCtrl.label = null;
@@ -58885,7 +59797,8 @@ mdMediaFactory.$inject = [ "$mdConstant", "$mdUtil", "$rootScope", "$window" ];
         };
         function postLink(scope, element, attr, ctrls) {
             var containerCtrl = ctrls[0];
-            var ngModelCtrl = ctrls[1];
+            var ngModelCtrl = ctrls[1] || $mdUtil.fakeNgModel();
+            var isReadonly = angular.isDefined(attr.readonly);
             if (!containerCtrl) return;
             if (containerCtrl.input) {
                 throw new Error("<md-input-container> can only have *one* <input> or <textarea> child element!");
@@ -58898,33 +59811,35 @@ mdMediaFactory.$inject = [ "$mdConstant", "$mdUtil", "$rootScope", "$window" ];
             if (element[0].tagName.toLowerCase() === "textarea") {
                 setupTextarea();
             }
-            var isEmpty = ngModelCtrl ? ngModelCtrl.$isEmpty : function() {
-                return ("" + element.val()).length === 0;
+            var isErrorGetter = containerCtrl.isErrorGetter || function() {
+                return ngModelCtrl.$invalid && ngModelCtrl.$touched;
             };
-            if (ngModelCtrl) {
-                scope.$watch(function() {
-                    return ngModelCtrl.$dirty && ngModelCtrl.$invalid;
-                }, containerCtrl.setInvalid);
-                ngModelCtrl.$formatters.push(checkHasValue);
-                ngModelCtrl.$parsers.push(checkHasValue);
-            } else {
-                checkHasValue();
+            scope.$watch(isErrorGetter, containerCtrl.setInvalid);
+            ngModelCtrl.$parsers.push(ngModelPipelineCheckValue);
+            ngModelCtrl.$formatters.push(ngModelPipelineCheckValue);
+            element.on("input", inputCheckValue);
+            if (!isReadonly) {
+                element.on("focus", function(ev) {
+                    containerCtrl.setFocused(true);
+                }).on("blur", function(ev) {
+                    containerCtrl.setFocused(false);
+                    inputCheckValue();
+                });
+                ngModelCtrl.$setTouched();
+                if (ngModelCtrl.$invalid) containerCtrl.setInvalid();
             }
-            element.on("input", checkHasValue);
-            function checkHasValue(value) {
-                containerCtrl.setHasValue(!isEmpty(value) || (element[0].validity || {}).badInput);
-                return value;
-            }
-            element.on("focus", function(ev) {
-                containerCtrl.setFocused(true);
-            }).on("blur", function(ev) {
-                containerCtrl.setFocused(false);
-            });
             scope.$on("$destroy", function() {
                 containerCtrl.setFocused(false);
                 containerCtrl.setHasValue(false);
                 containerCtrl.input = null;
             });
+            function ngModelPipelineCheckValue(arg) {
+                containerCtrl.setHasValue(!ngModelCtrl.$isEmpty(arg));
+                return arg;
+            }
+            function inputCheckValue() {
+                containerCtrl.setHasValue(element.val().length > 0 || (element[0].validity || {}).badInput);
+            }
             function setupTextarea() {
                 var node = element[0];
                 var onChangeTextarea = $mdUtil.debounce(growTextarea, 1);
@@ -59003,6 +59918,19 @@ mdMediaFactory.$inject = [ "$mdConstant", "$mdUtil", "$rootScope", "$window" ];
         }
     }
     mdMaxlengthDirective.$inject = [ "$animate" ];
+    function placeholderDirective() {
+        return {
+            restrict: "A",
+            require: "^^?mdInputContainer",
+            link: postLink
+        };
+        function postLink(scope, element, attr, inputContainer) {
+            if (!inputContainer) return;
+            var placeholderText = attr.placeholder;
+            element.removeAttr("placeholder");
+            inputContainer.element.append('<div class="md-placeholder">' + placeholderText + "</div>");
+        }
+    }
 })();
 
 (function() {
@@ -59230,7 +60158,7 @@ mdMediaFactory.$inject = [ "$mdConstant", "$mdUtil", "$rootScope", "$window" ];
             };
         }
         function changeSelectedButton(parent, increment) {
-            var buttons = $mdUtil.iterator(Array.prototype.slice.call(parent[0].querySelectorAll("md-radio-button")), true);
+            var buttons = $mdUtil.iterator(parent[0].querySelectorAll("md-radio-button"), true);
             if (buttons.count()) {
                 var validate = function(button) {
                     return !angular.element(button).attr("disabled");
@@ -59311,6 +60239,9 @@ mdMediaFactory.$inject = [ "$mdConstant", "$mdUtil", "$rootScope", "$window" ];
                 isOpen: function() {
                     return instance && instance.isOpen();
                 },
+                isLockedOpen: function() {
+                    return instance && instance.isLockedOpen();
+                },
                 toggle: function() {
                     return instance ? instance.toggle() : $q.reject(errorMsg);
                 },
@@ -59353,6 +60284,7 @@ mdMediaFactory.$inject = [ "$mdConstant", "$mdUtil", "$rootScope", "$window" ];
             scope.$watch("isOpen", updateIsOpen);
             sidenavCtrl.$toggleOpen = toggleOpen;
             function updateIsLocked(isLocked, oldValue) {
+                scope.isLockedOpen = isLocked;
                 if (isLocked === oldValue) {
                     element.toggleClass("md-locked-open", !!isLocked);
                 } else {
@@ -59411,6 +60343,9 @@ mdMediaFactory.$inject = [ "$mdConstant", "$mdUtil", "$rootScope", "$window" ];
         self.isOpen = function() {
             return !!$scope.isOpen;
         };
+        self.isLockedOpen = function() {
+            return !!$scope.isLockedOpen;
+        };
         self.open = function() {
             return self.$toggleOpen(true);
         };
@@ -59428,17 +60363,24 @@ mdMediaFactory.$inject = [ "$mdConstant", "$mdUtil", "$rootScope", "$window" ];
 (function() {
     "use strict";
     angular.module("material.components.slider", [ "material.core" ]).directive("mdSlider", SliderDirective);
-    function SliderDirective($mdTheming) {
+    function SliderDirective($$rAF, $window, $mdAria, $mdUtil, $mdConstant, $mdTheming, $mdGesture, $parse) {
         return {
             scope: {},
-            require: [ "?ngModel", "mdSlider" ],
-            controller: SliderController,
-            template: '<div class="md-track-container">' + '<div class="md-track"></div>' + '<div class="md-track md-track-fill"></div>' + '<div class="md-track-ticks"></div>' + "</div>" + '<div class="md-thumb-container">' + '<div class="md-thumb"></div>' + '<div class="md-focus-thumb"></div>' + '<div class="md-focus-ring"></div>' + '<div class="md-sign">' + '<span class="md-thumb-text"></span>' + "</div>" + '<div class="md-disabled-thumb"></div>' + "</div>",
-            link: postLink
+            require: "?ngModel",
+            template: '<div class="md-slider-wrapper">        <div class="md-track-container">          <div class="md-track"></div>          <div class="md-track md-track-fill"></div>          <div class="md-track-ticks"></div>        </div>        <div class="md-thumb-container">          <div class="md-thumb"></div>          <div class="md-focus-thumb"></div>          <div class="md-focus-ring"></div>          <div class="md-sign">            <span class="md-thumb-text"></span>          </div>          <div class="md-disabled-thumb"></div>        </div>      </div>',
+            compile: compile
         };
-        function postLink(scope, element, attr, ctrls) {
+        function compile(tElement, tAttrs) {
+            tElement.attr({
+                tabIndex: 0,
+                role: "slider"
+            });
+            $mdAria.expect(tElement, "aria-label");
+            return postLink;
+        }
+        function postLink(scope, element, attr, ngModelCtrl) {
             $mdTheming(element);
-            var ngModelCtrl = ctrls[0] || {
+            ngModelCtrl = ngModelCtrl || {
                 $setViewValue: function(val) {
                     this.$viewValue = val;
                     this.$viewChangeListeners.forEach(function(cb) {
@@ -59449,51 +60391,36 @@ mdMediaFactory.$inject = [ "$mdConstant", "$mdUtil", "$rootScope", "$window" ];
                 $formatters: [],
                 $viewChangeListeners: []
             };
-            var sliderCtrl = ctrls[1];
-            sliderCtrl.init(ngModelCtrl);
-        }
-    }
-    SliderDirective.$inject = [ "$mdTheming" ];
-    function SliderController($scope, $element, $attrs, $$rAF, $window, $mdAria, $mdUtil, $mdConstant) {
-        this.init = function init(ngModelCtrl) {
-            var thumb = angular.element($element[0].querySelector(".md-thumb"));
-            var thumbText = angular.element($element[0].querySelector(".md-thumb-text"));
+            var isDisabledParsed = attr.ngDisabled && $parse(attr.ngDisabled);
+            var isDisabledGetter = isDisabledParsed ? function() {
+                return isDisabledParsed(scope.$parent);
+            } : angular.noop;
+            var thumb = angular.element(element[0].querySelector(".md-thumb"));
+            var thumbText = angular.element(element[0].querySelector(".md-thumb-text"));
             var thumbContainer = thumb.parent();
-            var trackContainer = angular.element($element[0].querySelector(".md-track-container"));
-            var activeTrack = angular.element($element[0].querySelector(".md-track-fill"));
-            var tickContainer = angular.element($element[0].querySelector(".md-track-ticks"));
+            var trackContainer = angular.element(element[0].querySelector(".md-track-container"));
+            var activeTrack = angular.element(element[0].querySelector(".md-track-fill"));
+            var tickContainer = angular.element(element[0].querySelector(".md-track-ticks"));
             var throttledRefreshDimensions = $mdUtil.throttle(refreshSliderDimensions, 5e3);
-            $attrs.min ? $attrs.$observe("min", updateMin) : updateMin(0);
-            $attrs.max ? $attrs.$observe("max", updateMax) : updateMax(100);
-            $attrs.step ? $attrs.$observe("step", updateStep) : updateStep(1);
+            attr.min ? attr.$observe("min", updateMin) : updateMin(0);
+            attr.max ? attr.$observe("max", updateMax) : updateMax(100);
+            attr.step ? attr.$observe("step", updateStep) : updateStep(1);
             var stopDisabledWatch = angular.noop;
-            if ($attrs.ngDisabled) {
-                stopDisabledWatch = $scope.$parent.$watch($attrs.ngDisabled, updateAriaDisabled);
+            if (attr.ngDisabled) {
+                stopDisabledWatch = scope.$parent.$watch(attr.ngDisabled, updateAriaDisabled);
             }
-            $mdAria.expect($element, "aria-label");
-            $element.attr("tabIndex", 0);
-            $element.attr("role", "slider");
-            $element.on("keydown", keydownListener);
-            var hammertime = new Hammer($element[0], {
-                recognizers: [ [ Hammer.Pan, {
-                    direction: Hammer.DIRECTION_HORIZONTAL
-                } ] ]
-            });
-            hammertime.on("hammer.input", onInput);
-            hammertime.on("panstart", onPanStart);
-            hammertime.on("pan", onPan);
-            hammertime.on("panend", onPanEnd);
+            $mdGesture.register(element, "drag");
+            element.on("keydown", keydownListener).on("$md.pressdown", onPressDown).on("$md.pressup", onPressUp).on("$md.dragstart", onDragStart).on("$md.drag", onDrag).on("$md.dragend", onDragEnd);
             function updateAll() {
                 refreshSliderDimensions();
                 ngModelRender();
                 redrawTicks();
             }
             setTimeout(updateAll);
-            var debouncedUpdateAll = $$rAF.debounce(updateAll);
+            var debouncedUpdateAll = $$rAF.throttle(updateAll);
             angular.element($window).on("resize", debouncedUpdateAll);
-            $scope.$on("$destroy", function() {
+            scope.$on("$destroy", function() {
                 angular.element($window).off("resize", debouncedUpdateAll);
-                hammertime.destroy();
                 stopDisabledWatch();
             });
             ngModelCtrl.$render = ngModelRender;
@@ -59505,12 +60432,12 @@ mdMediaFactory.$inject = [ "$mdConstant", "$mdUtil", "$rootScope", "$window" ];
             var step;
             function updateMin(value) {
                 min = parseFloat(value);
-                $element.attr("aria-valuemin", value);
+                element.attr("aria-valuemin", value);
                 updateAll();
             }
             function updateMax(value) {
                 max = parseFloat(value);
-                $element.attr("aria-valuemax", value);
+                element.attr("aria-valuemax", value);
                 updateAll();
             }
             function updateStep(value) {
@@ -59518,11 +60445,11 @@ mdMediaFactory.$inject = [ "$mdConstant", "$mdUtil", "$rootScope", "$window" ];
                 redrawTicks();
             }
             function updateAriaDisabled(isDisabled) {
-                $element.attr("aria-disabled", !!isDisabled);
+                element.attr("aria-disabled", !!isDisabled);
             }
             var tickCanvas, tickCtx;
             function redrawTicks() {
-                if (!angular.isDefined($attrs.mdDiscrete)) return;
+                if (!angular.isDefined(attr.mdDiscrete)) return;
                 var numSteps = Math.floor((max - min) / step);
                 if (!tickCanvas) {
                     var trackTicksStyle = $window.getComputedStyle(tickContainer[0]);
@@ -59550,7 +60477,7 @@ mdMediaFactory.$inject = [ "$mdConstant", "$mdUtil", "$rootScope", "$window" ];
                 return sliderDimensions;
             }
             function keydownListener(ev) {
-                if ($element[0].hasAttribute("disabled")) {
+                if (element[0].hasAttribute("disabled")) {
                     return;
                 }
                 var changeAmount;
@@ -59565,7 +60492,7 @@ mdMediaFactory.$inject = [ "$mdConstant", "$mdUtil", "$rootScope", "$window" ];
                     }
                     ev.preventDefault();
                     ev.stopPropagation();
-                    $scope.$evalAsync(function() {
+                    scope.$evalAsync(function() {
                         setModelValue(ngModelCtrl.$viewValue + changeAmount);
                     });
                 }
@@ -59578,8 +60505,8 @@ mdMediaFactory.$inject = [ "$mdConstant", "$mdUtil", "$rootScope", "$window" ];
                     ngModelCtrl.$viewValue = ngModelCtrl.$modelValue;
                 }
                 var percent = (ngModelCtrl.$viewValue - min) / (max - min);
-                $scope.modelValue = ngModelCtrl.$viewValue;
-                $element.attr("aria-valuenow", ngModelCtrl.$viewValue);
+                scope.modelValue = ngModelCtrl.$viewValue;
+                element.attr("aria-valuenow", ngModelCtrl.$viewValue);
                 setSliderPercent(percent);
                 thumbText.text(ngModelCtrl.$viewValue);
             }
@@ -59595,52 +60522,55 @@ mdMediaFactory.$inject = [ "$mdConstant", "$mdUtil", "$rootScope", "$window" ];
             }
             function setSliderPercent(percent) {
                 activeTrack.css("width", percent * 100 + "%");
-                thumbContainer.css($mdConstant.CSS.TRANSFORM, "translate3d(" + getSliderDimensions().width * percent + "px,0,0)");
-                $element.toggleClass("md-min", percent === 0);
+                thumbContainer.css("left", percent * 100 + "%");
+                element.toggleClass("md-min", percent === 0);
             }
-            var isSliding = false;
-            var isDiscrete = angular.isDefined($attrs.mdDiscrete);
-            function onInput(ev) {
-                if (!isSliding && ev.eventType === Hammer.INPUT_START && !$element[0].hasAttribute("disabled")) {
-                    isSliding = true;
-                    $element.addClass("active");
-                    $element[0].focus();
-                    refreshSliderDimensions();
-                    onPan(ev);
-                    ev.srcEvent.stopPropagation();
-                } else if (isSliding && ev.eventType === Hammer.INPUT_END) {
-                    if (isSliding && isDiscrete) onPanEnd(ev);
-                    isSliding = false;
-                    $element.removeClass("panning active");
-                }
-            }
-            function onPanStart() {
-                if (!isSliding) return;
-                $element.addClass("panning");
-            }
-            function onPan(ev) {
-                if (!isSliding) return;
-                if (isDiscrete) adjustThumbPosition(ev.center.x); else doSlide(ev.center.x);
-                ev.preventDefault();
-                ev.srcEvent.stopPropagation();
-            }
-            function onPanEnd(ev) {
-                if (isDiscrete && !$element[0].hasAttribute("disabled")) {
-                    var exactVal = percentToValue(positionToPercent(ev.center.x));
-                    var closestVal = minMaxValidator(stepValidator(exactVal));
+            var isDragging = false;
+            var isDiscrete = angular.isDefined(attr.mdDiscrete);
+            function onPressDown(ev) {
+                if (isDisabledGetter()) return;
+                element.addClass("active");
+                element[0].focus();
+                refreshSliderDimensions();
+                var exactVal = percentToValue(positionToPercent(ev.pointer.x));
+                var closestVal = minMaxValidator(stepValidator(exactVal));
+                scope.$apply(function() {
+                    setModelValue(closestVal);
                     setSliderPercent(valueToPercent(closestVal));
-                    $$rAF(function() {
-                        setModelValue(closestVal);
-                    });
-                    ev.preventDefault();
-                    ev.srcEvent.stopPropagation();
-                }
+                });
             }
-            this._onInput = onInput;
-            this._onPanStart = onPanStart;
-            this._onPan = onPan;
+            function onPressUp(ev) {
+                if (isDisabledGetter()) return;
+                element.removeClass("dragging active");
+                var exactVal = percentToValue(positionToPercent(ev.pointer.x));
+                var closestVal = minMaxValidator(stepValidator(exactVal));
+                scope.$apply(function() {
+                    setModelValue(closestVal);
+                    ngModelRender();
+                });
+            }
+            function onDragStart(ev) {
+                if (isDisabledGetter()) return;
+                isDragging = true;
+                ev.stopPropagation();
+                element.addClass("dragging");
+                setSliderFromEvent(ev);
+            }
+            function onDrag(ev) {
+                if (!isDragging) return;
+                ev.stopPropagation();
+                setSliderFromEvent(ev);
+            }
+            function onDragEnd(ev) {
+                if (!isDragging) return;
+                ev.stopPropagation();
+                isDragging = false;
+            }
+            function setSliderFromEvent(ev) {
+                if (isDiscrete) adjustThumbPosition(ev.pointer.x); else doSlide(ev.pointer.x);
+            }
             function doSlide(x) {
-                $scope.$evalAsync(function() {
+                scope.$evalAsync(function() {
                     setModelValue(percentToValue(positionToPercent(x)));
                 });
             }
@@ -59659,9 +60589,9 @@ mdMediaFactory.$inject = [ "$mdConstant", "$mdUtil", "$rootScope", "$window" ];
             function valueToPercent(val) {
                 return (val - min) / (max - min);
             }
-        };
+        }
     }
-    SliderController.$inject = [ "$scope", "$element", "$attrs", "$$rAF", "$window", "$mdAria", "$mdUtil", "$mdConstant" ];
+    SliderDirective.$inject = [ "$$rAF", "$window", "$mdAria", "$mdUtil", "$mdConstant", "$mdTheming", "$mdGesture", "$parse" ];
 })();
 
 (function() {
@@ -59690,11 +60620,12 @@ mdMediaFactory.$inject = [ "$mdConstant", "$mdUtil", "$rootScope", "$window" ];
         };
         function setupSticky(contentCtrl) {
             var contentEl = contentCtrl.$element;
-            var debouncedRefreshElements = $$rAF.debounce(refreshElements);
+            var debouncedRefreshElements = $$rAF.throttle(refreshElements);
             setupAugmentedScrollEvents(contentEl);
             contentEl.on("$scrollstart", debouncedRefreshElements);
             contentEl.on("$scroll", onScroll);
             var self;
+            var stickyBaseoffset = contentEl.prop("offsetTop");
             return self = {
                 prev: null,
                 current: null,
@@ -59705,6 +60636,7 @@ mdMediaFactory.$inject = [ "$mdConstant", "$mdUtil", "$rootScope", "$window" ];
             };
             function add(element, stickyClone) {
                 stickyClone.addClass("md-sticky-clone");
+                stickyClone.css("top", stickyBaseoffset + "px");
                 var item = {
                     element: element,
                     clone: stickyClone
@@ -59897,90 +60829,33 @@ mdMediaFactory.$inject = [ "$mdConstant", "$mdUtil", "$rootScope", "$window" ];
 
 (function() {
     "use strict";
-    angular.module("material.components.swipe", []).factory("$mdSwipe", MdSwipeFactory).directive("mdSwipeLeft", MdSwipeLeftDirective).directive("mdSwipeRight", MdSwipeRightDirective);
-    function MdSwipeFactory() {
-        var attachNoop = function() {
-            return angular.noop;
-        };
-        return function SwipeService(scope, eventTypes) {
-            if (!eventTypes) eventTypes = "swipeleft swiperight";
-            return function configureFor(element, onSwipeCallback, attachLater) {
-                var hammertime = new Hammer(element[0], {
-                    recognizers: addRecognizers([], eventTypes)
-                });
-                if (!attachLater) attachSwipe();
-                scope.$on("$destroy", function() {
-                    hammertime.destroy();
-                });
-                return attachSwipe;
-                function swipeHandler(ev) {
-                    ev.srcEvent.stopPropagation();
-                    if (angular.isFunction(onSwipeCallback)) {
-                        scope.$apply(function() {
-                            onSwipeCallback(ev);
+    var module = angular.module("material.components.swipe", []);
+    [ "SwipeLeft", "SwipeRight" ].forEach(function(name) {
+        var directiveName = "md" + name;
+        var eventName = "$md." + name.toLowerCase();
+        module.directive(directiveName, [ "$parse", function($parse) {
+            return {
+                restrict: "A",
+                link: postLink
+            };
+            function postLink(scope, element, attr) {
+                var fn = $parse(attr[directiveName]);
+                element.on(eventName, function(ev) {
+                    scope.$apply(function() {
+                        fn(scope, {
+                            $event: ev
                         });
-                    }
-                }
-                function attachSwipe() {
-                    hammertime.on(eventTypes, swipeHandler);
-                    return function detachSwipe() {
-                        hammertime.off(eventTypes);
-                    };
-                }
-                function addRecognizers(list, events) {
-                    var hasPanning = events.indexOf("pan") > -1;
-                    var hasSwipe = events.indexOf("swipe") > -1;
-                    if (hasPanning) {
-                        list.push([ Hammer.Pan, {
-                            direction: Hammer.DIRECTION_HORIZONTAL
-                        } ]);
-                    }
-                    if (hasSwipe) {
-                        list.push([ Hammer.Swipe, {
-                            direction: Hammer.DIRECTION_HORIZONTAL
-                        } ]);
-                    }
-                    return list;
-                }
-            };
-        };
-    }
-    function MdSwipeLeftDirective($parse, $mdSwipe) {
-        return {
-            restrict: "A",
-            link: swipePostLink($parse, $mdSwipe, "SwipeLeft")
-        };
-    }
-    MdSwipeLeftDirective.$inject = [ "$parse", "$mdSwipe" ];
-    function MdSwipeRightDirective($parse, $mdSwipe) {
-        return {
-            restrict: "A",
-            link: swipePostLink($parse, $mdSwipe, "SwipeRight")
-        };
-    }
-    MdSwipeRightDirective.$inject = [ "$parse", "$mdSwipe" ];
-    function swipePostLink($parse, $mdSwipe, name) {
-        return function(scope, element, attrs) {
-            var direction = name.toLowerCase();
-            var directiveName = "md" + name;
-            var parentGetter = $parse(attrs[directiveName]) || angular.noop;
-            var configureSwipe = $mdSwipe(scope, direction);
-            var requestSwipe = function(locals) {
-                parentGetter(scope, locals);
-            };
-            configureSwipe(element, function onHandleSwipe(ev) {
-                if (ev.type == direction) {
-                    requestSwipe();
-                }
-            });
-        };
-    }
+                    });
+                });
+            }
+        } ]);
+    });
 })();
 
 (function() {
     "use strict";
     angular.module("material.components.switch", [ "material.core", "material.components.checkbox" ]).directive("mdSwitch", MdSwitch);
-    function MdSwitch(mdCheckboxDirective, $mdTheming, $mdUtil, $document, $mdConstant, $parse, $$rAF) {
+    function MdSwitch(mdCheckboxDirective, $mdTheming, $mdUtil, $document, $mdConstant, $parse, $$rAF, $mdGesture) {
         var checkboxDirective = mdCheckboxDirective[0];
         return {
             restrict: "E",
@@ -60000,38 +60875,55 @@ mdMediaFactory.$inject = [ "$mdConstant", "$mdUtil", "$rootScope", "$window" ];
                 $$rAF(function() {
                     element.removeClass("md-dragging");
                 });
-                attr.mdNoClick = true;
                 checkboxLink(scope, element, attr, ngModel);
-                $mdUtil.attachDragBehavior(scope, switchContainer);
-                switchContainer.on("$md.dragstart", onDragStart).on("$md.drag", onDrag).on("$md.dragend", onDragEnd);
-                function onDragStart(ev, drag) {
-                    if (disabledGetter(scope)) return ev.preventDefault();
-                    drag.width = thumbContainer.prop("offsetWidth");
-                    element.addClass("md-dragging");
+                if (angular.isDefined(attr.ngDisabled)) {
+                    scope.$watch(disabledGetter, function(isDisabled) {
+                        element.attr("tabindex", isDisabled ? -1 : 0);
+                    });
                 }
-                function onDrag(ev, drag) {
-                    var percent = drag.distance / drag.width;
-                    var translate = ngModel.$viewValue ? 1 - percent : -percent;
+                $mdGesture.register(switchContainer, "drag");
+                switchContainer.on("$md.dragstart", onDragStart).on("$md.drag", onDrag).on("$md.dragend", onDragEnd);
+                var drag;
+                function onDragStart(ev) {
+                    if (disabledGetter(scope)) return;
+                    ev.stopPropagation();
+                    element.addClass("md-dragging");
+                    drag = {
+                        width: thumbContainer.prop("offsetWidth")
+                    };
+                    element.removeClass("transition");
+                }
+                function onDrag(ev) {
+                    if (!drag) return;
+                    ev.stopPropagation();
+                    ev.srcEvent && ev.srcEvent.preventDefault();
+                    var percent = ev.pointer.distanceX / drag.width;
+                    var translate = ngModel.$viewValue ? 1 + percent : percent;
                     translate = Math.max(0, Math.min(1, translate));
                     thumbContainer.css($mdConstant.CSS.TRANSFORM, "translate3d(" + 100 * translate + "%,0,0)");
                     drag.translate = translate;
                 }
-                function onDragEnd(ev, drag) {
-                    if (disabledGetter(scope)) return false;
+                function onDragEnd(ev) {
+                    if (!drag) return;
+                    ev.stopPropagation();
                     element.removeClass("md-dragging");
                     thumbContainer.css($mdConstant.CSS.TRANSFORM, "");
-                    var isChanged = Math.abs(drag.distance || 0) < 2 || (ngModel.$viewValue ? drag.translate < .5 : drag.translate > .5);
+                    var isChanged = ngModel.$viewValue ? drag.translate < .5 : drag.translate > .5;
                     if (isChanged) {
-                        scope.$apply(function() {
-                            ngModel.$setViewValue(!ngModel.$viewValue);
-                            ngModel.$render();
-                        });
+                        applyModelValue(!ngModel.$viewValue);
                     }
+                    drag = null;
+                }
+                function applyModelValue(newValue) {
+                    scope.$apply(function() {
+                        ngModel.$setViewValue(newValue);
+                        ngModel.$render();
+                    });
                 }
             };
         }
     }
-    MdSwitch.$inject = [ "mdCheckboxDirective", "$mdTheming", "$mdUtil", "$document", "$mdConstant", "$parse", "$$rAF" ];
+    MdSwitch.$inject = [ "mdCheckboxDirective", "$mdTheming", "$mdUtil", "$document", "$mdConstant", "$parse", "$$rAF", "$mdGesture" ];
 })();
 
 (function() {
@@ -60132,34 +61024,46 @@ mdMediaFactory.$inject = [ "$mdConstant", "$mdUtil", "$rootScope", "$window" ];
 
 (function() {
     "use strict";
-    angular.module("material.components.toast", [ "material.core", "material.components.swipe", "material.components.button" ]).directive("mdToast", MdToastDirective).provider("$mdToast", MdToastProvider);
+    angular.module("material.components.toast", [ "material.core", "material.components.button" ]).directive("mdToast", MdToastDirective).provider("$mdToast", MdToastProvider);
     function MdToastDirective() {
         return {
             restrict: "E"
         };
     }
     function MdToastProvider($$interimElementProvider) {
-        toastDefaultOptions.$inject = [ "$timeout", "$animate", "$mdSwipe", "$mdTheming", "$mdToast" ];
-        return $$interimElementProvider("$mdToast").setDefaults({
+        var activeToastContent;
+        var $mdToast = $$interimElementProvider("$mdToast").setDefaults({
             methods: [ "position", "hideDelay", "capsule" ],
             options: toastDefaultOptions
         }).addPreset("simple", {
             argOption: "content",
-            methods: [ "content", "action", "highlightAction" ],
-            options: [ "$mdToast", function($mdToast) {
-                return {
-                    template: [ "<md-toast ng-class=\"{'md-capsule': toast.capsule}\">", "<span flex>{{ toast.content }}</span>", '<md-button ng-if="toast.action" ng-click="toast.resolve()" ng-class="{\'md-action\': toast.highlightAction}">', "{{ toast.action }}", "</md-button>", "</md-toast>" ].join(""),
-                    controller: function mdToastCtrl() {
+            methods: [ "content", "action", "highlightAction", "theme" ],
+            options: [ "$mdToast", "$mdTheming", function($mdToast, $mdTheming) {
+                var opts = {
+                    template: [ '<md-toast md-theme="{{ toast.theme }}" ng-class="{\'md-capsule\': toast.capsule}">', "<span flex>{{ toast.content }}</span>", '<md-button class="md-action" ng-if="toast.action" ng-click="toast.resolve()" ng-class="{\'md-highlight\': toast.highlightAction}">', "{{ toast.action }}", "</md-button>", "</md-toast>" ].join(""),
+                    controller: [ "$scope", function mdToastCtrl($scope) {
+                        var self = this;
+                        $scope.$watch(function() {
+                            return activeToastContent;
+                        }, function() {
+                            self.content = activeToastContent;
+                        });
                         this.resolve = function() {
                             $mdToast.hide();
                         };
-                    },
+                    } ],
+                    theme: $mdTheming.defaultTheme(),
                     controllerAs: "toast",
                     bindToController: true
                 };
+                return opts;
             } ]
+        }).addMethod("updateContent", function(newContent) {
+            activeToastContent = newContent;
         });
-        function toastDefaultOptions($timeout, $animate, $mdSwipe, $mdTheming, $mdToast) {
+        toastDefaultOptions.$inject = [ "$timeout", "$animate", "$mdToast" ];
+        return $mdToast;
+        function toastDefaultOptions($timeout, $animate, $mdToast) {
             return {
                 onShow: onShow,
                 onRemove: onRemove,
@@ -60168,19 +61072,20 @@ mdMediaFactory.$inject = [ "$mdConstant", "$mdUtil", "$rootScope", "$window" ];
                 hideDelay: 3e3
             };
             function onShow(scope, element, options) {
+                activeToastContent = options.content;
                 element.addClass(options.position.split(" ").map(function(pos) {
                     return "md-" + pos;
                 }).join(" "));
                 options.parent.addClass(toastOpenClass(options.position));
-                var configureSwipe = $mdSwipe(scope, "swipeleft swiperight");
-                options.detachSwipe = configureSwipe(element, function(ev) {
-                    element.addClass("md-" + ev.type);
+                options.onSwipe = function(ev, gesture) {
+                    element.addClass("md-" + ev.type.replace("$md.", ""));
                     $timeout($mdToast.cancel);
-                });
+                };
+                element.on("$md.swipeleft $md.swiperight", options.onSwipe);
                 return $animate.enter(element, options.parent);
             }
             function onRemove(scope, element, options) {
-                options.detachSwipe();
+                element.off("$md.swipeleft $md.swiperight", options.onSwipe);
                 options.parent.removeClass(toastOpenClass(options.position));
                 return $animate.leave(element);
             }
@@ -60210,7 +61115,7 @@ mdMediaFactory.$inject = [ "$mdConstant", "$mdUtil", "$rootScope", "$window" ];
                     var shrinkSpeedFactor = attr.mdShrinkSpeedFactor || .5;
                     var toolbarHeight;
                     var contentElement;
-                    var debouncedContentScroll = $$rAF.debounce(onContentScroll);
+                    var debouncedContentScroll = $$rAF.throttle(onContentScroll);
                     var debouncedUpdateHeight = $mdUtil.debounce(updateToolbarHeight, 5 * 1e3);
                     scope.$on("$mdContentLoaded", onMdContentLoad);
                     function onMdContentLoad($event, newContentEl) {
@@ -60246,14 +61151,9 @@ mdMediaFactory.$inject = [ "$mdConstant", "$mdUtil", "$rootScope", "$window" ];
 
 (function() {
     "use strict";
-    angular.module("material.components.whiteframe", []);
-})();
-
-(function() {
-    "use strict";
     angular.module("material.components.tooltip", [ "material.core" ]).directive("mdTooltip", MdTooltipDirective);
-    function MdTooltipDirective($timeout, $window, $$rAF, $document, $mdUtil, $mdTheming, $rootElement) {
-        var TOOLTIP_SHOW_DELAY = 400;
+    function MdTooltipDirective($timeout, $window, $$rAF, $document, $mdUtil, $mdTheming, $rootElement, $animate, $q) {
+        var TOOLTIP_SHOW_DELAY = 0;
         var TOOLTIP_WINDOW_EDGE_SPACE = 8;
         return {
             restrict: "E",
@@ -60268,6 +61168,11 @@ mdMediaFactory.$inject = [ "$mdConstant", "$mdUtil", "$rootScope", "$window" ];
         function postLink(scope, element, attr, contentCtrl) {
             $mdTheming(element);
             var parent = element.parent();
+            var background = angular.element(element[0].getElementsByClassName("md-background")[0]);
+            var direction = attr.mdDirection;
+            while ($window.getComputedStyle(parent[0])["pointer-events"] == "none") {
+                parent = parent.parent();
+            }
             var current = element.parent()[0];
             while (current && current !== $rootElement[0] && current !== document.body) {
                 if (current.tagName && current.tagName.toLowerCase() == "md-content") break;
@@ -60284,13 +61189,12 @@ mdMediaFactory.$inject = [ "$mdConstant", "$mdUtil", "$rootScope", "$window" ];
                 setVisible(true);
             });
             parent.on("blur mouseleave touchend touchcancel", function() {
-                if ($document[0].activeElement === parent[0]) return;
-                setVisible(false);
+                if ($document[0].activeElement !== parent[0]) setVisible(false);
             });
             scope.$watch("visible", function(isVisible) {
                 if (isVisible) showTooltip(); else hideTooltip();
             });
-            var debouncedOnResize = $$rAF.debounce(function windowResize() {
+            var debouncedOnResize = $$rAF.throttle(function() {
                 if (scope.visible) positionTooltip();
             });
             angular.element($window).on("resize", debouncedOnResize);
@@ -60316,29 +61220,21 @@ mdMediaFactory.$inject = [ "$mdConstant", "$mdUtil", "$rootScope", "$window" ];
                 }
             }
             function showTooltip() {
-                element.removeClass("md-hide");
                 parent.attr("aria-describedby", element.attr("id"));
                 tooltipParent.append(element);
                 positionTooltip();
-                $$rAF(function() {
-                    $$rAF(function() {
-                        positionTooltip();
-                        if (!scope.visible) return;
-                        element.addClass("md-show");
-                    });
-                });
+                $animate.addClass(element, "md-show");
+                $animate.addClass(background, "md-show");
             }
             function hideTooltip() {
-                element.removeClass("md-show").addClass("md-hide");
                 parent.removeAttr("aria-describedby");
-                $timeout(function() {
-                    if (scope.visible) return;
-                    element.detach();
-                }, 200, false);
+                $q.all([ $animate.removeClass(background, "md-show"), $animate.removeClass(element, "md-show") ]).then(function() {
+                    if (!scope.visible) element.detach();
+                });
             }
             function positionTooltip() {
-                var tipRect = $mdUtil.elementRect(element, tooltipParent);
-                var parentRect = $mdUtil.elementRect(parent, tooltipParent);
+                var tipRect = $mdUtil.offsetRect(element, tooltipParent);
+                var parentRect = $mdUtil.offsetRect(parent, tooltipParent);
                 var tipDirection = "bottom";
                 var newPosition = {
                     left: parentRect.left + parentRect.width / 2 - tipRect.width / 2,
@@ -60354,12 +61250,257 @@ mdMediaFactory.$inject = [ "$mdConstant", "$mdUtil", "$rootScope", "$window" ];
                     top: newPosition.top + "px",
                     left: newPosition.left + "px"
                 });
-                element.attr("width-32", Math.ceil(tipRect.width / 32));
-                element.attr("md-direction", tipDirection);
+                positionBackground();
+                function positionBackground() {
+                    var size = direction === "left" || direction === "right" ? Math.sqrt(Math.pow(tipRect.width, 2) + Math.pow(tipRect.height / 2, 2)) * 2 : Math.sqrt(Math.pow(tipRect.width / 2, 2) + Math.pow(tipRect.height, 2)) * 2, position = direction === "left" ? {
+                        left: 100,
+                        top: 50
+                    } : direction === "right" ? {
+                        left: 0,
+                        top: 50
+                    } : direction === "top" ? {
+                        left: 50,
+                        top: 100
+                    } : {
+                        left: 50,
+                        top: 0
+                    };
+                    background.css({
+                        width: size + "px",
+                        height: size + "px",
+                        left: position.left + "%",
+                        top: position.top + "%"
+                    });
+                }
+                function fitOnScreen(pos) {
+                    var newPosition = {};
+                    newPosition.left = Math.min(pos.left, tooltipParent.prop("scrollWidth") - tipRect.width - TOOLTIP_WINDOW_EDGE_SPACE);
+                    newPosition.left = Math.max(pos.left, TOOLTIP_WINDOW_EDGE_SPACE);
+                    newPosition.top = Math.min(pos.top, tooltipParent.prop("scrollHeight") - tipRect.height - TOOLTIP_WINDOW_EDGE_SPACE);
+                    newPosition.top = Math.max(pos.top, TOOLTIP_WINDOW_EDGE_SPACE);
+                    return newPosition;
+                }
+                function getPosition(dir) {
+                    return dir === "left" ? {
+                        left: parentRect.left - tipRect.width - TOOLTIP_WINDOW_EDGE_SPACE,
+                        top: parentRect.top + parentRect.height / 2 - tipRect.height / 2
+                    } : dir === "right" ? {
+                        left: parentRect.left + parentRect.width + TOOLTIP_WINDOW_EDGE_SPACE,
+                        top: parentRect.top + parentRect.height / 2 - tipRect.height / 2
+                    } : dir === "top" ? {
+                        left: parentRect.left + parentRect.width / 2 - tipRect.width / 2,
+                        top: parentRect.top - tipRect.height - TOOLTIP_WINDOW_EDGE_SPACE
+                    } : {
+                        left: parentRect.left + parentRect.width / 2 - tipRect.width / 2,
+                        top: parentRect.top + parentRect.height + TOOLTIP_WINDOW_EDGE_SPACE
+                    };
+                }
             }
         }
     }
-    MdTooltipDirective.$inject = [ "$timeout", "$window", "$$rAF", "$document", "$mdUtil", "$mdTheming", "$rootElement" ];
+    MdTooltipDirective.$inject = [ "$timeout", "$window", "$$rAF", "$document", "$mdUtil", "$mdTheming", "$rootElement", "$animate", "$q" ];
+})();
+
+(function() {
+    "use strict";
+    angular.module("material.components.whiteframe", []);
+})();
+
+(function() {
+    "use strict";
+    angular.module("material.components.autocomplete").controller("MdAutocompleteCtrl", MdAutocompleteCtrl);
+    function MdAutocompleteCtrl($scope, $element, $timeout, $q, $mdUtil, $mdConstant) {
+        var self = this, itemParts = $scope.itemsExpr.split(/\ in\ /i), itemExpr = itemParts[1], elements = {
+            main: $element[0],
+            ul: $element[0].getElementsByTagName("ul")[0],
+            input: $element[0].getElementsByTagName("input")[0]
+        }, promise = null, cache = {};
+        self.scope = $scope;
+        self.parent = $scope.$parent;
+        self.itemName = itemParts[0];
+        self.matches = [];
+        self.loading = false;
+        self.hidden = true;
+        self.index = 0;
+        self.keydown = keydown;
+        self.clear = clearValue;
+        self.select = select;
+        self.fetch = $mdUtil.debounce(fetchResults);
+        return init();
+        function init() {
+            configureWatchers();
+            configureAria();
+        }
+        function configureAria() {
+            var ul = angular.element(elements.ul), input = angular.element(elements.input), id = ul.attr("id") || "ul_" + $mdUtil.nextUid();
+            ul.attr("id", id);
+            input.attr("aria-owns", id);
+        }
+        function configureWatchers() {
+            $scope.$watch("searchText", function(searchText) {
+                if (!searchText) {
+                    self.loading = false;
+                    return self.matches = [];
+                }
+                var term = searchText.toLowerCase();
+                if (promise && promise.cancel) {
+                    promise.cancel();
+                    promise = null;
+                }
+                if (cache[term]) {
+                    self.matches = cache[term];
+                } else if (!self.hidden) {
+                    self.loading = true;
+                    self.fetch(searchText);
+                }
+            });
+        }
+        function fetchResults(searchText) {
+            var items = $scope.$parent.$eval(itemExpr), term = searchText.toLowerCase();
+            promise = $q.when(items).then(function(matches) {
+                cache[term] = matches;
+                if (searchText !== $scope.searchText) return;
+                promise = null;
+                self.loading = false;
+                self.matches = matches;
+            });
+        }
+        function keydown(event) {
+            switch (event.keyCode) {
+              case $mdConstant.KEY_CODE.DOWN_ARROW:
+                if (self.loading) return;
+                event.preventDefault();
+                self.index = Math.min(self.index + 1, self.matches.length - 1);
+                updateScroll();
+                break;
+
+              case $mdConstant.KEY_CODE.UP_ARROW:
+                if (self.loading) return;
+                event.preventDefault();
+                self.index = Math.max(0, self.index - 1);
+                updateScroll();
+                break;
+
+              case $mdConstant.KEY_CODE.ENTER:
+                if (self.loading) return;
+                event.preventDefault();
+                select(self.index);
+                break;
+
+              case $mdConstant.KEY_CODE.ESCAPE:
+                self.matches = [];
+                self.hidden = true;
+                self.index = -1;
+                break;
+
+              default:
+                self.index = -1;
+                self.hidden = false;
+                $timeout(function() {
+                    self.hidden = isHidden();
+                });
+            }
+        }
+        function clearValue() {
+            $scope.searchText = "";
+            select(-1);
+        }
+        function isHidden() {
+            return self.matches.length === 1 && $scope.searchText === getDisplayValue(self.matches[0]);
+        }
+        function getDisplayValue(item) {
+            return item && $scope.itemText ? item[$scope.itemText] : item;
+        }
+        function select(index) {
+            $scope.selectedItem = self.matches[index];
+            $scope.searchText = getDisplayValue($scope.selectedItem) || $scope.searchText;
+            self.hidden = true;
+            self.index = -1;
+            self.matches = [];
+        }
+        function updateScroll() {
+            var top = 41 * self.index, bot = top + 41, hgt = 41 * 5.5;
+            if (top < elements.ul.scrollTop) {
+                elements.ul.scrollTop = top;
+            } else if (bot > elements.ul.scrollTop + hgt) {
+                elements.ul.scrollTop = bot - hgt;
+            }
+        }
+    }
+    MdAutocompleteCtrl.$inject = [ "$scope", "$element", "$timeout", "$q", "$mdUtil", "$mdConstant" ];
+})();
+
+(function() {
+    "use strict";
+    angular.module("material.components.autocomplete").directive("mdAutocomplete", MdAutocomplete);
+    function MdAutocomplete() {
+        return {
+            template: '        <md-autocomplete-wrap role="listbox">          <input type="text"              ng-model="searchText"              ng-keydown="$mdAutocompleteCtrl.keydown($event)"              placeholder="{{placeholder}}"              aria-label="{{placeholder}}"              aria-autocomplete="list"              aria-haspopup="true"              aria-activedescendant=""              aria-expanded="{{!$mdAutocompleteCtrl.hidden}}"/>          <button              type="button"              ng-if="searchText"              ng-click="$mdAutocompleteCtrl.clear()">              <span aria-hidden="true">X</span>              <span class="visually-hidden">Clear</span>              </button>          <md-progress-linear ng-if="$mdAutocompleteCtrl.loading" md-mode="indeterminate"></md-progress-linear>        </md-autocomplete-wrap>        <ul role="presentation">          <li ng-repeat="(index, item) in $mdAutocompleteCtrl.matches"              ng-class="{ selected: index === $mdAutocompleteCtrl.index }"              ng-if="searchText && !$mdAutocompleteCtrl.hidden"              ng-click="$mdAutocompleteCtrl.select(index)"              ng-transclude              md-autocomplete-list-item="$mdAutocompleteCtrl.itemName">          </li>        </ul>        <aria-status            class="visually-hidden"            aria-atomic="true"            role="status"            aria-live="polite">          <p ng-repeat="item in $mdAutocompleteCtrl.matches">{{item.display}}</p>        </aria-status>',
+            transclude: true,
+            controller: "MdAutocompleteCtrl",
+            controllerAs: "$mdAutocompleteCtrl",
+            scope: {
+                searchText: "=mdSearchText",
+                selectedItem: "=mdSelectedItem",
+                itemsExpr: "@mdItems",
+                itemText: "@mdItemText",
+                placeholder: "@placeholder"
+            }
+        };
+    }
+})();
+
+(function() {
+    "use strict";
+    angular.module("material.components.autocomplete").controller("MdHighlightCtrl", MdHighlightCtrl);
+    function MdHighlightCtrl($scope, $element, $interpolate) {
+        var term = $element.attr("md-highlight-text"), text = $interpolate($element.text())($scope);
+        $scope.$watch(term, function(term) {
+            var regex = new RegExp("^" + sanitize(term), "i"), html = text.replace(regex, '<span class="highlight">$&</span>');
+            $element.html(html);
+        });
+        function sanitize(term) {
+            if (!term) return term;
+            return term.replace(/[\*\[\]\(\)\{\}\\\^\$]/g, "\\$&");
+        }
+    }
+    MdHighlightCtrl.$inject = [ "$scope", "$element", "$interpolate" ];
+})();
+
+(function() {
+    "use strict";
+    angular.module("material.components.autocomplete").directive("mdHighlightText", MdHighlight);
+    function MdHighlight() {
+        return {
+            terminal: true,
+            scope: false,
+            controller: "MdHighlightCtrl"
+        };
+    }
+})();
+
+(function() {
+    "use strict";
+    angular.module("material.components.autocomplete").directive("mdAutocompleteListItem", MdAutocompleteListItem);
+    function MdAutocompleteListItem($compile, $mdUtil) {
+        return {
+            require: "^?mdAutocomplete",
+            terminal: true,
+            link: link,
+            scope: false
+        };
+        function link(scope, element, attr, ctrl) {
+            var newScope = ctrl.parent.$new(false, ctrl.parent);
+            var itemName = ctrl.scope.$eval(attr.mdAutocompleteListItem);
+            newScope[itemName] = scope.item;
+            $compile(element.contents())(newScope);
+            element.attr({
+                role: "option",
+                id: "item_" + $mdUtil.nextUid()
+            });
+        }
+    }
+    MdAutocompleteListItem.$inject = [ "$compile", "$mdUtil" ];
 })();
 
 (function() {
@@ -60373,13 +61514,13 @@ mdMediaFactory.$inject = [ "$mdConstant", "$mdUtil", "$rootScope", "$window" ];
             link: postLink
         };
         function postLink(scope, element, attr, ctrls) {
-            if (ctrls[0]) return;
-            var tabsCtrl = ctrls[1], debouncedUpdateBar = $$rAF.debounce(updateBar);
+            var mdNoBar = !!ctrls[0];
+            var tabsCtrl = ctrls[1], debouncedUpdateBar = $$rAF.throttle(updateBar);
             tabsCtrl.inkBarElement = element;
             scope.$on("$mdTabsPaginationChanged", debouncedUpdateBar);
             function updateBar() {
                 var selected = tabsCtrl.getSelectedItem();
-                var hideInkBar = !selected || tabsCtrl.count() < 2;
+                var hideInkBar = !selected || tabsCtrl.count() < 2 || mdNoBar;
                 element.css("display", hideInkBar ? "none" : "block");
                 if (hideInkBar) return;
                 if (scope.pagination && scope.pagination.tabData) {
@@ -60393,7 +61534,7 @@ mdMediaFactory.$inject = [ "$mdConstant", "$mdUtil", "$rootScope", "$window" ];
                     var classNames = [ "md-transition-left", "md-transition-right", "md-no-transition" ];
                     var classIndex = lastIndex > index ? 0 : lastIndex < index ? 1 : 2;
                     element.removeClass(classNames.join(" ")).addClass(classNames[classIndex]).css({
-                        left: data.left + 1 + "px",
+                        left: data.left + "px",
                         right: right + "px"
                     });
                     lastIndex = index;
@@ -60416,16 +61557,17 @@ mdMediaFactory.$inject = [ "$mdConstant", "$mdUtil", "$rootScope", "$window" ];
         };
         function postLink(scope, element, attr, tabsCtrl) {
             var tabs = element[0].getElementsByTagName("md-tab");
-            var debouncedUpdatePagination = $$rAF.debounce(updatePagination);
+            var debouncedUpdatePagination = $$rAF.throttle(updatePagination);
             var tabsParent = element.children();
+            var locked = false;
             var state = scope.pagination = {
                 page: -1,
                 active: false,
                 clickNext: function() {
-                    userChangePage(+1);
+                    locked || userChangePage(+1);
                 },
                 clickPrevious: function() {
-                    userChangePage(-1);
+                    locked || userChangePage(-1);
                 }
             };
             scope.$on("$mdTabsChanged", debouncedUpdatePagination);
@@ -60444,6 +61586,7 @@ mdMediaFactory.$inject = [ "$mdConstant", "$mdUtil", "$rootScope", "$window" ];
                 } else {
                     oldTab && oldTab.element.blur();
                     setPage(pageIndex).then(function() {
+                        locked = false;
                         tab.element.focus();
                     });
                 }
@@ -60453,6 +61596,7 @@ mdMediaFactory.$inject = [ "$mdConstant", "$mdUtil", "$rootScope", "$window" ];
                 var newPage = Math.max(0, Math.min(sizeData.pages.length - 1, state.page + increment));
                 var newTabIndex = sizeData.pages[newPage][increment > 0 ? "firstTabIndex" : "lastTabIndex"];
                 var newTab = tabsCtrl.itemAt(newTabIndex);
+                locked = true;
                 onTabFocus(newTab);
             }
             function updatePagination() {
@@ -60613,8 +61757,8 @@ mdMediaFactory.$inject = [ "$mdConstant", "$mdUtil", "$rootScope", "$window" ];
     angular.module("material.components.tabs").controller("$mdTab", TabItemController);
     function TabItemController($scope, $element, $attrs, $compile, $animate, $mdUtil, $parse, $timeout) {
         var self = this;
+        var tabsCtrl = $element.controller("mdTabs");
         self.contentContainer = angular.element('<div class="md-tab-content ng-hide">');
-        self.hammertime = new Hammer(self.contentContainer[0]);
         self.element = $element;
         self.isDisabled = isDisabled;
         self.onAdd = onAdd;
@@ -60639,7 +61783,6 @@ mdMediaFactory.$inject = [ "$mdConstant", "$mdUtil", "$rootScope", "$window" ];
             }
         }
         function onRemove() {
-            self.hammertime.destroy();
             $animate.leave(self.contentContainer).then(function() {
                 self.contentScope && self.contentScope.$destroy();
                 self.contentScope = null;
@@ -60650,23 +61793,32 @@ mdMediaFactory.$inject = [ "$mdConstant", "$mdUtil", "$rootScope", "$window" ];
         }
         function onSelect(rightToLeft) {
             $mdUtil.reconnectScope(self.contentScope);
-            self.hammertime.on("swipeleft swiperight", $scope.onSwipe);
-            $element.addClass("active");
-            $element.attr("aria-selected", true);
-            $element.attr("tabIndex", 0);
+            $element.addClass("active").attr({
+                "aria-selected": true,
+                tabIndex: 0
+            }).on("$md.swipeleft $md.swiperight", onSwipe);
             toggleAnimationClass(rightToLeft);
             $animate.removeClass(self.contentContainer, "ng-hide");
             $scope.onSelect();
         }
         function onDeselect(rightToLeft) {
             $mdUtil.disconnectScope(self.contentScope);
-            self.hammertime.off("swipeleft swiperight", $scope.onSwipe);
-            $element.removeClass("active");
-            $element.attr("aria-selected", false);
-            $element.attr("tabIndex", -1);
+            $element.removeClass("active").attr({
+                "aria-selected": false,
+                tabIndex: -1
+            }).off("$md.swipeleft $md.swiperight", onSwipe);
             toggleAnimationClass(rightToLeft);
             $animate.addClass(self.contentContainer, "ng-hide");
             $scope.onDeselect();
+        }
+        function onSwipe(ev) {
+            $scope.$apply(function() {
+                if (/left/.test(ev.type)) {
+                    tabsCtrl.select(tabsCtrl.next());
+                } else {
+                    tabsCtrl.select(tabsCtrl.previous());
+                }
+            });
         }
     }
     TabItemController.$inject = [ "$scope", "$element", "$attrs", "$compile", "$animate", "$mdUtil", "$parse", "$timeout" ];
@@ -60700,6 +61852,7 @@ mdMediaFactory.$inject = [ "$mdConstant", "$mdUtil", "$rootScope", "$window" ];
             return function postLink(scope, element, attr, ctrls) {
                 var tabItemCtrl = ctrls[0];
                 var tabsCtrl = ctrls[1];
+                $timeout(element.addClass.bind(element, "md-tab-themed"), 0, false);
                 scope.$watch(function() {
                     return attr.label;
                 }, function() {
@@ -60709,12 +61862,11 @@ mdMediaFactory.$inject = [ "$mdConstant", "$mdUtil", "$rootScope", "$window" ];
                 });
                 transcludeTabContent();
                 configureAria();
-                var detachRippleFn = $mdInkRipple.attachTabBehavior(scope, element, {
+                $mdInkRipple.attachTabBehavior(scope, element, {
                     colorElement: tabsCtrl.inkBarElement
                 });
                 tabsCtrl.add(tabItemCtrl);
                 scope.$on("$destroy", function() {
-                    detachRippleFn();
                     tabsCtrl.remove(tabItemCtrl);
                 });
                 element.on("$destroy", function() {
@@ -60726,7 +61878,6 @@ mdMediaFactory.$inject = [ "$mdConstant", "$mdUtil", "$rootScope", "$window" ];
                     element.on("click", defaultClickListener);
                 }
                 element.on("keydown", keydownListener);
-                scope.onSwipe = onSwipe;
                 if (angular.isNumber(scope.$parent.$index)) {
                     watchNgRepeatIndex();
                 }
@@ -60759,15 +61910,6 @@ mdMediaFactory.$inject = [ "$mdConstant", "$mdUtil", "$rootScope", "$window" ];
                             tabsCtrl.focus(tabsCtrl.next(tabItemCtrl));
                         });
                     }
-                }
-                function onSwipe(ev) {
-                    scope.$apply(function() {
-                        if (ev.type === "swipeleft") {
-                            tabsCtrl.select(tabsCtrl.next());
-                        } else {
-                            tabsCtrl.select(tabsCtrl.previous());
-                        }
-                    });
                 }
                 function watchNgRepeatIndex() {
                     scope.$watch("$parent.$index", function $indexWatchAction(newIndex) {
@@ -60932,7 +62074,7 @@ mdMediaFactory.$inject = [ "$mdConstant", "$mdUtil", "$rootScope", "$window" ];
             scope: {
                 selectedIndex: "=?mdSelected"
             },
-            template: '<section class="md-header" ' + "ng-class=\"{'md-paginating': pagination.active}\">" + '<button class="md-paginator md-prev" ' + 'ng-if="pagination.active && pagination.hasPrev" ' + 'ng-click="pagination.clickPrevious()" ' + 'aria-hidden="true">' + "</button>" + '<div class="md-header-items-container" md-tabs-pagination>' + '<div class="md-header-items">' + "<md-tabs-ink-bar></md-tabs-ink-bar>" + "</div>" + "</div>" + '<button class="md-paginator md-next" ' + 'ng-if="pagination.active && pagination.hasNext" ' + 'ng-click="pagination.clickNext()" ' + 'aria-hidden="true">' + "</button>" + "</section>" + '<section class="md-tabs-content"></section>',
+            template: '<section class="md-header" ' + "ng-class=\"{'md-paginating': pagination.active}\">" + '<button class="md-paginator md-prev" ' + 'ng-if="pagination.active && pagination.hasPrev" ' + 'ng-click="pagination.clickPrevious()" ' + 'aria-hidden="true">' + '<md-icon md-svg-icon="tabs-arrow"></md-icon>' + "</button>" + '<div class="md-header-items-container" md-tabs-pagination>' + '<div class="md-header-items">' + "<md-tabs-ink-bar></md-tabs-ink-bar>" + "</div>" + "</div>" + '<button class="md-paginator md-next" ' + 'ng-if="pagination.active && pagination.hasNext" ' + 'ng-click="pagination.clickNext()" ' + 'aria-hidden="true">' + '<md-icon md-svg-icon="tabs-arrow"></md-icon>' + "</button>" + "</section>" + '<section class="md-tabs-content"></section>',
             link: postLink
         };
         function postLink(scope, element, attr, tabsCtrl, transclude) {
@@ -60965,7 +62107,7 @@ mdMediaFactory.$inject = [ "$mdConstant", "$mdUtil", "$rootScope", "$window" ];
     TabsDirective.$inject = [ "$mdTheming" ];
 })();
 
-angular.module("material.core").constant("$MD_THEME_CSS", "md-backdrop.md-opaque.md-THEME_NAME-theme {  background-color: '{{foreground-4-0.5}}';  position: absolute; }md-bottom-sheet.md-THEME_NAME-theme {  background-color: '{{background-50}}';  border-top-color: '{{background-300}}'; }  md-bottom-sheet.md-THEME_NAME-theme.md-list md-item {    color: '{{foreground-1}}'; }  md-bottom-sheet.md-THEME_NAME-theme .md-subheader {    background-color: '{{background-50}}'; }  md-bottom-sheet.md-THEME_NAME-theme .md-subheader {    color: '{{foreground-1}}'; }.md-button.md-THEME_NAME-theme {  border-radius: 3px; }  .md-button.md-THEME_NAME-theme:not([disabled]):hover, .md-button.md-THEME_NAME-theme:not([disabled]):focus {    background-color: '{{background-500-0.2}}'; }  .md-button.md-THEME_NAME-theme.md-primary {    color: '{{primary-color}}'; }    .md-button.md-THEME_NAME-theme.md-primary.md-raised, .md-button.md-THEME_NAME-theme.md-primary.md-fab {      color: '{{primary-contrast}}';      background-color: '{{primary-color}}'; }      .md-button.md-THEME_NAME-theme.md-primary.md-raised:not([disabled]):hover, .md-button.md-THEME_NAME-theme.md-primary.md-raised:not([disabled]):focus, .md-button.md-THEME_NAME-theme.md-primary.md-fab:not([disabled]):hover, .md-button.md-THEME_NAME-theme.md-primary.md-fab:not([disabled]):focus {        background-color: '{{primary-600}}'; }  .md-button.md-THEME_NAME-theme.md-fab {    border-radius: 50%; }  .md-button.md-THEME_NAME-theme.md-raised, .md-button.md-THEME_NAME-theme.md-fab {    color: '{{background-contrast}}';    background-color: '{{background-500-0.185}}'; }    .md-button.md-THEME_NAME-theme.md-raised:not([disabled]):hover, .md-button.md-THEME_NAME-theme.md-raised:not([disabled]):focus, .md-button.md-THEME_NAME-theme.md-fab:not([disabled]):hover, .md-button.md-THEME_NAME-theme.md-fab:not([disabled]):focus {      background-color: '{{background-500-0.3}}'; }  .md-button.md-THEME_NAME-theme.md-warn {    color: '{{warn-color}}'; }    .md-button.md-THEME_NAME-theme.md-warn.md-raised, .md-button.md-THEME_NAME-theme.md-warn.md-fab {      color: '{{warn-contrast}}';      background-color: '{{warn-color}}'; }      .md-button.md-THEME_NAME-theme.md-warn.md-raised:not([disabled]):hover, .md-button.md-THEME_NAME-theme.md-warn.md-raised:not([disabled]):focus, .md-button.md-THEME_NAME-theme.md-warn.md-fab:not([disabled]):hover, .md-button.md-THEME_NAME-theme.md-warn.md-fab:not([disabled]):focus {        background-color: '{{warn-700}}'; }  .md-button.md-THEME_NAME-theme.md-accent {    color: '{{accent-color}}'; }    .md-button.md-THEME_NAME-theme.md-accent.md-raised, .md-button.md-THEME_NAME-theme.md-accent.md-fab {      color: '{{accent-contrast}}';      background-color: '{{accent-color}}'; }      .md-button.md-THEME_NAME-theme.md-accent.md-raised:not([disabled]):hover, .md-button.md-THEME_NAME-theme.md-accent.md-raised:not([disabled]):focus, .md-button.md-THEME_NAME-theme.md-accent.md-fab:not([disabled]):hover, .md-button.md-THEME_NAME-theme.md-accent.md-fab:not([disabled]):focus {        background-color: '{{accent-700}}'; }  .md-button.md-THEME_NAME-theme[disabled], .md-button.md-THEME_NAME-theme.md-raised[disabled], .md-button.md-THEME_NAME-theme.md-fab[disabled] {    color: '{{foreground-3}}';    background-color: transparent;    cursor: not-allowed; }md-checkbox.md-THEME_NAME-theme .md-ripple {  color: '{{primary-600}}'; }md-checkbox.md-THEME_NAME-theme.md-checked .md-ripple {  color: '{{background-600}}'; }md-checkbox.md-THEME_NAME-theme .md-icon {  border-color: '{{foreground-2}}'; }md-checkbox.md-THEME_NAME-theme.md-checked .md-icon {  background-color: '{{primary-color-0.87}}'; }md-checkbox.md-THEME_NAME-theme.md-checked .md-icon:after {  border-color: '{{background-200}}'; }md-checkbox.md-THEME_NAME-theme:not([disabled]).md-accent .md-ripple {  color: '{{accent-600}}'; }md-checkbox.md-THEME_NAME-theme:not([disabled]).md-accent.md-checked .md-ripple {  color: '{{background-600}}'; }md-checkbox.md-THEME_NAME-theme:not([disabled]).md-accent .md-icon {  border-color: '{{foreground-2}}'; }md-checkbox.md-THEME_NAME-theme:not([disabled]).md-accent.md-checked .md-icon {  background-color: '{{accent-color-0.87}}'; }md-checkbox.md-THEME_NAME-theme:not([disabled]).md-accent.md-checked .md-icon:after {  border-color: '{{background-200}}'; }md-checkbox.md-THEME_NAME-theme:not([disabled]).md-warn .md-ripple {  color: '{{warn-600}}'; }md-checkbox.md-THEME_NAME-theme:not([disabled]).md-warn .md-icon {  border-color: '{{foreground-2}}'; }md-checkbox.md-THEME_NAME-theme:not([disabled]).md-warn.md-checked .md-icon {  background-color: '{{warn-color-0.87}}'; }md-checkbox.md-THEME_NAME-theme:not([disabled]).md-warn.md-checked .md-icon:after {  border-color: '{{background-200}}'; }md-checkbox.md-THEME_NAME-theme[disabled] .md-icon {  border-color: '{{foreground-3}}'; }md-checkbox.md-THEME_NAME-theme[disabled].md-checked .md-icon {  background-color: '{{foreground-3}}'; }md-card.md-THEME_NAME-theme {  border-radius: 2px; }  md-card.md-THEME_NAME-theme .md-card-image {    border-radius: 2px 2px 0 0; }md-content.md-THEME_NAME-theme {  background-color: '{{background-hue-3}}'; }md-dialog.md-THEME_NAME-theme {  border-radius: 4px;  background-color: '{{background-hue-3}}'; }  md-dialog.md-THEME_NAME-theme.md-content-overflow .md-actions {    border-top-color: '{{foreground-4}}'; }md-divider.md-THEME_NAME-theme {  border-top-color: '{{foreground-4}}'; }md-input-container.md-THEME_NAME-theme .md-input {  color: '{{foreground-1}}';  border-color: '{{foreground-4}}';  text-shadow: '{{foreground-shadow}}'; }  md-input-container.md-THEME_NAME-theme .md-input::-webkit-input-placeholder, md-input-container.md-THEME_NAME-theme .md-input::-moz-placeholder, md-input-container.md-THEME_NAME-theme .md-input:-moz-placeholder, md-input-container.md-THEME_NAME-theme .md-input:-ms-input-placeholder {    color: '{{foreground-3}}'; }md-input-container.md-THEME_NAME-theme label {  text-shadow: '{{foreground-shadow}}';  color: '{{foreground-3}}'; }md-input-container.md-THEME_NAME-theme:not(.md-input-invalid).md-input-has-value label {  color: '{{foreground-2}}'; }md-input-container.md-THEME_NAME-theme:not(.md-input-invalid).md-input-focused .md-input {  border-color: '{{primary-500}}'; }md-input-container.md-THEME_NAME-theme:not(.md-input-invalid).md-input-focused label {  color: '{{primary-500}}'; }md-input-container.md-THEME_NAME-theme:not(.md-input-invalid).md-input-focused.md-accent .md-input {  border-color: '{{accent-500}}'; }md-input-container.md-THEME_NAME-theme:not(.md-input-invalid).md-input-focused.md-accent label {  color: '{{accent-500}}'; }md-input-container.md-THEME_NAME-theme:not(.md-input-invalid).md-input-focused.md-warn .md-input {  border-color: '{{warn-500}}'; }md-input-container.md-THEME_NAME-theme:not(.md-input-invalid).md-input-focused.md-warn label {  color: '{{warn-500}}'; }md-input-container.md-THEME_NAME-theme.md-input-invalid .md-input {  border-color: '{{warn-500}}'; }md-input-container.md-THEME_NAME-theme.md-input-invalid label {  color: '{{warn-500}}'; }md-input-container.md-THEME_NAME-theme.md-input-invalid ng-message, md-input-container.md-THEME_NAME-theme.md-input-invalid data-ng-message, md-input-container.md-THEME_NAME-theme.md-input-invalid x-ng-message, md-input-container.md-THEME_NAME-theme.md-input-invalid [ng-message], md-input-container.md-THEME_NAME-theme.md-input-invalid [data-ng-message], md-input-container.md-THEME_NAME-theme.md-input-invalid [x-ng-message], md-input-container.md-THEME_NAME-theme.md-input-invalid .md-char-counter {  color: '{{warn-500}}'; }md-input-container.md-THEME_NAME-theme .md-input[disabled] {  border-bottom-color: transparent;  color: '{{foreground-3}}';  background-image: linear-gradient(to right, '{{foreground-4}}' 0%, '{{foreground-4}}' 33%, transparent 0%); }md-progress-circular.md-THEME_NAME-theme {  background-color: transparent; }  md-progress-circular.md-THEME_NAME-theme .md-inner .md-gap {    border-top-color: '{{primary-color}}';    border-bottom-color: '{{primary-color}}'; }  md-progress-circular.md-THEME_NAME-theme .md-inner .md-left .md-half-circle, md-progress-circular.md-THEME_NAME-theme .md-inner .md-right .md-half-circle {    border-top-color: '{{primary-color}}'; }  md-progress-circular.md-THEME_NAME-theme .md-inner .md-right .md-half-circle {    border-right-color: '{{primary-color}}'; }  md-progress-circular.md-THEME_NAME-theme .md-inner .md-left .md-half-circle {    border-left-color: '{{primary-color}}'; }  md-progress-circular.md-THEME_NAME-theme.md-warn .md-inner .md-gap {    border-top-color: '{{warn-color}}';    border-bottom-color: '{{warn-color}}'; }  md-progress-circular.md-THEME_NAME-theme.md-warn .md-inner .md-left .md-half-circle, md-progress-circular.md-THEME_NAME-theme.md-warn .md-inner .md-right .md-half-circle {    border-top-color: '{{warn-color}}'; }  md-progress-circular.md-THEME_NAME-theme.md-warn .md-inner .md-right .md-half-circle {    border-right-color: '{{warn-color}}'; }  md-progress-circular.md-THEME_NAME-theme.md-warn .md-inner .md-left .md-half-circle {    border-left-color: '{{warn-color}}'; }  md-progress-circular.md-THEME_NAME-theme.md-accent .md-inner .md-gap {    border-top-color: '{{accent-color}}';    border-bottom-color: '{{accent-color}}'; }  md-progress-circular.md-THEME_NAME-theme.md-accent .md-inner .md-left .md-half-circle, md-progress-circular.md-THEME_NAME-theme.md-accent .md-inner .md-right .md-half-circle {    border-top-color: '{{accent-color}}'; }  md-progress-circular.md-THEME_NAME-theme.md-accent .md-inner .md-right .md-half-circle {    border-right-color: '{{accent-color}}'; }  md-progress-circular.md-THEME_NAME-theme.md-accent .md-inner .md-left .md-half-circle {    border-left-color: '{{accent-color}}'; }md-progress-linear.md-THEME_NAME-theme .md-container {  background-color: '{{primary-100}}'; }md-progress-linear.md-THEME_NAME-theme .md-bar {  background-color: '{{primary-color}}'; }md-progress-linear.md-THEME_NAME-theme.md-warn .md-container {  background-color: '{{warn-100}}'; }md-progress-linear.md-THEME_NAME-theme.md-warn .md-bar {  background-color: '{{warn-color}}'; }md-progress-linear.md-THEME_NAME-theme.md-accent .md-container {  background-color: '{{accent-100}}'; }md-progress-linear.md-THEME_NAME-theme.md-accent .md-bar {  background-color: '{{accent-color}}'; }md-progress-linear.md-THEME_NAME-theme[md-mode=buffer].md-warn .md-bar1 {  background-color: '{{warn-100}}'; }md-progress-linear.md-THEME_NAME-theme[md-mode=buffer].md-warn .md-dashed:before {  background: radial-gradient('{{warn-100}}' 0%, '{{warn-100}}' 16%, transparent 42%); }md-progress-linear.md-THEME_NAME-theme[md-mode=buffer].md-accent .md-bar1 {  background-color: '{{accent-100}}'; }md-progress-linear.md-THEME_NAME-theme[md-mode=buffer].md-accent .md-dashed:before {  background: radial-gradient('{{accent-100}}' 0%, '{{accent-100}}' 16%, transparent 42%); }md-radio-button.md-THEME_NAME-theme .md-off {  border-color: '{{foreground-2}}'; }md-radio-button.md-THEME_NAME-theme .md-on {  background-color: '{{primary-color-0.87}}'; }md-radio-button.md-THEME_NAME-theme.md-checked .md-off {  border-color: '{{primary-color-0.87}}'; }md-radio-button.md-THEME_NAME-theme.md-checked .md-ink-ripple {  color: '{{primary-color-0.87}}'; }md-radio-button.md-THEME_NAME-theme .md-container .md-ripple {  color: '{{primary-600}}'; }md-radio-button.md-THEME_NAME-theme:not([disabled]).md-accent .md-on {  background-color: '{{accent-color-0.87}}'; }md-radio-button.md-THEME_NAME-theme:not([disabled]).md-accent.md-checked .md-off {  border-color: '{{accent-color-0.87}}'; }md-radio-button.md-THEME_NAME-theme:not([disabled]).md-accent.md-checked .md-ink-ripple {  color: '{{accent-color-0.87}}'; }md-radio-button.md-THEME_NAME-theme:not([disabled]).md-accent .md-container .md-ripple {  color: '{{accent-600}}'; }md-radio-button.md-THEME_NAME-theme:not([disabled]).md-warn .md-on {  background-color: '{{warn-color-0.87}}'; }md-radio-button.md-THEME_NAME-theme:not([disabled]).md-warn.md-checked .md-off {  border-color: '{{warn-color-0.87}}'; }md-radio-button.md-THEME_NAME-theme:not([disabled]).md-warn.md-checked .md-ink-ripple {  color: '{{warn-color-0.87}}'; }md-radio-button.md-THEME_NAME-theme:not([disabled]).md-warn .md-container .md-ripple {  color: '{{warn-600}}'; }md-radio-button.md-THEME_NAME-theme[disabled] .md-container .md-off {  border-color: '{{foreground-3}}'; }md-radio-button.md-THEME_NAME-theme[disabled] .md-container .md-on {  border-color: '{{foreground-3}}'; }md-radio-group.md-THEME_NAME-theme:focus:not(:empty) {  border-color: '{{foreground-1}}'; }md-sidenav.md-THEME_NAME-theme {  background-color: '{{background-hue-3}}'; }md-slider.md-THEME_NAME-theme .md-track {  background-color: '{{foreground-3}}'; }md-slider.md-THEME_NAME-theme .md-track-ticks {  background-color: '{{foreground-4}}'; }md-slider.md-THEME_NAME-theme .md-focus-thumb {  background-color: '{{foreground-2}}'; }md-slider.md-THEME_NAME-theme .md-focus-ring {  border-color: '{{foreground-4}}'; }md-slider.md-THEME_NAME-theme .md-disabled-thumb {  border-color: '{{background-hue-3}}'; }md-slider.md-THEME_NAME-theme.md-min .md-thumb:after {  background-color: '{{background-hue-3}}'; }md-slider.md-THEME_NAME-theme .md-track.md-track-fill {  background-color: '{{primary-color}}'; }md-slider.md-THEME_NAME-theme .md-thumb:after {  border-color: '{{primary-color}}';  background-color: '{{primary-color}}'; }md-slider.md-THEME_NAME-theme .md-sign {  background-color: '{{primary-color}}'; }  md-slider.md-THEME_NAME-theme .md-sign:after {    border-top-color: '{{primary-color}}'; }md-slider.md-THEME_NAME-theme .md-thumb-text {  color: '{{primary-contrast}}'; }md-slider.md-THEME_NAME-theme.md-warn .md-track-fill {  background-color: '{{warn-color}}'; }md-slider.md-THEME_NAME-theme.md-warn .md-thumb:after {  border-color: '{{warn-color}}';  background-color: '{{warn-color}}'; }md-slider.md-THEME_NAME-theme.md-warn .md-sign {  background-color: '{{warn-color}}'; }  md-slider.md-THEME_NAME-theme.md-warn .md-sign:after {    border-top-color: '{{warn-color}}'; }md-slider.md-THEME_NAME-theme.md-warn .md-thumb-text {  color: '{{warn-contrast}}'; }md-slider.md-THEME_NAME-theme.md-accent .md-track-fill {  background-color: '{{accent-color}}'; }md-slider.md-THEME_NAME-theme.md-accent .md-thumb:after {  border-color: '{{accent-color}}';  background-color: '{{accent-color}}'; }md-slider.md-THEME_NAME-theme.md-accent .md-sign {  background-color: '{{accent-color}}'; }  md-slider.md-THEME_NAME-theme.md-accent .md-sign:after {    border-top-color: '{{accent-color}}'; }md-slider.md-THEME_NAME-theme.md-accent .md-thumb-text {  color: '{{accent-contrast}}'; }md-slider.md-THEME_NAME-theme[disabled] .md-thumb:after {  border-color: '{{foreground-3}}'; }md-slider.md-THEME_NAME-theme[disabled]:not(.md-min) .md-thumb:after {  background-color: '{{foreground-3}}'; }.md-subheader.md-THEME_NAME-theme {  color: '{{ foreground-2-0.23 }}';  background-color: '{{background-hue-3}}'; }  .md-subheader.md-THEME_NAME-theme.md-primary {    color: '{{primary-color}}'; }  .md-subheader.md-THEME_NAME-theme.md-accent {    color: '{{accent-color}}'; }  .md-subheader.md-THEME_NAME-theme.md-warn {    color: '{{warn-color}}'; }md-switch.md-THEME_NAME-theme .md-thumb {  background-color: '{{background-50}}'; }md-switch.md-THEME_NAME-theme .md-bar {  background-color: '{{background-500}}'; }md-switch.md-THEME_NAME-theme.md-checked .md-thumb {  background-color: '{{primary-color}}'; }md-switch.md-THEME_NAME-theme.md-checked .md-bar {  background-color: '{{primary-color-0.5}}'; }md-switch.md-THEME_NAME-theme.md-checked.md-accent .md-thumb {  background-color: '{{accent-color}}'; }md-switch.md-THEME_NAME-theme.md-checked.md-accent .md-bar {  background-color: '{{accent-color-0.5}}'; }md-switch.md-THEME_NAME-theme.md-checked.md-warn .md-thumb {  background-color: '{{warn-color}}'; }md-switch.md-THEME_NAME-theme.md-checked.md-warn .md-bar {  background-color: '{{warn-color-0.5}}'; }md-switch.md-THEME_NAME-theme[disabled] .md-thumb {  background-color: '{{background-400}}'; }md-switch.md-THEME_NAME-theme[disabled] .md-bar {  background-color: '{{foreground-4}}'; }md-switch.md-THEME_NAME-theme:focus .md-label:not(:empty) {  border-color: '{{foreground-1}}';  border-style: dotted; }md-tabs.md-THEME_NAME-theme .md-header {  background-color: '{{primary-color}}'; }md-tabs.md-THEME_NAME-theme.md-accent .md-header {  background-color: '{{accent-color}}'; }md-tabs.md-THEME_NAME-theme.md-accent md-tab:not([disabled]) {  color: '{{accent-100}}'; }  md-tabs.md-THEME_NAME-theme.md-accent md-tab:not([disabled]).active {    color: '{{accent-contrast}}'; }md-tabs.md-THEME_NAME-theme.md-warn .md-header {  background-color: '{{warn-color}}'; }md-tabs.md-THEME_NAME-theme.md-warn md-tab:not([disabled]) {  color: '{{warn-100}}'; }  md-tabs.md-THEME_NAME-theme.md-warn md-tab:not([disabled]).active {    color: '{{warn-contrast}}'; }md-tabs.md-THEME_NAME-theme md-tabs-ink-bar {  color: '{{primary-contrast}}';  background: '{{primary-contrast}}'; }md-tabs.md-THEME_NAME-theme md-tab {  color: '{{primary-100}}'; }  md-tabs.md-THEME_NAME-theme md-tab.active {    color: '{{primary-contrast}}'; }  md-tabs.md-THEME_NAME-theme md-tab[disabled] {    color: '{{foreground-4}}'; }  md-tabs.md-THEME_NAME-theme md-tab:focus {    color: '{{primary-contrast}}';    background-color: '{{primary-contrast-0.1}}'; }  md-tabs.md-THEME_NAME-theme md-tab .md-ripple-container {    color: '{{primary-contrast}}'; }md-input-group.md-THEME_NAME-theme input, md-input-group.md-THEME_NAME-theme textarea {  text-shadow: '{{foreground-shadow}}'; }  md-input-group.md-THEME_NAME-theme input::-webkit-input-placeholder, md-input-group.md-THEME_NAME-theme input::-moz-placeholder, md-input-group.md-THEME_NAME-theme input:-moz-placeholder, md-input-group.md-THEME_NAME-theme input:-ms-input-placeholder, md-input-group.md-THEME_NAME-theme textarea::-webkit-input-placeholder, md-input-group.md-THEME_NAME-theme textarea::-moz-placeholder, md-input-group.md-THEME_NAME-theme textarea:-moz-placeholder, md-input-group.md-THEME_NAME-theme textarea:-ms-input-placeholder {    color: '{{foreground-3}}'; }md-input-group.md-THEME_NAME-theme label {  text-shadow: '{{foreground-shadow}}';  color: '{{foreground-3}}'; }md-input-group.md-THEME_NAME-theme input, md-input-group.md-THEME_NAME-theme textarea {  color: '{{foreground-1}}';  border-color: '{{foreground-4}}'; }md-input-group.md-THEME_NAME-theme.md-input-focused input, md-input-group.md-THEME_NAME-theme.md-input-focused textarea {  border-color: '{{primary-500}}'; }md-input-group.md-THEME_NAME-theme.md-input-focused label {  color: '{{primary-500}}'; }md-input-group.md-THEME_NAME-theme.md-input-focused.md-accent input, md-input-group.md-THEME_NAME-theme.md-input-focused.md-accent textarea {  border-color: '{{accent-500}}'; }md-input-group.md-THEME_NAME-theme.md-input-focused.md-accent label {  color: '{{accent-500}}'; }md-input-group.md-THEME_NAME-theme.md-input-has-value:not(.md-input-focused) label {  color: '{{foreground-2}}'; }md-input-group.md-THEME_NAME-theme .md-input[disabled] {  border-bottom-color: '{{foreground-4}}';  color: '{{foreground-3}}'; }md-toast.md-THEME_NAME-theme {  background-color: '{{foreground-1}}';  color: '{{background-50}}'; }  md-toast.md-THEME_NAME-theme .md-button {    color: '{{background-50}}'; }  md-toast.md-THEME_NAME-theme .md-action {    color: '{{primary-A200}}'; }    md-toast.md-THEME_NAME-theme .md-action.md-accent {      color: '{{accent-A200}}'; }    md-toast.md-THEME_NAME-theme .md-action.md-warn {      color: '{{warn-A200}}'; }md-toolbar.md-THEME_NAME-theme {  background-color: '{{primary-color}}';  color: '{{primary-contrast}}'; }  md-toolbar.md-THEME_NAME-theme .md-button {    color: '{{primary-contrast}}'; }  md-toolbar.md-THEME_NAME-theme.md-accent {    background-color: '{{accent-color}}';    color: '{{accent-contrast}}'; }  md-toolbar.md-THEME_NAME-theme.md-warn {    background-color: '{{warn-color}}';    color: '{{warn-contrast}}'; }md-tooltip.md-THEME_NAME-theme {  color: '{{background-A100}}'; }  md-tooltip.md-THEME_NAME-theme .md-background {    background-color: '{{foreground-2}}'; }");
+angular.module("material.core").constant("$MD_THEME_CSS", "md-autocomplete {  background: '{{background-50}}'; }  md-autocomplete button {    background: '{{background-200}}'; }  md-autocomplete ul {    background: '{{background-50}}'; }    md-autocomplete ul li {      border-top: 1px solid '{{background-400}}';      color: '{{background-900}}'; }      md-autocomplete ul li .highlight {        color: '{{background-600}}'; }      md-autocomplete ul li:hover, md-autocomplete ul li.selected {        background: '{{background-200}}'; }md-backdrop.md-opaque.md-THEME_NAME-theme {  background-color: '{{foreground-4-0.5}}'; }md-bottom-sheet.md-THEME_NAME-theme {  background-color: '{{background-50}}';  border-top-color: '{{background-300}}'; }  md-bottom-sheet.md-THEME_NAME-theme.md-list md-item {    color: '{{foreground-1}}'; }  md-bottom-sheet.md-THEME_NAME-theme .md-subheader {    background-color: '{{background-50}}'; }  md-bottom-sheet.md-THEME_NAME-theme .md-subheader {    color: '{{foreground-1}}'; }md-toolbar .md-button.md-THEME_NAME-theme.md-fab {  background-color: white; }.md-button.md-THEME_NAME-theme {  border-radius: 3px; }  .md-button.md-THEME_NAME-theme:not([disabled]):hover, .md-button.md-THEME_NAME-theme:not([disabled]):focus {    background-color: '{{background-500-0.2}}'; }  .md-button.md-THEME_NAME-theme.md-primary {    color: '{{primary-color}}'; }    .md-button.md-THEME_NAME-theme.md-primary.md-raised, .md-button.md-THEME_NAME-theme.md-primary.md-fab {      color: '{{primary-contrast}}';      background-color: '{{primary-color}}'; }      .md-button.md-THEME_NAME-theme.md-primary.md-raised:not([disabled]):hover, .md-button.md-THEME_NAME-theme.md-primary.md-raised:not([disabled]):focus, .md-button.md-THEME_NAME-theme.md-primary.md-fab:not([disabled]):hover, .md-button.md-THEME_NAME-theme.md-primary.md-fab:not([disabled]):focus {        background-color: '{{primary-600}}'; }  .md-button.md-THEME_NAME-theme.md-fab {    border-radius: 50%;    background-color: '{{accent-color}}';    color: '{{accent-contrast}}'; }    .md-button.md-THEME_NAME-theme.md-fab:not([disabled]):hover, .md-button.md-THEME_NAME-theme.md-fab:not([disabled]):focus {      background-color: '{{accent-A700}}'; }  .md-button.md-THEME_NAME-theme.md-raised {    color: '{{background-contrast}}';    background-color: '{{background-50}}'; }    .md-button.md-THEME_NAME-theme.md-raised:not([disabled]):hover, .md-button.md-THEME_NAME-theme.md-raised:not([disabled]):focus {      background-color: '{{background-200}}'; }  .md-button.md-THEME_NAME-theme.md-warn {    color: '{{warn-color}}'; }    .md-button.md-THEME_NAME-theme.md-warn.md-raised, .md-button.md-THEME_NAME-theme.md-warn.md-fab {      color: '{{warn-contrast}}';      background-color: '{{warn-color}}'; }      .md-button.md-THEME_NAME-theme.md-warn.md-raised:not([disabled]):hover, .md-button.md-THEME_NAME-theme.md-warn.md-raised:not([disabled]):focus, .md-button.md-THEME_NAME-theme.md-warn.md-fab:not([disabled]):hover, .md-button.md-THEME_NAME-theme.md-warn.md-fab:not([disabled]):focus {        background-color: '{{warn-700}}'; }  .md-button.md-THEME_NAME-theme.md-accent {    color: '{{accent-color}}'; }    .md-button.md-THEME_NAME-theme.md-accent.md-raised, .md-button.md-THEME_NAME-theme.md-accent.md-fab {      color: '{{accent-contrast}}';      background-color: '{{accent-color}}'; }      .md-button.md-THEME_NAME-theme.md-accent.md-raised:not([disabled]):hover, .md-button.md-THEME_NAME-theme.md-accent.md-raised:not([disabled]):focus, .md-button.md-THEME_NAME-theme.md-accent.md-fab:not([disabled]):hover, .md-button.md-THEME_NAME-theme.md-accent.md-fab:not([disabled]):focus {        background-color: '{{accent-700}}'; }  .md-button.md-THEME_NAME-theme[disabled], .md-button.md-THEME_NAME-theme.md-raised[disabled], .md-button.md-THEME_NAME-theme.md-fab[disabled] {    color: '{{foreground-3}}';    background-color: transparent;    cursor: not-allowed; }md-card.md-THEME_NAME-theme {  border-radius: 2px; }  md-card.md-THEME_NAME-theme .md-card-image {    border-radius: 2px 2px 0 0; }md-checkbox.md-THEME_NAME-theme .md-ripple {  color: '{{accent-600}}'; }md-checkbox.md-THEME_NAME-theme.md-checked .md-ripple {  color: '{{background-600}}'; }md-checkbox.md-THEME_NAME-theme .md-icon {  border-color: '{{foreground-2}}'; }md-checkbox.md-THEME_NAME-theme.md-checked .md-icon {  background-color: '{{accent-color-0.87}}'; }md-checkbox.md-THEME_NAME-theme.md-checked .md-icon:after {  border-color: '{{background-200}}'; }md-checkbox.md-THEME_NAME-theme:not([disabled]).md-primary .md-ripple {  color: '{{primary-600}}'; }md-checkbox.md-THEME_NAME-theme:not([disabled]).md-primary.md-checked .md-ripple {  color: '{{background-600}}'; }md-checkbox.md-THEME_NAME-theme:not([disabled]).md-primary .md-icon {  border-color: '{{foreground-2}}'; }md-checkbox.md-THEME_NAME-theme:not([disabled]).md-primary.md-checked .md-icon {  background-color: '{{primary-color-0.87}}'; }md-checkbox.md-THEME_NAME-theme:not([disabled]).md-primary.md-checked .md-icon:after {  border-color: '{{background-200}}'; }md-checkbox.md-THEME_NAME-theme:not([disabled]).md-warn .md-ripple {  color: '{{warn-600}}'; }md-checkbox.md-THEME_NAME-theme:not([disabled]).md-warn .md-icon {  border-color: '{{foreground-2}}'; }md-checkbox.md-THEME_NAME-theme:not([disabled]).md-warn.md-checked .md-icon {  background-color: '{{warn-color-0.87}}'; }md-checkbox.md-THEME_NAME-theme:not([disabled]).md-warn.md-checked .md-icon:after {  border-color: '{{background-200}}'; }md-checkbox.md-THEME_NAME-theme[disabled] .md-icon {  border-color: '{{foreground-3}}'; }md-checkbox.md-THEME_NAME-theme[disabled].md-checked .md-icon {  background-color: '{{foreground-3}}'; }md-content.md-THEME_NAME-theme {  background-color: '{{background-hue-3}}'; }md-dialog.md-THEME_NAME-theme {  border-radius: 4px;  background-color: '{{background-hue-3}}'; }  md-dialog.md-THEME_NAME-theme.md-content-overflow .md-actions {    border-top-color: '{{foreground-4}}'; }md-divider.md-THEME_NAME-theme {  border-top-color: '{{foreground-4}}'; }md-input-container.md-THEME_NAME-theme .md-input {  color: '{{foreground-1}}';  border-color: '{{foreground-4}}';  text-shadow: '{{foreground-shadow}}'; }  md-input-container.md-THEME_NAME-theme .md-input::-webkit-input-placeholder, md-input-container.md-THEME_NAME-theme .md-input::-moz-placeholder, md-input-container.md-THEME_NAME-theme .md-input:-moz-placeholder, md-input-container.md-THEME_NAME-theme .md-input:-ms-input-placeholder {    color: '{{foreground-3}}'; }md-input-container.md-THEME_NAME-theme label, md-input-container.md-THEME_NAME-theme .md-placeholder {  text-shadow: '{{foreground-shadow}}';  color: '{{foreground-3}}'; }md-input-container.md-THEME_NAME-theme:not(.md-input-invalid).md-input-has-value label {  color: '{{foreground-2}}'; }md-input-container.md-THEME_NAME-theme:not(.md-input-invalid).md-input-focused .md-input {  border-color: '{{primary-500}}'; }md-input-container.md-THEME_NAME-theme:not(.md-input-invalid).md-input-focused label {  color: '{{primary-500}}'; }md-input-container.md-THEME_NAME-theme:not(.md-input-invalid).md-input-focused.md-accent .md-input {  border-color: '{{accent-500}}'; }md-input-container.md-THEME_NAME-theme:not(.md-input-invalid).md-input-focused.md-accent label {  color: '{{accent-500}}'; }md-input-container.md-THEME_NAME-theme:not(.md-input-invalid).md-input-focused.md-warn .md-input {  border-color: '{{warn-500}}'; }md-input-container.md-THEME_NAME-theme:not(.md-input-invalid).md-input-focused.md-warn label {  color: '{{warn-500}}'; }md-input-container.md-THEME_NAME-theme.md-input-invalid .md-input {  border-color: '{{warn-500}}'; }md-input-container.md-THEME_NAME-theme.md-input-invalid label {  color: '{{warn-500}}'; }md-input-container.md-THEME_NAME-theme.md-input-invalid ng-message, md-input-container.md-THEME_NAME-theme.md-input-invalid data-ng-message, md-input-container.md-THEME_NAME-theme.md-input-invalid x-ng-message, md-input-container.md-THEME_NAME-theme.md-input-invalid [ng-message], md-input-container.md-THEME_NAME-theme.md-input-invalid [data-ng-message], md-input-container.md-THEME_NAME-theme.md-input-invalid [x-ng-message], md-input-container.md-THEME_NAME-theme.md-input-invalid .md-char-counter {  color: '{{warn-500}}'; }md-input-container.md-THEME_NAME-theme .md-input[disabled], [disabled] md-input-container.md-THEME_NAME-theme .md-input {  border-bottom-color: transparent;  color: '{{foreground-3}}';  background-image: linear-gradient(to right, '{{foreground-4}}' 0%, '{{foreground-4}}' 33%, transparent 0%);  background-image: -ms-linear-gradient(left, transparent 0%, '{{foreground-4}}' 100%); }md-progress-circular.md-THEME_NAME-theme {  background-color: transparent; }  md-progress-circular.md-THEME_NAME-theme .md-inner .md-gap {    border-top-color: '{{primary-color}}';    border-bottom-color: '{{primary-color}}'; }  md-progress-circular.md-THEME_NAME-theme .md-inner .md-left .md-half-circle, md-progress-circular.md-THEME_NAME-theme .md-inner .md-right .md-half-circle {    border-top-color: '{{primary-color}}'; }  md-progress-circular.md-THEME_NAME-theme .md-inner .md-right .md-half-circle {    border-right-color: '{{primary-color}}'; }  md-progress-circular.md-THEME_NAME-theme .md-inner .md-left .md-half-circle {    border-left-color: '{{primary-color}}'; }  md-progress-circular.md-THEME_NAME-theme.md-warn .md-inner .md-gap {    border-top-color: '{{warn-color}}';    border-bottom-color: '{{warn-color}}'; }  md-progress-circular.md-THEME_NAME-theme.md-warn .md-inner .md-left .md-half-circle, md-progress-circular.md-THEME_NAME-theme.md-warn .md-inner .md-right .md-half-circle {    border-top-color: '{{warn-color}}'; }  md-progress-circular.md-THEME_NAME-theme.md-warn .md-inner .md-right .md-half-circle {    border-right-color: '{{warn-color}}'; }  md-progress-circular.md-THEME_NAME-theme.md-warn .md-inner .md-left .md-half-circle {    border-left-color: '{{warn-color}}'; }  md-progress-circular.md-THEME_NAME-theme.md-accent .md-inner .md-gap {    border-top-color: '{{accent-color}}';    border-bottom-color: '{{accent-color}}'; }  md-progress-circular.md-THEME_NAME-theme.md-accent .md-inner .md-left .md-half-circle, md-progress-circular.md-THEME_NAME-theme.md-accent .md-inner .md-right .md-half-circle {    border-top-color: '{{accent-color}}'; }  md-progress-circular.md-THEME_NAME-theme.md-accent .md-inner .md-right .md-half-circle {    border-right-color: '{{accent-color}}'; }  md-progress-circular.md-THEME_NAME-theme.md-accent .md-inner .md-left .md-half-circle {    border-left-color: '{{accent-color}}'; }md-progress-linear.md-THEME_NAME-theme .md-container {  background-color: '{{primary-100}}'; }md-progress-linear.md-THEME_NAME-theme .md-bar {  background-color: '{{primary-color}}'; }md-progress-linear.md-THEME_NAME-theme.md-warn .md-container {  background-color: '{{warn-100}}'; }md-progress-linear.md-THEME_NAME-theme.md-warn .md-bar {  background-color: '{{warn-color}}'; }md-progress-linear.md-THEME_NAME-theme.md-accent .md-container {  background-color: '{{accent-100}}'; }md-progress-linear.md-THEME_NAME-theme.md-accent .md-bar {  background-color: '{{accent-color}}'; }md-progress-linear.md-THEME_NAME-theme[md-mode=buffer].md-warn .md-bar1 {  background-color: '{{warn-100}}'; }md-progress-linear.md-THEME_NAME-theme[md-mode=buffer].md-warn .md-dashed:before {  background: radial-gradient('{{warn-100}}' 0%, '{{warn-100}}' 16%, transparent 42%); }md-progress-linear.md-THEME_NAME-theme[md-mode=buffer].md-accent .md-bar1 {  background-color: '{{accent-100}}'; }md-progress-linear.md-THEME_NAME-theme[md-mode=buffer].md-accent .md-dashed:before {  background: radial-gradient('{{accent-100}}' 0%, '{{accent-100}}' 16%, transparent 42%); }md-radio-button.md-THEME_NAME-theme .md-off {  border-color: '{{foreground-2}}'; }md-radio-button.md-THEME_NAME-theme .md-on {  background-color: '{{accent-color-0.87}}'; }md-radio-button.md-THEME_NAME-theme.md-checked .md-off {  border-color: '{{accent-color-0.87}}'; }md-radio-button.md-THEME_NAME-theme.md-checked .md-ink-ripple {  color: '{{accent-color-0.87}}'; }md-radio-button.md-THEME_NAME-theme .md-container .md-ripple {  color: '{{accent-600}}'; }md-radio-button.md-THEME_NAME-theme:not([disabled]).md-primary .md-on {  background-color: '{{primary-color-0.87}}'; }md-radio-button.md-THEME_NAME-theme:not([disabled]).md-primary.md-checked .md-off {  border-color: '{{primary-color-0.87}}'; }md-radio-button.md-THEME_NAME-theme:not([disabled]).md-primary.md-checked .md-ink-ripple {  color: '{{primary-color-0.87}}'; }md-radio-button.md-THEME_NAME-theme:not([disabled]).md-primary .md-container .md-ripple {  color: '{{primary-600}}'; }md-radio-button.md-THEME_NAME-theme:not([disabled]).md-warn .md-on {  background-color: '{{warn-color-0.87}}'; }md-radio-button.md-THEME_NAME-theme:not([disabled]).md-warn.md-checked .md-off {  border-color: '{{warn-color-0.87}}'; }md-radio-button.md-THEME_NAME-theme:not([disabled]).md-warn.md-checked .md-ink-ripple {  color: '{{warn-color-0.87}}'; }md-radio-button.md-THEME_NAME-theme:not([disabled]).md-warn .md-container .md-ripple {  color: '{{warn-600}}'; }md-radio-button.md-THEME_NAME-theme[disabled] .md-container .md-off {  border-color: '{{foreground-3}}'; }md-radio-button.md-THEME_NAME-theme[disabled] .md-container .md-on {  border-color: '{{foreground-3}}'; }md-radio-group.md-THEME_NAME-theme:focus:not(:empty) {  border-color: '{{foreground-1}}'; }md-sidenav.md-THEME_NAME-theme {  background-color: '{{background-hue-3}}'; }md-slider.md-THEME_NAME-theme .md-track {  background-color: '{{foreground-3}}'; }md-slider.md-THEME_NAME-theme .md-track-ticks {  background-color: '{{foreground-4}}'; }md-slider.md-THEME_NAME-theme .md-focus-thumb {  background-color: '{{foreground-2}}'; }md-slider.md-THEME_NAME-theme .md-focus-ring {  border-color: '{{foreground-4}}'; }md-slider.md-THEME_NAME-theme .md-disabled-thumb {  border-color: '{{background-hue-3}}'; }md-slider.md-THEME_NAME-theme.md-min .md-thumb:after {  background-color: '{{background-hue-3}}'; }md-slider.md-THEME_NAME-theme .md-track.md-track-fill {  background-color: '{{accent-color}}'; }md-slider.md-THEME_NAME-theme .md-thumb:after {  border-color: '{{accent-color}}';  background-color: '{{accent-color}}'; }md-slider.md-THEME_NAME-theme .md-sign {  background-color: '{{accent-color}}'; }  md-slider.md-THEME_NAME-theme .md-sign:after {    border-top-color: '{{accent-color}}'; }md-slider.md-THEME_NAME-theme .md-thumb-text {  color: '{{accent-contrast}}'; }md-slider.md-THEME_NAME-theme.md-warn .md-track.md-track-fill {  background-color: '{{warn-color}}'; }md-slider.md-THEME_NAME-theme.md-warn .md-thumb:after {  border-color: '{{warn-color}}';  background-color: '{{warn-color}}'; }md-slider.md-THEME_NAME-theme.md-warn .md-sign {  background-color: '{{warn-color}}'; }  md-slider.md-THEME_NAME-theme.md-warn .md-sign:after {    border-top-color: '{{warn-color}}'; }md-slider.md-THEME_NAME-theme.md-warn .md-thumb-text {  color: '{{warn-contrast}}'; }md-slider.md-THEME_NAME-theme.md-primary .md-track.md-track-fill {  background-color: '{{primary-color}}'; }md-slider.md-THEME_NAME-theme.md-primary .md-thumb:after {  border-color: '{{primary-color}}';  background-color: '{{primary-color}}'; }md-slider.md-THEME_NAME-theme.md-primary .md-sign {  background-color: '{{primary-color}}'; }  md-slider.md-THEME_NAME-theme.md-primary .md-sign:after {    border-top-color: '{{primary-color}}'; }md-slider.md-THEME_NAME-theme.md-primary .md-thumb-text {  color: '{{primary-contrast}}'; }md-slider.md-THEME_NAME-theme[disabled] .md-thumb:after {  border-color: '{{foreground-3}}'; }md-slider.md-THEME_NAME-theme[disabled]:not(.md-min) .md-thumb:after {  background-color: '{{foreground-3}}'; }.md-subheader.md-THEME_NAME-theme {  color: '{{ foreground-2-0.23 }}';  background-color: '{{background-hue-3}}'; }  .md-subheader.md-THEME_NAME-theme.md-primary {    color: '{{primary-color}}'; }  .md-subheader.md-THEME_NAME-theme.md-accent {    color: '{{accent-color}}'; }  .md-subheader.md-THEME_NAME-theme.md-warn {    color: '{{warn-color}}'; }md-switch.md-THEME_NAME-theme .md-thumb {  background-color: '{{background-50}}'; }md-switch.md-THEME_NAME-theme .md-bar {  background-color: '{{background-500}}'; }md-switch.md-THEME_NAME-theme.md-checked .md-thumb {  background-color: '{{accent-color}}'; }md-switch.md-THEME_NAME-theme.md-checked .md-bar {  background-color: '{{accent-color-0.5}}'; }md-switch.md-THEME_NAME-theme.md-checked.md-primary .md-thumb {  background-color: '{{primary-color}}'; }md-switch.md-THEME_NAME-theme.md-checked.md-primary .md-bar {  background-color: '{{primary-color-0.5}}'; }md-switch.md-THEME_NAME-theme.md-checked.md-warn .md-thumb {  background-color: '{{warn-color}}'; }md-switch.md-THEME_NAME-theme.md-checked.md-warn .md-bar {  background-color: '{{warn-color-0.5}}'; }md-switch.md-THEME_NAME-theme[disabled] .md-thumb {  background-color: '{{background-400}}'; }md-switch.md-THEME_NAME-theme[disabled] .md-bar {  background-color: '{{foreground-4}}'; }md-switch.md-THEME_NAME-theme:focus .md-label:not(:empty) {  border-color: '{{foreground-1}}';  border-style: dotted; }md-tabs.md-THEME_NAME-theme .md-header {  background-color: transparent; }md-tabs.md-THEME_NAME-theme .md-paginator md-icon {  color: '{{primary-color}}'; }md-tabs.md-THEME_NAME-theme.md-accent .md-header {  background-color: '{{accent-color}}'; }md-tabs.md-THEME_NAME-theme.md-accent md-tab:not([disabled]) {  color: '{{accent-100}}'; }  md-tabs.md-THEME_NAME-theme.md-accent md-tab:not([disabled]).active {    color: '{{accent-contrast}}'; }md-tabs.md-THEME_NAME-theme.md-primary .md-header {  background-color: '{{primary-color}}'; }md-tabs.md-THEME_NAME-theme.md-primary md-tab:not([disabled]) {  color: '{{primary-100}}'; }  md-tabs.md-THEME_NAME-theme.md-primary md-tab:not([disabled]).active {    color: '{{primary-contrast}}'; }md-tabs.md-THEME_NAME-theme.md-primary md-tab {  color: '{{primary-100}}'; }  md-tabs.md-THEME_NAME-theme.md-primary md-tab[disabled] {    color: '{{foreground-3}}'; }  md-tabs.md-THEME_NAME-theme.md-primary md-tab:focus {    color: '{{primary-contrast}}';    background-color: '{{primary-contrast-0.1}}'; }  md-tabs.md-THEME_NAME-theme.md-primary md-tab.active {    color: '{{primary-contrast}}'; }  md-tabs.md-THEME_NAME-theme.md-primary md-tab .md-ripple-container {    color: '{{primary-contrast}}'; }md-tabs.md-THEME_NAME-theme.md-warn .md-header {  background-color: '{{warn-color}}'; }md-tabs.md-THEME_NAME-theme.md-warn md-tab:not([disabled]) {  color: '{{warn-100}}'; }  md-tabs.md-THEME_NAME-theme.md-warn md-tab:not([disabled]).active {    color: '{{warn-contrast}}'; }md-tabs.md-THEME_NAME-theme md-tabs-ink-bar {  color: '{{accent-color}}';  background: '{{accent-color}}'; }md-tabs.md-THEME_NAME-theme md-tab {  color: '{{foreground-2}}'; }  md-tabs.md-THEME_NAME-theme md-tab[disabled] {    color: '{{foreground-3}}'; }  md-tabs.md-THEME_NAME-theme md-tab:focus {    color: '{{foreground-1}}'; }  md-tabs.md-THEME_NAME-theme md-tab.active {    color: '{{primary-color}}'; }  md-tabs.md-THEME_NAME-theme md-tab .md-ripple-container {    color: '{{accent-100}}'; }md-input-group.md-THEME_NAME-theme input, md-input-group.md-THEME_NAME-theme textarea {  text-shadow: '{{foreground-shadow}}'; }  md-input-group.md-THEME_NAME-theme input::-webkit-input-placeholder, md-input-group.md-THEME_NAME-theme input::-moz-placeholder, md-input-group.md-THEME_NAME-theme input:-moz-placeholder, md-input-group.md-THEME_NAME-theme input:-ms-input-placeholder, md-input-group.md-THEME_NAME-theme textarea::-webkit-input-placeholder, md-input-group.md-THEME_NAME-theme textarea::-moz-placeholder, md-input-group.md-THEME_NAME-theme textarea:-moz-placeholder, md-input-group.md-THEME_NAME-theme textarea:-ms-input-placeholder {    color: '{{foreground-3}}'; }md-input-group.md-THEME_NAME-theme label {  text-shadow: '{{foreground-shadow}}';  color: '{{foreground-3}}'; }md-input-group.md-THEME_NAME-theme input, md-input-group.md-THEME_NAME-theme textarea {  color: '{{foreground-1}}';  border-color: '{{foreground-4}}'; }md-input-group.md-THEME_NAME-theme.md-input-focused input, md-input-group.md-THEME_NAME-theme.md-input-focused textarea {  border-color: '{{primary-500}}'; }md-input-group.md-THEME_NAME-theme.md-input-focused label {  color: '{{primary-500}}'; }md-input-group.md-THEME_NAME-theme.md-input-focused.md-accent input, md-input-group.md-THEME_NAME-theme.md-input-focused.md-accent textarea {  border-color: '{{accent-500}}'; }md-input-group.md-THEME_NAME-theme.md-input-focused.md-accent label {  color: '{{accent-500}}'; }md-input-group.md-THEME_NAME-theme.md-input-has-value:not(.md-input-focused) label {  color: '{{foreground-2}}'; }md-input-group.md-THEME_NAME-theme .md-input[disabled] {  border-bottom-color: '{{foreground-4}}';  color: '{{foreground-3}}'; }md-toast.md-THEME_NAME-theme {  background-color: '{{foreground-1}}';  color: '{{background-50}}'; }  md-toast.md-THEME_NAME-theme .md-button {    color: '{{background-50}}'; }    md-toast.md-THEME_NAME-theme .md-button.md-highlight {      color: '{{primary-A200}}'; }      md-toast.md-THEME_NAME-theme .md-button.md-highlight.md-accent {        color: '{{accent-A200}}'; }      md-toast.md-THEME_NAME-theme .md-button.md-highlight.md-warn {        color: '{{warn-A200}}'; }md-toolbar.md-THEME_NAME-theme {  background-color: '{{primary-color}}';  color: '{{primary-contrast}}'; }  md-toolbar.md-THEME_NAME-theme .md-button {    color: '{{primary-contrast}}'; }  md-toolbar.md-THEME_NAME-theme.md-accent {    background-color: '{{accent-color}}';    color: '{{accent-contrast}}'; }  md-toolbar.md-THEME_NAME-theme.md-warn {    background-color: '{{warn-color}}';    color: '{{warn-contrast}}'; }md-tooltip.md-THEME_NAME-theme {  color: '{{background-A100}}'; }  md-tooltip.md-THEME_NAME-theme .md-background {    background-color: '{{foreground-2}}'; }");
 
 (function(window, angular, undefined) {
     "use strict";
