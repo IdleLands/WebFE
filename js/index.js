@@ -199,17 +199,21 @@
 
 (function() {
   angular.module('IdleLands').controller('Login', [
-    '$scope', '$state', 'API', 'CredentialCache', 'CurrentPlayer', 'TurnTaker', function($scope, $state, API, CredentialCache, Player, TurnTaker) {
+    '$scope', '$state', 'API', 'CredentialCache', 'CurrentPlayer', 'TurnTaker', '$interval', 'EventIcons', function($scope, $state, API, CredentialCache, Player, TurnTaker, $interval, EventIcons) {
       var goToPlayerView;
       $scope.selectedIndex = 0;
       $scope.selectTab = function(tabIndex) {
         return $scope.selectedIndex = tabIndex;
       };
+      goToPlayerView = function() {
+        $interval.cancel($scope.eventInt);
+        return $state.go('player.overview');
+      };
       if (!Player.getPlayer()) {
         CredentialCache.tryLogin().then((function() {
           if (Player.getPlayer()) {
             TurnTaker.beginTakingTurns(Player.getPlayer());
-            return $state.go('player.overview');
+            return goToPlayerView();
           }
         }));
       }
@@ -219,9 +223,6 @@
       $scope.isSubmitting = false;
       $scope.nameToIdentifier = function(name) {
         return "web-fe#" + name;
-      };
-      goToPlayerView = function() {
-        return $state.go('player.overview');
       };
       $scope.doLogin = function() {
         var data;
@@ -245,7 +246,7 @@
           return $scope.isSubmitting = false;
         });
       };
-      return $scope.sendLogin = function(data) {
+      $scope.sendLogin = function(data) {
         var failure, success;
         $scope.isSubmitting = true;
         success = function(res) {
@@ -260,6 +261,27 @@
         };
         return API.auth.login(data).then(success, failure);
       };
+      $scope.eventTypeToIcon = EventIcons;
+      $scope._events = [];
+      $scope.getEvents = function(size) {
+        var opts;
+        if (size == null) {
+          size = 'small';
+        }
+        opts = {};
+        if ($scope._events.length > 0) {
+          opts.newerThan = new Date($scope._events[0].createdAt).getTime();
+        }
+        return (API.events[size](opts)).then(function(res) {
+          var _ref;
+          (_ref = $scope._events).unshift.apply(_ref, res.data.events);
+          if ($scope._events.length > 200) {
+            return $scope._events.length = 200;
+          }
+        });
+      };
+      $scope.getEvents('medium');
+      return $scope.eventInt = $interval($scope.getEvents.bind(null, 'small'), 5200);
     }
   ]);
 
@@ -1683,7 +1705,7 @@
 
 (function() {
   angular.module('IdleLands').controller('PlayerOverview', [
-    '$scope', '$timeout', '$interval', '$state', 'CurrentPlayer', 'API', 'CurrentBattle', 'FunMessages', function($scope, $timeout, $interval, $state, Player, API, CurrentBattle, FunMessages) {
+    '$scope', '$timeout', '$interval', '$state', 'CurrentPlayer', 'API', 'CurrentBattle', 'FunMessages', 'EventIcons', function($scope, $timeout, $interval, $state, Player, API, CurrentBattle, FunMessages, EventIcons) {
       $scope.personalityToggle = {};
       $scope.equipmentStatArray = [
         {
@@ -1724,26 +1746,7 @@
           fa: 'icon-snow'
         }
       ];
-      $scope.eventTypeToIcon = {
-        'item-mod': 'fa-legal',
-        'item-find': 'icon-feather',
-        'item-enchant': 'fa-magic',
-        'item-switcheroo': 'icon-magnet',
-        'shop': 'fa-money',
-        'shop-fail': 'fa-money',
-        'profession': 'fa-child',
-        'explore': 'fa-globe',
-        'levelup': 'icon-universal-access',
-        'achievement': 'fa-shield',
-        'party': 'fa-users',
-        'exp': 'fa-support',
-        'gold': 'icon-money',
-        'combat': 'fa-newspaper-o faa-pulse animated',
-        'event': 'fa-gift faa-shake animated',
-        'pet': 'fa-paw',
-        'guild': 'fa-sitemap',
-        'towncrier': 'fa-quote-left'
-      };
+      $scope.eventTypeToIcon = EventIcons;
       $scope.praying = false;
       $scope.prayText = 'Pray to RNGesus';
       $scope.prayMessages = FunMessages.messages;
@@ -2094,7 +2097,7 @@
   angular.module('IdleLands').factory('ToastInterceptor', [
     '$injector', function($injector) {
       var badMessages, canShowMessage;
-      badMessages = ['Turn taken.', 'Token validation failed.', 'You can only have one turn every 10 seconds!', 'Map retrieved successfully.', 'Successfully retrieved custom content listing.'];
+      badMessages = ['Turn taken.', 'Token validation failed.', 'You can only have one turn every 10 seconds!', 'Map retrieved successfully.', 'Successfully retrieved custom content listing.', 'You can only make this request once every 5 seconds!', 'You can only make this request once every 30 seconds!'];
       canShowMessage = function(response) {
         var msg;
         msg = response.data.message;
@@ -2155,7 +2158,7 @@
 
 (function() {
   angular.module('IdleLands').factory('API', [
-    'Authentication', 'Action', 'Battle', 'Personality', 'Pushbullet', 'Strings', 'Gender', 'Inventory', 'Shop', 'Priority', 'Pet', 'Custom', 'Title', 'Guild', function(Authentication, Action, Battle, Personality, Pushbullet, Strings, Gender, Inventory, Shop, Priority, Pet, Custom, Title, Guild) {
+    'Authentication', 'Action', 'Battle', 'Personality', 'Pushbullet', 'Strings', 'Gender', 'Inventory', 'Shop', 'Priority', 'Pet', 'Custom', 'Title', 'Guild', 'EventStream', function(Authentication, Action, Battle, Personality, Pushbullet, Strings, Gender, Inventory, Shop, Priority, Pet, Custom, Title, Guild, EventStream) {
       return {
         auth: Authentication,
         action: Action,
@@ -2170,7 +2173,8 @@
         pet: Pet,
         custom: Custom,
         title: Title,
-        guild: Guild
+        guild: Guild,
+        events: EventStream
       };
     }
   ]);
@@ -2236,6 +2240,27 @@
         },
         redeem: function(data) {
           return $http.post("" + url + "/redeem", data);
+        }
+      };
+    }
+  ]);
+
+}).call(this);
+
+(function() {
+  angular.module('IdleLands').factory('EventStream', [
+    '$http', 'BaseURL', function($http, baseURL) {
+      var url;
+      url = "" + baseURL + "/game/events";
+      return {
+        small: function(data) {
+          return $http.post("" + url + "/small", data);
+        },
+        medium: function(data) {
+          return $http.post("" + url + "/medium", data);
+        },
+        large: function(data) {
+          return $http.put("" + url + "/large", data);
         }
       };
     }
@@ -2632,6 +2657,30 @@
       };
     }
   ]);
+
+}).call(this);
+
+(function() {
+  angular.module('IdleLands').constant('EventIcons', {
+    'item-mod': 'fa-legal',
+    'item-find': 'icon-feather',
+    'item-enchant': 'fa-magic',
+    'item-switcheroo': 'icon-magnet',
+    'shop': 'fa-money',
+    'shop-fail': 'fa-money',
+    'profession': 'fa-child',
+    'explore': 'fa-globe',
+    'levelup': 'icon-universal-access',
+    'achievement': 'fa-shield',
+    'party': 'fa-users',
+    'exp': 'fa-support',
+    'gold': 'icon-money',
+    'combat': 'fa-newspaper-o faa-pulse animated',
+    'event': 'fa-gift faa-shake animated',
+    'pet': 'fa-paw',
+    'guild': 'fa-sitemap',
+    'towncrier': 'fa-quote-left'
+  });
 
 }).call(this);
 

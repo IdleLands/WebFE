@@ -44,22 +44,48 @@
 
 
 <script id="login" type="text/ng-template">
-  <md-content>
-    <md-card layout="row" flex="50" offset="25" layout-align="center" id="login-tabs">
-      <md-card-content>
-        <md-tabs md-selected="selectedIndex">
-          <md-tab on-select="selectTab(0)" label="Login" ng-disabled="isSubmitting">
-            <div layout="row" layout-fill="layout-fill" layout-align="left center" ng-include="'login-login'" class="tab"></div>
-          </md-tab>
-          <md-tab on-select="selectTab(1)" label="Register" ng-disabled="isSubmitting">
-            <div layout="row" layout-fill="layout-fill" layout-align="left center" ng-include="'login-register'" class="tab"></div>
-          </md-tab>
-          <md-tab on-select="selectTab(2)" label="Advanced Login" ng-disabled="isSubmitting">
-            <div layout="row" layout-fill="layout-fill" layout-align="left center" ng-include="'login-advlogin'" class="tab"></div>
-          </md-tab>
-        </md-tabs>
-      </md-card-content>
-    </md-card>
+  <md-content layout="row" class="is-flex auto-flex">
+    <div flex="45" offset="10">
+      <md-card layout="row" layout-align="center" id="login-tabs" style="height: 365px">
+        <md-card-content>
+          <md-toolbar>
+            <div class="md-toolbar-tools">
+              <h3>Portal to Idliathlia</h3>
+            </div>
+          </md-toolbar>
+          <md-tabs md-selected="selectedIndex">
+            <md-tab on-select="selectTab(0)" label="Login" ng-disabled="isSubmitting">
+              <div layout="row" layout-fill="layout-fill" layout-align="left center" ng-include="'login-login'" class="tab"></div>
+            </md-tab>
+            <md-tab on-select="selectTab(1)" label="Register" ng-disabled="isSubmitting">
+              <div layout="row" layout-fill="layout-fill" layout-align="left center" ng-include="'login-register'" class="tab"></div>
+            </md-tab>
+            <md-tab on-select="selectTab(2)" label="Advanced Login" ng-disabled="isSubmitting">
+              <div layout="row" layout-fill="layout-fill" layout-align="left center" ng-include="'login-advlogin'" class="tab"></div>
+            </md-tab>
+          </md-tabs>
+        </md-card-content>
+      </md-card>
+    </div>
+    <div flex="35">
+      <md-card>
+        <md-card-content>
+          <md-toolbar>
+            <div class="md-toolbar-tools">
+              <h3>Live Action</h3>
+            </div>
+          </md-toolbar>
+          <md-content flex="85" style="flex-basis:400px;height:400px;overflow-x:hidden;height:700px" layout="column" class="is-flex auto-flex">
+            <div style="min-height:150px; max-height:300px" flex="100" ng-repeat="event in _events" layout="row" class="is-flex auto-flex adventure-log-item">
+              <div flex="10" class="text-center vertical-center"><span class="fa fa-fw fa-2x {{::eventTypeToIcon[event.type]}}"></span></div>
+              <div flex="90"><small am-time-ago="event.createdAt"></small>
+                <div ng-bind-html="event.message | linky:'_blank'"></div>
+              </div>
+            </div>
+          </md-content>
+        </md-card-content>
+      </md-card>
+    </div>
   </md-content>
 </script>
 
@@ -768,9 +794,10 @@
               <div class="vital-stat"><span class="fa fa-fw fa-question fa-lg vertical-center"></span><span>&nbsp;</span><small><a target="_blank" href="https://github.com/IdleLands/IdleLands/wiki/New-Player-Guide#faq" class="inline-link">FAQ</a></small></div>
               <div class="vital-stat"><span class="fa fa-fw fa-bar-chart fa-lg vertical-center"></span><span>&nbsp;</span><small><a target="_blank" href="http://idle.land/s/analytics/{{player.name}}" class="inline-link">Your Analytics</a></small></div>
               <div class="vital-stat"><span class="fa fa-fw fa-reddit fa-lg vertical-center"></span><span>&nbsp;</span><small><a target="_blank" href="http://reddit.com/r/idle_lands" class="inline-link">/r/idle_lands</a></small></div>
-              <div class="vital-stat"><span class="fa fa-fw fa-github fa-lg vertical-center"></span><span>&nbsp;</span><small><a target="_blank" href="https://github.com/IdleLands/IdleLands" class="inline-link">IdleLands @ GitHub</a></small></div>
-              <div class="vital-stat"><span class="fa fa-fw fa-thumbs-up fa-lg vertical-center"></span><span>&nbsp;</span><small><a target="_blank" href="http://idle.land/s/thanks" class="inline-link">Special Thanks</a></small></div>
             </div>
+            <div class="vital-stat"><span class="fa fa-fw fa-rss fa-lg vertical-center"></span><span>&nbsp;</span><small><a target="_blank" href="http://blog.idle.land" class="inline-link">Blog</a></small></div>
+            <div class="vital-stat"><span class="fa fa-fw fa-github fa-lg vertical-center"></span><span>&nbsp;</span><small><a target="_blank" href="https://github.com/IdleLands/IdleLands" class="inline-link">IdleLands @ GitHub</a></small></div>
+            <div class="vital-stat"><span class="fa fa-fw fa-thumbs-up fa-lg vertical-center"></span><span>&nbsp;</span><small><a target="_blank" href="http://idle.land/s/thanks" class="inline-link">Special Thanks</a></small></div>
           </md-content>
         </md-card-content>
       </md-card>
