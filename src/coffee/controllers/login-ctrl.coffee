@@ -1,15 +1,19 @@
 angular.module 'IdleLands'
   .controller 'Login', [
-    '$scope', '$state', 'API', 'CredentialCache', 'CurrentPlayer', 'TurnTaker'
-    ($scope, $state, API, CredentialCache, Player, TurnTaker) ->
+    '$scope', '$state', 'API', 'CredentialCache', 'CurrentPlayer', 'TurnTaker', '$interval', 'EventIcons'
+    ($scope, $state, API, CredentialCache, Player, TurnTaker, $interval, EventIcons) ->
       $scope.selectedIndex = 0
       $scope.selectTab = (tabIndex) -> $scope.selectedIndex = tabIndex
+
+      goToPlayerView = ->
+        $interval.cancel $scope.eventInt
+        $state.go 'player.overview'
 
       if not Player.getPlayer()
         CredentialCache.tryLogin().then (->
             if Player.getPlayer()
               TurnTaker.beginTakingTurns Player.getPlayer()
-              $state.go 'player.overview'
+              goToPlayerView()
           )
 
       $scope.login = {}
@@ -19,9 +23,6 @@ angular.module 'IdleLands'
       $scope.isSubmitting = no
 
       $scope.nameToIdentifier = (name) -> "web-fe##{name}"
-
-      goToPlayerView = ->
-        $state.go 'player.overview'
 
       $scope.doLogin = ->
         data = _.clone $scope.login
@@ -56,4 +57,18 @@ angular.module 'IdleLands'
 
         API.auth.login data
         .then success, failure
+
+      $scope.eventTypeToIcon = EventIcons
+      $scope._events = []
+
+      $scope.getEvents = (size = 'small')->
+        opts = {}
+        opts.newerThan = new Date($scope._events[0].createdAt).getTime() if $scope._events.length > 0
+        (API.events[size] opts)
+        .then (res) ->
+          $scope._events.unshift res.data.events...
+          $scope._events.length = 200 if $scope._events.length > 200
+
+      $scope.getEvents 'medium'
+      $scope.eventInt = $interval ($scope.getEvents.bind null, 'small'), 5200
   ]

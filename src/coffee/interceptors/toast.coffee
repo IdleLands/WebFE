@@ -7,6 +7,8 @@ angular.module 'IdleLands'
     'You can only have one turn every 10 seconds!'
     'Map retrieved successfully.'
     'Successfully retrieved custom content listing.'
+    'You can only make this request once every 5 seconds!'
+    'You can only make this request once every 30 seconds!'
   ]
 
   canShowMessage = (response) ->

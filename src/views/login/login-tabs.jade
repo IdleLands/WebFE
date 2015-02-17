@@ -1,13 +1,31 @@
 script(id='login', type='text/ng-template')
-   md-content
-      md-card(layout="row", flex="50", offset="25", layout-align="center", id="login-tabs")
-         md-card-content
-            md-tabs(md-selected="selectedIndex")
-               md-tab(on-select="selectTab(0)",label="Login",ng-disabled="isSubmitting")
-                  div.tab(layout="row",layout-fill,layout-align="left center", ng-include="'login-login'")
+    md-content.is-flex.auto-flex(layout="row")
+        div(flex="45", offset="10")
+            md-card(layout="row", layout-align="center", id="login-tabs", style="height: 365px")
+                md-card-content
+                    md-toolbar
+                        div.md-toolbar-tools
+                            h3 Portal to Idliathlia
+                    md-tabs(md-selected="selectedIndex")
+                        md-tab(on-select="selectTab(0)",label="Login",ng-disabled="isSubmitting")
+                            div.tab(layout="row",layout-fill,layout-align="left center", ng-include="'login-login'")
 
-               md-tab(on-select="selectTab(1)",label="Register",ng-disabled="isSubmitting")
-                  div.tab(layout="row",layout-fill,layout-align="left center", ng-include="'login-register'")
+                        md-tab(on-select="selectTab(1)",label="Register",ng-disabled="isSubmitting")
+                            div.tab(layout="row",layout-fill,layout-align="left center", ng-include="'login-register'")
 
-               md-tab(on-select="selectTab(2)",label="Advanced Login",ng-disabled="isSubmitting")
-                  div.tab(layout="row",layout-fill,layout-align="left center", ng-include="'login-advlogin'")
+                        md-tab(on-select="selectTab(2)",label="Advanced Login",ng-disabled="isSubmitting")
+                            div.tab(layout="row",layout-fill,layout-align="left center", ng-include="'login-advlogin'")
+
+        div(flex="35")
+            md-card
+                md-card-content
+                    md-toolbar
+                        div.md-toolbar-tools
+                            h3 Live Action
+                    md-content.is-flex.auto-flex(flex="85",style="flex-basis:400px;height:400px;overflow-x:hidden;height:700px", layout="column")
+                        div.is-flex.auto-flex.adventure-log-item(style="min-height:150px; max-height:300px",flex="100",ng-repeat="event in _events",layout="row")
+                            div.text-center.vertical-center(flex="10")
+                                span.fa.fa-fw.fa-2x(class="{{::eventTypeToIcon[event.type]}}")
+                            div(flex="90")
+                                small(am-time-ago="event.createdAt")
+                                div(ng-bind-html="event.message | linky:'_blank'")
