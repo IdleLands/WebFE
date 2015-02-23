@@ -67,7 +67,8 @@ script(id="player-overview", type="text/ng-template")
                      div.vital-stat(ng-if="player.titles.length > 0")
                         span.fa.fa-fw.fa-tag
                            md-tooltip Title
-                        select(ng-model="player.title",ng-options="val for val in titles",ng-change="changeTitle()")
+                        md-select.no-margin-top(ng-model="player.title",ng-change="changeTitle()")
+                            md-option(ng-value="title",ng-repeat="title in titles") {{title}}
                      div.vital-stat
                         span.fa.fa-fw.fa-globe
                            md-tooltip World Position

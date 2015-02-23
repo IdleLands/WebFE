@@ -57,6 +57,7 @@ angular.module 'IdleLands'
       base
 
     $scope.changeTitle = ->
+      console.log 'called'
       API.title.set newTitle: $scope.player.title
 
     $scope.boughtPets = ->
