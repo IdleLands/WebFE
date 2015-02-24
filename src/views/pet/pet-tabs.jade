@@ -3,7 +3,7 @@ script(id='pet', type='text/ng-template')
       h1.md-toolbar-tools
          span {{pet.name}}, the level {{pet.level.__current}} {{pet.type}} {{pet.professionName}} with {{pet.attrs[0]}} and {{pet.attrs[1]}}
 
-   md-progress-linear.player-xp(mode="determinate",ng-value="xpPercent",md-theme="green", ng-if="pet")
+   md-progress-linear.player-xp(mode="determinate",ng-value="xpPercent",ng-if="pet")
 
    div.auto-flex.md-whiteframe-z1.is-flex(id="pet-tabs")
       md-tabs.is-flex.auto-flex(md-selected="selectedIndex",layout="column")

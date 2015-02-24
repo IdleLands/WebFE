@@ -4,7 +4,7 @@ script(id='player', type='text/ng-template')
          md-progress-circular.player-turn.md-warn(mode="determinate",value="{{turnTimeValue}}",style="float:right")
          span {{::player.name}}, the level {{player.level.__current}} {{player.professionName}}
 
-   md-progress-linear.player-xp(mode="determinate",ng-value="xpPercent",md-theme="green")
+   md-progress-linear.player-xp(mode="determinate",ng-value="xpPercent")
 
    div.auto-flex.md-whiteframe-z1.is-flex(id="player-tabs")
       md-tabs.is-flex.auto-flex(md-selected="selectedIndex",layout="column")

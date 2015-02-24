@@ -48,7 +48,7 @@ script(id="player-options", type="text/ng-template")
                      md-radio-button(value="astroentity") Astronomical Entity
                      md-radio-button(value="secret") A Secret to Everybody
                   
-      div(flex="60",layout="column")
+      div(flex="55",layout="column")
          md-card.inner-card(layout="column")
             md-card-content
                md-toolbar.md-theme-light-blue
@@ -78,7 +78,7 @@ script(id="player-options", type="text/ng-template")
                         td.text-right(width="10%")
                            span.fa.fa-large.fa-trash.text-red.hover-cursor(ng-if="strings.keys[$index]", ng-click="removeString(strings.keys[$index], $index)")
 
-      div(flex="15",layout="column")
+      div(flex="20",layout="column")
          md-card.inner-card(layout="column")
             md-card-content
                md-toolbar.md-theme-light-blue
