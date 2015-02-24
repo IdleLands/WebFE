@@ -269,7 +269,7 @@
         }, {
           name: 'monochrome',
           primary: 'black',
-          accent: 'black',
+          accent: 'white',
           warn: 'black',
           background: 'white'
         }, {
@@ -281,7 +281,7 @@
         }, {
           name: 'simple',
           primary: 'white',
-          accent: 'white',
+          accent: 'black',
           warn: 'white',
           background: 'white'
         }
