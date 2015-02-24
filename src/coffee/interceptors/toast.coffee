@@ -16,6 +16,12 @@ angular.module 'IdleLands'
     (not response.config.data.suppress) and msg and not (msg in badMessages)
 
   response: (response) ->
-    ($injector.get '$mdToast').show template: "<md-toast>#{response.data.message}</md-toast>" if canShowMessage response
+    if canShowMessage response
+      $toast = ($injector.get '$mdToast')
+      toast = $toast
+        .simple()
+        .content response.data.message
+        .action 'Close'
+      $toast.show toast
     response
 ]

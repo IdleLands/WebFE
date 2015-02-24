@@ -6,14 +6,14 @@ angular.module 'IdleLands'
     if not Player.getPlayer()
       CredentialCache.tryLogin().then (->
           if not Player.getPlayer()
-            $mdToast.show template: "<md-toast>You don't appear to be logged in! Redirecting you to the login page...</md-toast>"
+            $mdToast.show $mdToast.simple().content('You don\'t appear to be logged in! Redirecting you to the login page...').action 'Close'
             $state.go 'login'
 
           else
             TurnTaker.beginTakingTurns Player.getPlayer()
         ),
         (->
-          $mdToast.show template: "<md-toast>You don't appear to be logged in! Redirecting you to the login page...</md-toast>"
+          $mdToast.show $mdToast.simple().content('You don\'t appear to be logged in! Redirecting you to the login page...').action 'Close'
           $state.go 'login'
         )
 

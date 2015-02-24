@@ -198,11 +198,11 @@ angular.module 'IdleLands'
       requiresContent = $scope.data.type.requiresContent
 
       if not data.content and requiresContent
-        $mdToast.show template: '<md-toast>You must have content!</md-toast>'
+        $mdToast.show $mdToast.simple().content('You must have content!').action 'Close'
         return
 
       if requiresName and not data._name
-        $mdToast.show template: '<md-toast>You must to specify a name!</md-toast>'
+        $mdToast.show $mdToast.simple().content('You must to specify a name!').action 'Close'
         return
 
       newData =
