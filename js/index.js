@@ -2,9 +2,18 @@
   angular.module('IdleLands', ['ngMaterial', 'ngSanitize', 'angularMoment', 'ui.router', 'LocalStorageModule', 'xeditable', 'QuickList']);
 
   angular.module('IdleLands').run([
-    'editableThemes', function(editableThemes) {
-      editableThemes["default"].cancelTpl = '<md-button class="xeditable-form-button md-warn" ng-click="$form.$cancel()">Cancel</md-button>';
-      return editableThemes["default"].submitTpl = '<md-button class="xeditable-form-button md-primary" type="submit">Save</md-button>';
+    'editableThemes', 'editableOptions', function(editableThemes, editableOptions) {
+      editableThemes['angular-material'] = {
+        formTpl: '<form class="editable-wrap"></form>',
+        noformTpl: '<span class="editable-wrap"></span>',
+        controlsTpl: '<md-input-container class="editable-controls" ng-class="{\'md-input-invalid\': $error}"></md-input-container>',
+        inputTpl: '',
+        errorTpl: '<div ng-messages="{message: $error}"><div class="editable-error" ng-message="message">{{$error}}</div></div>',
+        buttonsTpl: '<span class="editable-buttons"></span>',
+        submitTpl: '<md-button class="md-primary md-raised" type="submit">save</md-button>',
+        cancelTpl: '<md-button class="md-warn md-raised" type="button" ng-click="$form.$cancel()">cancel</md-button>'
+      };
+      return editableOptions.theme = 'angular-material';
     }
   ]);
 
@@ -176,12 +185,126 @@
 }).call(this);
 
 (function() {
+  angular.module('IdleLands').config([
+    '$mdThemingProvider', function($mdThemingProvider) {
+      var themes;
+      $mdThemingProvider.alwaysWatchTheme(true);
+      $mdThemingProvider.definePalette('white', {
+        '50': 'ffffff',
+        '100': 'ffffff',
+        '200': 'ffffff',
+        '300': 'ffffff',
+        '400': 'ffffff',
+        '500': 'ffffff',
+        '600': 'ffffff',
+        '700': 'ffffff',
+        '800': 'ffffff',
+        '900': 'ffffff',
+        'A100': 'ffffff',
+        'A200': 'ffffff',
+        'A400': 'ffffff',
+        'A700': 'ffffff',
+        contrastDefaultColor: 'dark'
+      });
+      $mdThemingProvider.definePalette('black', {
+        '50': '000000',
+        '100': '000000',
+        '200': '000000',
+        '300': '000000',
+        '400': '000000',
+        '500': '000000',
+        '600': '000000',
+        '700': '000000',
+        '800': '000000',
+        '900': '000000',
+        'A100': '000000',
+        'A200': '000000',
+        'A400': '000000',
+        'A700': '000000',
+        contrastDefaultColor: 'light'
+      });
+      themes = [
+        {
+          name: 'bright',
+          primary: 'yellow',
+          accent: 'lime',
+          warn: 'grey',
+          background: 'lime'
+        }, {
+          name: 'default',
+          primary: 'indigo',
+          accent: 'deep-purple',
+          warn: 'red',
+          background: 'grey'
+        }, {
+          name: 'dim-ocean',
+          primary: 'blue',
+          accent: 'indigo',
+          warn: 'teal',
+          background: 'blue-grey'
+        }, {
+          name: 'earth',
+          primary: 'brown',
+          accent: 'deep-orange',
+          warn: 'amber',
+          background: 'orange'
+        }, {
+          name: 'green-machine',
+          primary: 'green',
+          accent: 'blue',
+          warn: 'orange',
+          background: 'grey'
+        }, {
+          name: 'halloween',
+          primary: 'orange',
+          accent: 'deep-orange',
+          warn: 'brown',
+          background: 'brown'
+        }, {
+          name: 'majestic',
+          primary: 'deep-purple',
+          accent: 'purple',
+          warn: 'amber',
+          background: 'grey'
+        }, {
+          name: 'monochrome',
+          primary: 'black',
+          accent: 'black',
+          warn: 'black',
+          background: 'white'
+        }, {
+          name: 'ocean',
+          primary: 'blue',
+          accent: 'indigo',
+          warn: 'teal',
+          background: 'cyan'
+        }, {
+          name: 'simple',
+          primary: 'white',
+          accent: 'white',
+          warn: 'white',
+          background: 'white'
+        }
+      ];
+      return _.each(themes, function(theme) {
+        return $mdThemingProvider.theme(theme.name).primaryPalette(theme.primary).accentPalette(theme.accent).warnPalette(theme.warn).backgroundPalette(theme.background);
+      });
+    }
+  ]);
+
+}).call(this);
+
+(function() {
   angular.module('IdleLands').controller('Head', [
-    '$scope', '$interval', 'TurnTaker', 'CurrentPlayer', function($scope, $interval, TurnTaker, Player) {
+    '$scope', '$interval', 'TurnTaker', 'CurrentPlayer', 'CurrentTheme', function($scope, $interval, TurnTaker, Player, CurrentTheme) {
       $scope.player = null;
-      return Player.observe().then(null, null, function(newVal) {
+      $scope.theme = CurrentTheme.getTheme();
+      Player.observe().then(null, null, function(newVal) {
         $scope.player = newVal;
         return TurnTaker.beginTakingTurns($scope.player);
+      });
+      return CurrentTheme.observe().then(null, null, function(newVal) {
+        return $scope.theme = newVal;
       });
     }
   ]);
@@ -293,17 +416,13 @@
       if (!Player.getPlayer()) {
         CredentialCache.tryLogin().then((function() {
           if (!Player.getPlayer()) {
-            $mdToast.show({
-              template: "<md-toast>You don't appear to be logged in! Redirecting you to the login page...</md-toast>"
-            });
+            $mdToast.show($mdToast.simple().content('You don\'t appear to be logged in! Redirecting you to the login page...').action('Close'));
             return $state.go('login');
           } else {
             return TurnTaker.beginTakingTurns(Player.getPlayer());
           }
         }), (function() {
-          $mdToast.show({
-            template: "<md-toast>You don't appear to be logged in! Redirecting you to the login page...</md-toast>"
-          });
+          $mdToast.show($mdToast.simple().content('You don\'t appear to be logged in! Redirecting you to the login page...').action('Close'));
           return $state.go('login');
         }));
       }
@@ -770,9 +889,7 @@
       if (!Player.getPlayer()) {
         CredentialCache.tryLogin().then((function() {
           if (!Player.getPlayer()) {
-            $mdToast.show({
-              template: "<md-toast>You don't appear to be logged in! Redirecting you to the login page...</md-toast>"
-            });
+            $mdToast.show($mdToast.simple().content('You don\'t appear to be logged in! Redirecting you to the login page...').action('Close'));
             return $state.go('login');
           } else {
             return TurnTaker.beginTakingTurns(Player.getPlayer());
@@ -1356,13 +1473,18 @@
 
 (function() {
   angular.module('IdleLands').controller('PlayerOptions', [
-    '$scope', '$timeout', '$mdDialog', 'CurrentPlayer', 'OptionsCache', 'API', function($scope, $timeout, $mdDialog, Player, OptionsCache, API) {
+    '$scope', '$timeout', '$mdDialog', 'CurrentPlayer', 'OptionsCache', 'API', 'CurrentTheme', function($scope, $timeout, $mdDialog, Player, OptionsCache, API, CurrentTheme) {
       var initializing;
       initializing = true;
       $scope.options = OptionsCache.getOpts();
       $scope.strings = {
         keys: [],
         values: []
+      };
+      $scope.theme = CurrentTheme.getTheme();
+      $scope.themes = ['bright', 'default', 'dim-ocean', 'earth', 'green-machine', 'halloween', 'majestic', 'monochrome', 'ocean', 'simple'];
+      $scope.changeTheme = function() {
+        return CurrentTheme.setTheme($scope.theme);
       };
       $scope.buildStringList = function() {
         var _ref, _ref1;
@@ -1674,15 +1796,11 @@
         requiresName = $scope.data.type.requiresName;
         requiresContent = $scope.data.type.requiresContent;
         if (!data.content && requiresContent) {
-          $mdToast.show({
-            template: '<md-toast>You must have content!</md-toast>'
-          });
+          $mdToast.show($mdToast.simple().content('You must have content!').action('Close'));
           return;
         }
         if (requiresName && !data._name) {
-          $mdToast.show({
-            template: '<md-toast>You must to specify a name!</md-toast>'
-          });
+          $mdToast.show($mdToast.simple().content('You must to specify a name!').action('Close'));
           return;
         }
         newData = {
@@ -2105,10 +2223,11 @@
       };
       return {
         response: function(response) {
+          var $toast, toast;
           if (canShowMessage(response)) {
-            ($injector.get('$mdToast')).show({
-              template: "<md-toast>" + response.data.message + "</md-toast>"
-            });
+            $toast = $injector.get('$mdToast');
+            toast = $toast.simple().content(response.data.message).action('Close');
+            $toast.show(toast);
           }
           return response;
         }
@@ -2884,8 +3003,11 @@
 (function() {
   angular.module('IdleLands').factory('OptionsCache', [
     'localStorageService', function(localStorageService) {
-      var getOpts, load, options, saveAll, set;
+      var getOpts, load, loadOne, options, saveAll, set;
       options = {};
+      loadOne = function(key) {
+        return options[key] = localStorageService.get(key);
+      };
       load = function(keys) {
         return _.each(keys, function(key) {
           return options[key] = localStorageService.get(key);
@@ -2904,6 +3026,7 @@
         return options;
       };
       return {
+        loadOne: loadOne,
         load: load,
         saveAll: saveAll,
         set: set,
@@ -2976,6 +3099,30 @@
         setPlayer: function(newPlayer) {
           player = newPlayer;
           return defer.notify(player);
+        }
+      };
+    }
+  ]);
+
+}).call(this);
+
+(function() {
+  angular.module('IdleLands').factory('CurrentTheme', [
+    '$q', 'OptionsCache', function($q, OptionsCache) {
+      var defer, theme;
+      theme = (OptionsCache.loadOne('theme')) || 'default';
+      defer = $q.defer();
+      return {
+        observe: function() {
+          return defer.promise;
+        },
+        getTheme: function() {
+          return theme;
+        },
+        setTheme: function(newTheme) {
+          theme = newTheme;
+          OptionsCache.set('theme', newTheme);
+          return defer.notify(theme);
         }
       };
     }

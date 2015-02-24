@@ -56584,29 +56584,16 @@ if (typeof module !== "undefined" && typeof exports !== "undefined" && module.ex
     angular.module("ui.router.state").filter("isState", $IsStateFilter).filter("includedByState", $IncludedByStateFilter);
 })(window, window.angular);
 
-angular.module("ngMaterial", [ "ng", "ngAnimate", "ngAria", "material.core", "material.core.theming.palette", "material.core.theming", "material.components.autocomplete", "material.components.backdrop", "material.components.bottomSheet", "material.components.button", "material.components.card", "material.components.checkbox", "material.components.content", "material.components.dialog", "material.components.divider", "material.components.gridList", "material.components.icon", "material.components.input", "material.components.list", "material.components.progressCircular", "material.components.progressLinear", "material.components.radioButton", "material.components.sidenav", "material.components.slider", "material.components.sticky", "material.components.subheader", "material.components.swipe", "material.components.switch", "material.components.tabs", "material.components.textField", "material.components.toast", "material.components.toolbar", "material.components.tooltip", "material.components.whiteframe" ]);
+angular.module("ngMaterial", [ "ng", "ngAnimate", "ngAria", "material.core", "material.core.theming.palette", "material.core.theming", "material.components.autocomplete", "material.components.backdrop", "material.components.bottomSheet", "material.components.button", "material.components.card", "material.components.checkbox", "material.components.content", "material.components.dialog", "material.components.divider", "material.components.gridList", "material.components.icon", "material.components.input", "material.components.list", "material.components.progressCircular", "material.components.progressLinear", "material.components.radioButton", "material.components.select", "material.components.sidenav", "material.components.slider", "material.components.sticky", "material.components.subheader", "material.components.swipe", "material.components.switch", "material.components.tabs", "material.components.textField", "material.components.toast", "material.components.toolbar", "material.components.tooltip", "material.components.whiteframe" ]);
 
 (function() {
     "use strict";
-    var iconProvider;
-    angular.module("material.core", [ "material.core.theming" ]).config(MdCoreConfigure).run([ "$templateCache", function($templateCache) {
-        var svgRegistry = [ {
-            id: "tabs-arrow",
-            url: "tabs-arrow.svg",
-            svg: '<svg version="1.1" x="0px" y="0px" viewBox="0 0 24 24"><g id="tabs-arrow"><polygon points="15.4,7.4 14,6 8,12 14,18 15.4,16.6 10.8,12 "/></g></svg>'
-        } ];
-        svgRegistry.forEach(function(asset) {
-            iconProvider.icon(asset.id, asset.url);
-            $templateCache.put(asset.url, asset.svg);
-        });
-        iconProvider = null;
-    } ]);
-    function MdCoreConfigure($provide, $mdThemingProvider, $mdIconProvider) {
-        iconProvider = $mdIconProvider;
+    angular.module("material.core", [ "material.core.theming" ]).config(MdCoreConfigure);
+    function MdCoreConfigure($provide, $mdThemingProvider) {
         $provide.decorator("$$rAF", [ "$delegate", rAFDecorator ]);
         $mdThemingProvider.theme("default").primaryPalette("indigo").accentPalette("pink").warnPalette("red").backgroundPalette("grey");
     }
-    MdCoreConfigure.$inject = [ "$provide", "$mdThemingProvider", "$mdIconProvider" ];
+    MdCoreConfigure.$inject = [ "$provide", "$mdThemingProvider" ];
     function rAFDecorator($delegate) {
         $delegate.throttle = function(cb) {
             var queueArgs, alreadyQueued, queueCb, context;
@@ -56643,7 +56630,8 @@ angular.module("ngMaterial", [ "ng", "ngAnimate", "ngAria", "material.core", "ma
                 LEFT_ARROW: 37,
                 UP_ARROW: 38,
                 RIGHT_ARROW: 39,
-                DOWN_ARROW: 40
+                DOWN_ARROW: 40,
+                TAB: 9
             },
             CSS: {
                 TRANSITIONEND: "transitionend" + (webkit ? " webkitTransitionEnd" : ""),
@@ -56756,24 +56744,21 @@ angular.module("ngMaterial", [ "ng", "ngAnimate", "ngAria", "material.core", "ma
         function findSubsequentItem(backwards, item, validate, limit) {
             validate = validate || trueFn;
             var curIndex = indexOf(item);
-            if (!inRange(curIndex)) {
-                return null;
+            while (true) {
+                if (!inRange(curIndex)) return null;
+                var nextIndex = curIndex + (backwards ? -1 : 1);
+                var foundItem = null;
+                if (inRange(nextIndex)) {
+                    foundItem = _items[nextIndex];
+                } else if (reloop) {
+                    foundItem = backwards ? last() : first();
+                    nextIndex = indexOf(foundItem);
+                }
+                if (foundItem === null || nextIndex === limit) return null;
+                if (validate(foundItem)) return foundItem;
+                if (angular.isUndefined(limit)) limit = nextIndex;
+                curIndex = nextIndex;
             }
-            var nextIndex = curIndex + (backwards ? -1 : 1);
-            var foundItem = null;
-            if (inRange(nextIndex)) {
-                foundItem = _items[nextIndex];
-            } else if (reloop) {
-                foundItem = backwards ? last() : first();
-                nextIndex = indexOf(foundItem);
-            }
-            if (foundItem === null || nextIndex === limit) {
-                return null;
-            }
-            if (angular.isUndefined(limit)) {
-                limit = nextIndex;
-            }
-            return validate(foundItem) ? foundItem : findSubsequentItem(backwards, foundItem, validate, limit);
         }
     }
 })();
@@ -56860,7 +56845,7 @@ mdMediaFactory.$inject = [ "$mdConstant", "$rootScope", "$window" ];
 (function() {
     "use strict";
     var nextUniqueId = [ "0", "0", "0" ];
-    angular.module("material.core").factory("$mdUtil", [ "$cacheFactory", "$document", "$timeout", "$q", "$mdConstant", function($cacheFactory, $document, $timeout, $q, $mdConstant) {
+    angular.module("material.core").factory("$mdUtil", [ "$cacheFactory", "$document", "$timeout", "$q", "$window", "$mdConstant", function($cacheFactory, $document, $timeout, $q, $window, $mdConstant) {
         var Util;
         function getNode(el) {
             return el[0] || el;
@@ -56886,6 +56871,15 @@ mdMediaFactory.$inject = [ "$mdConstant", "$rootScope", "$window" ];
             },
             offsetRect: function(element, offsetParent) {
                 return Util.clientRect(element, offsetParent, true);
+            },
+            floatingScrollbars: function() {
+                if (this.floatingScrollbars.cached === undefined) {
+                    var tempNode = angular.element('<div style="z-index: -1; position: absolute; height: 1px; overflow-y: scroll"><div style="height: 2px;"></div></div>');
+                    $document[0].body.appendChild(tempNode[0]);
+                    this.floatingScrollbars.cached = tempNode[0].offsetWidth == tempNode[0].childNodes[0].offsetWidth;
+                    tempNode.remove();
+                }
+                return this.floatingScrollbars.cached;
             },
             forceFocus: function(element) {
                 var node = element[0] || element;
@@ -57461,124 +57455,6 @@ mdMediaFactory.$inject = [ "$mdConstant", "$rootScope", "$window" ];
 
 (function() {
     "use strict";
-    angular.module("material.core").provider("$mdIcon", MdIconProvider);
-    var config = {
-        defaultIconSize: 24
-    };
-    function MdIconProvider() {}
-    MdIconProvider.prototype = {
-        icon: function icon(id, url, iconSize) {
-            if (id.indexOf(":") == -1) id = "$default:" + id;
-            config[id] = new ConfigurationItem(url, iconSize);
-            return this;
-        },
-        iconSet: function iconSet(id, url, iconSize) {
-            config[id] = new ConfigurationItem(url, iconSize);
-            return this;
-        },
-        defaultIconSet: function defaultIconSet(url, iconSize) {
-            var setName = "$default";
-            if (!config[setName]) {
-                config[setName] = new ConfigurationItem(url, iconSize);
-            }
-            return this;
-        },
-        defaultIconSize: function defaultIconSize(iconSize) {
-            config.defaultIconSize = iconSize;
-            return this;
-        },
-        $get: [ "$http", "$q", "$log", "$templateCache", function($http, $q, $log, $templateCache) {
-            return new MdIconService(config, $http, $q, $log, $templateCache);
-        } ]
-    };
-    function ConfigurationItem(url, iconSize) {
-        this.url = url;
-        this.iconSize = iconSize || config.defaultIconSize;
-    }
-    function MdIconService(config, $http, $q, $log, $templateCache) {
-        var iconCache = {};
-        var urlRegex = /[-a-zA-Z0-9@:%_\+.~#?&//=]{2,256}\.[a-z]{2,4}\b(\/[-a-zA-Z0-9@:%_\+.~#?&//=]*)?/i;
-        return function getIcon(id) {
-            id = id || "";
-            if (iconCache[id]) return $q.when(iconCache[id].clone());
-            if (urlRegex.test(id)) return loadByURL(id).then(cacheIcon(id));
-            if (id.indexOf(":") == -1) id = "$default:" + id;
-            return loadByID(id).catch(loadFromIconSet).catch(announceNotFound).then(cacheIcon(id));
-        };
-        function cacheIcon(id) {
-            return function updateCache(icon) {
-                var iconConfig = config[id];
-                icon = !isIcon(icon) ? new Icon(icon, iconConfig) : icon;
-                icon = prepareAndStyle(icon);
-                iconCache[id] = icon;
-                return icon.clone();
-            };
-        }
-        function loadByID(id) {
-            var iconConfig = config[id];
-            return !iconConfig ? $q.reject(id) : loadByURL(iconConfig.url).then(function(icon) {
-                return new Icon(icon, iconConfig);
-            });
-        }
-        function loadFromIconSet(id) {
-            var setName = id.substring(0, id.lastIndexOf(":")) || "$default";
-            var iconSetConfig = config[setName];
-            return !iconSetConfig ? $q.reject(id) : loadByURL(iconSetConfig.url).then(extractFromSet);
-            function extractFromSet(set) {
-                var iconName = id.slice(id.lastIndexOf(":") + 1);
-                var icon = set.querySelector("#" + iconName);
-                return !icon ? $q.reject(id) : new Icon(icon, iconSetConfig);
-            }
-        }
-        function prepareAndStyle(icon) {
-            var iconSize = icon.config ? icon.config.iconSize : config.defaultIconSize;
-            var svg = angular.element(icon.element);
-            return svg.attr({
-                fit: "",
-                height: "100%",
-                width: "100%",
-                preserveAspectRatio: "xMidYMid meet",
-                viewBox: svg.attr("viewBox") || "0 0 " + iconSize + " " + iconSize
-            }).css({
-                "pointer-events": "none",
-                display: "block"
-            });
-        }
-        function loadByURL(url) {
-            return $http.get(url, {
-                cache: $templateCache
-            }).then(function(response) {
-                var els = angular.element(response.data);
-                for (var i = 0; i < els.length; ++i) {
-                    if (els[i].nodeName == "svg") {
-                        return els[i];
-                    }
-                }
-            });
-        }
-        function announceNotFound(id) {
-            var msg = "icon " + id + " not found";
-            $log.warn(msg);
-            throw new Error(msg);
-        }
-        function isIcon(target) {
-            return angular.isDefined(target.element) && angular.isDefined(target.config);
-        }
-        function Icon(el, config) {
-            if (el.tagName != "svg") {
-                el = angular.element('<svg xmlns="http://www.w3.org/2000/svg">').append(el)[0];
-            }
-            this.element = el;
-            this.config = config;
-        }
-        Icon.prototype.clone = function() {
-            return this.element.cloneNode(true)[0];
-        };
-    }
-})();
-
-(function() {
-    "use strict";
     angular.module("material.core").provider("$$interimElement", InterimElementProvider);
     function InterimElementProvider() {
         createInterimElementProvider.$get = InterimElementFactory;
@@ -57718,13 +57594,13 @@ mdMediaFactory.$inject = [ "$mdConstant", "$rootScope", "$window" ];
                 }
                 function cancel(reason) {
                     var interimElement = stack.shift();
-                    return interimElement && interimElement.remove().then(function() {
+                    return $q.when(interimElement && interimElement.remove().then(function() {
                         interimElement.deferred.reject(reason);
-                    });
+                    }));
                 }
                 function InterimElement(options) {
                     var self;
-                    var hideTimeout, element;
+                    var hideTimeout, element, showDone, removeDone;
                     options = options || {};
                     options = angular.extend({
                         preserveScope: false,
@@ -57739,13 +57615,11 @@ mdMediaFactory.$inject = [ "$mdConstant", "$rootScope", "$window" ];
                     if (options.template) {
                         options.template = processTemplate(options.template);
                     }
-                    var showFailed;
                     return self = {
                         options: options,
                         deferred: $q.defer(),
                         show: function() {
-                            showFailed = false;
-                            return $mdCompiler.compile(options).then(function(compileData) {
+                            return showDone = $mdCompiler.compile(options).then(function(compileData) {
                                 angular.extend(compileData.locals, self.options);
                                 element = compileData.link(options.scope);
                                 if (angular.isFunction(options.parent)) {
@@ -57769,7 +57643,7 @@ mdMediaFactory.$inject = [ "$mdConstant", "$rootScope", "$window" ];
                                     }
                                 }
                             }, function(reason) {
-                                showFailed = true;
+                                showDone = true;
                                 self.deferred.reject(reason);
                             });
                         },
@@ -57781,14 +57655,12 @@ mdMediaFactory.$inject = [ "$mdConstant", "$rootScope", "$window" ];
                         },
                         remove: function() {
                             self.cancelTimeout();
-                            var ret;
-                            if (showFailed) {
-                                ret = true;
-                            } else {
-                                ret = options.onRemove(options.scope, element, options);
-                            }
-                            return $q.when(ret).then(function() {
-                                if (!options.preserveScope) options.scope.$destroy();
+                            return removeDone = $q.when(showDone).then(function() {
+                                var ret = element ? options.onRemove(options.scope, element, options) : true;
+                                return $q.when(ret).then(function() {
+                                    if (!options.preserveScope) options.scope.$destroy();
+                                    removeDone = true;
+                                });
                             });
                         }
                     };
@@ -58886,7 +58758,7 @@ mdMediaFactory.$inject = [ "$mdConstant", "$rootScope", "$window" ];
 
 (function() {
     "use strict";
-    angular.module("material.components.autocomplete", [ "material.core" ]);
+    angular.module("material.components.autocomplete", [ "material.core", "material.components.icon" ]);
 })();
 
 (function() {
@@ -59213,7 +59085,8 @@ mdMediaFactory.$inject = [ "$mdConstant", "$rootScope", "$window" ];
                 var closeButton = findCloseButton();
                 configureAria(element.find("md-dialog"));
                 if (options.hasBackdrop) {
-                    var parentOffset = options.parent.prop("scrollTop");
+                    var computeFrom = options.parent[0] == $document[0].body && $document[0].documentElement && $document[0].scrollTop ? angular.element($document[0].documentElement) : options.parent;
+                    var parentOffset = computeFrom.prop("scrollTop");
                     options.backdrop = angular.element('<md-backdrop class="md-dialog-backdrop md-opaque">');
                     $mdTheming.inherit(options.backdrop, options.parent);
                     $animate.enter(options.backdrop, options.parent);
@@ -59355,7 +59228,7 @@ mdMediaFactory.$inject = [ "$mdConstant", "$rootScope", "$window" ];
             element.attr("role", "list");
             ctrl.layoutDelegate = layoutDelegate;
             var invalidateLayout = angular.bind(ctrl, ctrl.invalidateLayout), unwatchAttrs = watchMedia();
-            scope.$on("$destroy", unwatchMedia());
+            scope.$on("$destroy", unwatchMedia);
             function watchMedia() {
                 for (var mediaName in $mdConstant.MEDIA) {
                     $mdMedia(mediaName);
@@ -59377,12 +59250,18 @@ mdMediaFactory.$inject = [ "$mdConstant", "$rootScope", "$window" ];
                 }
             }
             function layoutDelegate() {
-                var tiles = getTileElements(), colCount = getColumnCount(), rowMode = getRowMode(), rowHeight = getRowHeight(), gutter = getGutter(), performance = $mdGridLayout(colCount, getTileSpans(), getTileElements()).map(function(ps, rowCount, i) {
-                    var element = angular.element(tiles[i]);
-                    element.scope().$mdGridPosition = ps;
+                var tiles = getTileElements(), colCount = getColumnCount(), rowMode = getRowMode(), rowHeight = getRowHeight(), gutter = getGutter(), performance = $mdGridLayout(colCount, getTileSpans(), getTileElements()).map(function(tilePositions, rowCount) {
                     return {
-                        element: element,
-                        styles: getStyles(ps.position, ps.spans, colCount, rowCount, gutter, rowMode, rowHeight)
+                        grid: {
+                            element: element,
+                            style: getGridStyle(colCount, rowCount, gutter, rowMode, rowHeight)
+                        },
+                        tiles: tilePositions.map(function(ps, i) {
+                            return {
+                                element: angular.element(tiles[i]),
+                                style: getTileStyle(ps.position, ps.spans, colCount, rowCount, gutter, rowMode, rowHeight)
+                            };
+                        })
                     };
                 }).reflow().performance();
                 scope.mdOnLayout({
@@ -59394,7 +59273,7 @@ mdMediaFactory.$inject = [ "$mdConstant", "$rootScope", "$window" ];
             var UNIT = $interpolate("{{ share }}% - ({{ gutter }} * {{ gutterShare }})");
             var POSITION = $interpolate("calc(({{ unit }}) * {{ offset }} + {{ offset }} * {{ gutter }})");
             var DIMENSION = $interpolate("calc(({{ unit }}) * {{ span }} + ({{ span }} - 1) * {{ gutter }})");
-            function getStyles(position, spans, colCount, rowCount, gutter, rowMode, rowHeight) {
+            function getTileStyle(position, spans, colCount, rowCount, gutter, rowMode, rowHeight) {
                 var hShare = 1 / colCount * 100, hGutterShare = colCount === 1 ? 0 : (colCount - 1) / colCount, hUnit = UNIT({
                     share: hShare,
                     gutterShare: hGutterShare,
@@ -59426,7 +59305,7 @@ mdMediaFactory.$inject = [ "$mdConstant", "$rootScope", "$window" ];
                     style.height = DIMENSION({
                         unit: rowHeight,
                         span: spans.row,
-                        gutter: "0px"
+                        gutter: gutter
                     });
                     break;
 
@@ -59468,21 +59347,57 @@ mdMediaFactory.$inject = [ "$mdConstant", "$rootScope", "$window" ];
                 }
                 return style;
             }
+            function getGridStyle(colCount, rowCount, gutter, rowMode, rowHeight) {
+                var style = {
+                    height: "",
+                    paddingBottom: ""
+                };
+                switch (rowMode) {
+                  case "fixed":
+                    style.height = DIMENSION({
+                        unit: rowHeight,
+                        span: rowCount,
+                        gutter: gutter
+                    });
+                    break;
+
+                  case "ratio":
+                    var hGutterShare = colCount === 1 ? 0 : (colCount - 1) / colCount, hShare = 1 / colCount * 100, vShare = hShare * (1 / rowHeight), vUnit = UNIT({
+                        share: vShare,
+                        gutterShare: hGutterShare,
+                        gutter: gutter
+                    });
+                    style.paddingBottom = DIMENSION({
+                        unit: vUnit,
+                        span: rowCount,
+                        gutter: gutter
+                    });
+                    break;
+
+                  case "fit":
+                    break;
+                }
+                return style;
+            }
             function getTileElements() {
-                return Array.prototype.slice.call(element[0].childNodes).filter(function(child) {
-                    return child.tagName == "MD-GRID-TILE";
+                return ctrl.tiles.map(function(tile) {
+                    return tile.element;
                 });
             }
             function getTileSpans() {
-                return ctrl.tiles.map(function(tileAttrs) {
+                return ctrl.tiles.map(function(tile) {
                     return {
-                        row: parseInt($mdMedia.getResponsiveAttribute(tileAttrs, "md-rowspan"), 10) || 1,
-                        col: parseInt($mdMedia.getResponsiveAttribute(tileAttrs, "md-colspan"), 10) || 1
+                        row: parseInt($mdMedia.getResponsiveAttribute(tile.attrs, "md-rowspan"), 10) || 1,
+                        col: parseInt($mdMedia.getResponsiveAttribute(tile.attrs, "md-colspan"), 10) || 1
                     };
                 });
             }
             function getColumnCount() {
-                return parseInt($mdMedia.getResponsiveAttribute(attrs, "md-cols"), 10);
+                var colCount = parseInt($mdMedia.getResponsiveAttribute(attrs, "md-cols"), 10);
+                if (isNaN(colCount)) {
+                    throw "md-grid-list: md-cols attribute was not found, or contained a non-numeric value";
+                }
+                return colCount;
             }
             function getGutter() {
                 return applyDefaultUnit($mdMedia.getResponsiveAttribute(attrs, "md-gutter") || 1);
@@ -59525,23 +59440,27 @@ mdMediaFactory.$inject = [ "$mdConstant", "$rootScope", "$window" ];
     }
     GridListController.$inject = [ "$timeout" ];
     GridListController.prototype = {
-        addTile: function(tileAttrs, idx) {
+        addTile: function(tileElement, tileAttrs, idx) {
+            var tile = {
+                element: tileElement,
+                attrs: tileAttrs
+            };
             if (angular.isUndefined(idx)) {
-                this.tiles.push(tileAttrs);
+                this.tiles.push(tile);
             } else {
-                this.tiles.splice(idx, 0, tileAttrs);
+                this.tiles.splice(idx, 0, tile);
             }
             this.invalidateLayout();
         },
-        removeTile: function(tileAttrs) {
-            var idx = this.tiles.indexOf(tileAttrs);
+        removeTile: function(tileElement, tileAttrs) {
+            var idx = this._findTileIndex(tileAttrs);
             if (idx === -1) {
                 return;
             }
             this.tiles.splice(idx, 1);
             this.invalidateLayout();
         },
-        invalidateLayout: function(tile) {
+        invalidateLayout: function() {
             if (this.invalidated) {
                 return;
             }
@@ -59554,11 +59473,24 @@ mdMediaFactory.$inject = [ "$mdConstant", "$rootScope", "$window" ];
             } finally {
                 this.invalidated = false;
             }
+        },
+        _findTileIndex: function(tileAttrs) {
+            for (var i = 0; i < this.tiles.length; i++) {
+                if (this.tiles[i].attrs == tileAttrs) {
+                    return i;
+                }
+            }
+            return -1;
         }
     };
     function GridLayoutFactory($mdUtil) {
-        return function(colCount, tileSpans) {
-            var self, layoutInfo, tiles, layoutTime, mapTime, reflowTime, layoutInfo;
+        var defaultAnimator = GridTileAnimator;
+        GridLayout.animateWith = function(customAnimator) {
+            defaultAnimator = !angular.isFunction(customAnimator) ? GridTileAnimator : customAnimator;
+        };
+        return GridLayout;
+        function GridLayout(colCount, tileSpans) {
+            var self, layoutInfo, gridStyles, layoutTime, mapTime, reflowTime, layoutInfo;
             layoutTime = $mdUtil.time(function() {
                 layoutInfo = calculateGridFor(colCount, tileSpans);
             });
@@ -59568,18 +59500,15 @@ mdMediaFactory.$inject = [ "$mdConstant", "$rootScope", "$window" ];
                 },
                 map: function(updateFn) {
                     mapTime = $mdUtil.time(function() {
-                        tiles = layoutInfo.positioning.map(function(ps, i) {
-                            return updateFn(ps, self.layoutInfo().rowCount, i);
-                        });
+                        var info = self.layoutInfo();
+                        gridStyles = updateFn(info.positioning, info.rowCount);
                     });
                     return self;
                 },
-                reflow: function(customAnimatorFn) {
+                reflow: function(animatorFn) {
                     reflowTime = $mdUtil.time(function() {
-                        var animator = customAnimatorFn || defaultAnimator;
-                        tiles.forEach(function(it) {
-                            animator(it.element, it.styles);
-                        });
+                        var animator = animatorFn || defaultAnimator;
+                        animator(gridStyles.grid, gridStyles.tiles);
                     });
                     return self;
                 },
@@ -59593,9 +59522,12 @@ mdMediaFactory.$inject = [ "$mdConstant", "$rootScope", "$window" ];
                     };
                 }
             };
-        };
-        function defaultAnimator(element, styles) {
-            element.css(styles);
+        }
+        function GridTileAnimator(grid, tiles) {
+            grid.element.css(grid.style);
+            tiles.forEach(function(t) {
+                t.element.css(t.style);
+            });
         }
         function calculateGridFor(colCount, tileSpans) {
             var curCol = 0, curRow = 0, spaceTracker = newSpaceTracker();
@@ -59670,15 +59602,16 @@ mdMediaFactory.$inject = [ "$mdConstant", "$rootScope", "$window" ];
             require: "^mdGridList",
             template: "<figure ng-transclude></figure>",
             transclude: true,
+            scope: {},
             link: postLink
         };
         function postLink(scope, element, attrs, gridCtrl) {
             element.attr("role", "listitem");
             var unwatchAttrs = $mdMedia.watchResponsiveAttributes([ "md-colspan", "md-rowspan" ], attrs, angular.bind(gridCtrl, gridCtrl.invalidateLayout));
-            gridCtrl.addTile(attrs, scope.$parent.$index);
+            gridCtrl.addTile(element, attrs, scope.$parent.$index);
             scope.$on("$destroy", function() {
                 unwatchAttrs();
-                gridCtrl.removeTile(attrs);
+                gridCtrl.removeTile(element, attrs);
             });
         }
     }
@@ -59694,7 +59627,7 @@ mdMediaFactory.$inject = [ "$mdConstant", "$rootScope", "$window" ];
 (function() {
     "use strict";
     angular.module("material.components.icon", [ "material.core" ]).directive("mdIcon", mdIconDirective);
-    function mdIconDirective($mdIcon, $mdAria) {
+    function mdIconDirective($mdIcon, $mdTheming, $mdAria) {
         return {
             scope: {
                 fontIcon: "@mdFontIcon",
@@ -59709,6 +59642,7 @@ mdMediaFactory.$inject = [ "$mdConstant", "$rootScope", "$window" ];
             return attr.mdFontIcon ? '<span class="md-font" ng-class="fontIcon"></span>' : "";
         }
         function postLink(scope, element, attr) {
+            $mdTheming(element);
             var ariaLabel = attr.alt || scope.fontIcon || scope.svgIcon;
             var attrName = attr.$normalize(attr.$attr.mdSvgIcon || attr.$attr.mdSvgSrc || "");
             if (attr.alt != "" && !parentsHaveText()) {
@@ -59738,7 +59672,162 @@ mdMediaFactory.$inject = [ "$mdConstant", "$rootScope", "$window" ];
             }
         }
     }
-    mdIconDirective.$inject = [ "$mdIcon", "$mdAria" ];
+    mdIconDirective.$inject = [ "$mdIcon", "$mdTheming", "$mdAria" ];
+})();
+
+(function() {
+    "use strict";
+    angular.module("material.components.icon").provider("$mdIcon", MdIconProvider);
+    var config = {
+        defaultIconSize: 24
+    };
+    function MdIconProvider() {}
+    MdIconProvider.prototype = {
+        icon: function icon(id, url, iconSize) {
+            if (id.indexOf(":") == -1) id = "$default:" + id;
+            config[id] = new ConfigurationItem(url, iconSize);
+            return this;
+        },
+        iconSet: function iconSet(id, url, iconSize) {
+            config[id] = new ConfigurationItem(url, iconSize);
+            return this;
+        },
+        defaultIconSet: function defaultIconSet(url, iconSize) {
+            var setName = "$default";
+            if (!config[setName]) {
+                config[setName] = new ConfigurationItem(url, iconSize);
+            }
+            config[setName].iconSize = iconSize || config.defaultIconSize;
+            return this;
+        },
+        defaultIconSize: function defaultIconSize(iconSize) {
+            config.defaultIconSize = iconSize;
+            return this;
+        },
+        preloadIcons: function($templateCache) {
+            var iconProvider = this;
+            var svgRegistry = [ {
+                id: "tabs-arrow",
+                url: "tabs-arrow.svg",
+                svg: '<svg version="1.1" x="0px" y="0px" viewBox="0 0 24 24"><g id="tabs-arrow"><polygon points="15.4,7.4 14,6 8,12 14,18 15.4,16.6 10.8,12 "/></g></svg>'
+            }, {
+                id: "close",
+                url: "close.svg",
+                svg: '<svg version="1.1" x="0px" y="0px" viewBox="0 0 24 24"><g id="close"><path d="M19 6.41l-1.41-1.41-5.59 5.59-5.59-5.59-1.41 1.41 5.59 5.59-5.59 5.59 1.41 1.41 5.59-5.59 5.59 5.59 1.41-1.41-5.59-5.59z"/></g></svg>'
+            }, {
+                id: "cancel",
+                url: "cancel.svg",
+                svg: '<svg version="1.1" x="0px" y="0px" viewBox="0 0 24 24"><g id="cancel"><path d="M12 2c-5.53 0-10 4.47-10 10s4.47 10 10 10 10-4.47 10-10-4.47-10-10-10zm5 13.59l-1.41 1.41-3.59-3.59-3.59 3.59-1.41-1.41 3.59-3.59-3.59-3.59 1.41-1.41 3.59 3.59 3.59-3.59 1.41 1.41-3.59 3.59 3.59 3.59z"/></g></svg>'
+            } ];
+            svgRegistry.forEach(function(asset) {
+                iconProvider.icon(asset.id, asset.url);
+                $templateCache.put(asset.url, asset.svg);
+            });
+        },
+        $get: [ "$http", "$q", "$log", "$templateCache", function($http, $q, $log, $templateCache) {
+            this.preloadIcons($templateCache);
+            return new MdIconService(config, $http, $q, $log, $templateCache);
+        } ]
+    };
+    function ConfigurationItem(url, iconSize) {
+        this.url = url;
+        this.iconSize = iconSize || config.defaultIconSize;
+    }
+    function MdIconService(config, $http, $q, $log, $templateCache) {
+        var iconCache = {};
+        var urlRegex = /[-a-zA-Z0-9@:%_\+.~#?&//=]{2,256}\.[a-z]{2,4}\b(\/[-a-zA-Z0-9@:%_\+.~#?&//=]*)?/i;
+        Icon.prototype = {
+            clone: cloneSVG,
+            prepare: prepareAndStyle
+        };
+        return function getIcon(id) {
+            id = id || "";
+            if (iconCache[id]) return $q.when(iconCache[id].clone());
+            if (urlRegex.test(id)) return loadByURL(id).then(cacheIcon(id));
+            if (id.indexOf(":") == -1) id = "$default:" + id;
+            return loadByID(id).catch(loadFromIconSet).catch(announceIdNotFound).catch(announceNotFound).then(cacheIcon(id));
+        };
+        function cacheIcon(id) {
+            return function updateCache(icon) {
+                iconCache[id] = isIcon(icon) ? icon : new Icon(icon, config[id]);
+                return iconCache[id].clone();
+            };
+        }
+        function loadByID(id) {
+            var iconConfig = config[id];
+            return !iconConfig ? $q.reject(id) : loadByURL(iconConfig.url).then(function(icon) {
+                return new Icon(icon, iconConfig);
+            });
+        }
+        function loadFromIconSet(id) {
+            var setName = id.substring(0, id.lastIndexOf(":")) || "$default";
+            var iconSetConfig = config[setName];
+            return !iconSetConfig ? $q.reject(id) : loadByURL(iconSetConfig.url).then(extractFromSet);
+            function extractFromSet(set) {
+                var iconName = id.slice(id.lastIndexOf(":") + 1);
+                var icon = set.querySelector("#" + iconName);
+                return !icon ? $q.reject(id) : new Icon(icon, iconSetConfig);
+            }
+        }
+        function loadByURL(url) {
+            return $http.get(url, {
+                cache: $templateCache
+            }).then(function(response) {
+                var els = angular.element(response.data);
+                for (var i = 0; i < els.length; ++i) {
+                    if (els[i].nodeName == "svg") {
+                        return els[i];
+                    }
+                }
+            });
+        }
+        function announceIdNotFound(id) {
+            var msg;
+            if (angular.isString(id)) {
+                msg = "icon " + id + " not found";
+                $log.warn(msg);
+            }
+            return $q.reject(msg || id);
+        }
+        function announceNotFound(err) {
+            var msg = angular.isString(err) ? err : err.message || err.data || err.statusText;
+            $log.warn(msg);
+            return $q.reject(msg);
+        }
+        function isIcon(target) {
+            return angular.isDefined(target.element) && angular.isDefined(target.config);
+        }
+        function Icon(el, config) {
+            if (el.tagName != "svg") {
+                el = angular.element('<svg xmlns="http://www.w3.org/2000/svg">').append(el)[0];
+            }
+            el = angular.element(el);
+            if (!el.attr("xmlns")) {
+                el.attr("xmlns", "http://www.w3.org/2000/svg");
+            }
+            this.element = el;
+            this.config = config;
+            this.prepare();
+        }
+        function prepareAndStyle() {
+            var iconSize = this.config ? this.config.iconSize : config.defaultIconSize;
+            var svg = angular.element(this.element);
+            svg.attr({
+                fit: "",
+                height: "100%",
+                width: "100%",
+                preserveAspectRatio: "xMidYMid meet",
+                viewBox: svg.attr("viewBox") || "0 0 " + iconSize + " " + iconSize
+            }).css({
+                "pointer-events": "none",
+                display: "block"
+            });
+            this.element = svg;
+        }
+        function cloneSVG() {
+            return angular.element(this.element[0].cloneNode(true));
+        }
+    }
 })();
 
 (function() {
@@ -59789,7 +59878,7 @@ mdMediaFactory.$inject = [ "$mdConstant", "$rootScope", "$window" ];
             }
         };
     }
-    function inputTextareaDirective($mdUtil, $window, $compile, $animate) {
+    function inputTextareaDirective($mdUtil, $window) {
         return {
             restrict: "E",
             require: [ "^?mdInputContainer", "?ngModel" ],
@@ -59821,12 +59910,12 @@ mdMediaFactory.$inject = [ "$mdConstant", "$rootScope", "$window" ];
             if (!isReadonly) {
                 element.on("focus", function(ev) {
                     containerCtrl.setFocused(true);
+                    ngModelCtrl.$setTouched();
+                    if (isErrorGetter()) containerCtrl.setInvalid(true);
                 }).on("blur", function(ev) {
                     containerCtrl.setFocused(false);
                     inputCheckValue();
                 });
-                ngModelCtrl.$setTouched();
-                if (ngModelCtrl.$invalid) containerCtrl.setInvalid();
             }
             scope.$on("$destroy", function() {
                 containerCtrl.setFocused(false);
@@ -59861,10 +59950,13 @@ mdMediaFactory.$inject = [ "$mdConstant", "$rootScope", "$window" ];
                 });
                 function growTextarea() {
                     node.style.height = "auto";
-                    var line = node.scrollHeight - node.offsetHeight;
                     node.scrollTop = 0;
-                    var height = node.offsetHeight + (line > 0 ? line : 0);
-                    node.style.height = height + "px";
+                    var height = getHeight();
+                    if (height) node.style.height = height + "px";
+                }
+                function getHeight() {
+                    var line = node.scrollHeight - node.offsetHeight;
+                    return node.offsetHeight + (line > 0 ? line : 0);
                 }
                 function onScroll(e) {
                     node.scrollTop = 0;
@@ -59875,7 +59967,7 @@ mdMediaFactory.$inject = [ "$mdConstant", "$rootScope", "$window" ];
             }
         }
     }
-    inputTextareaDirective.$inject = [ "$mdUtil", "$window", "$compile", "$animate" ];
+    inputTextareaDirective.$inject = [ "$mdUtil", "$window" ];
     function mdMaxlengthDirective($animate) {
         return {
             restrict: "A",
@@ -60223,6 +60315,544 @@ mdMediaFactory.$inject = [ "$mdConstant", "$rootScope", "$window" ];
         }
     }
     mdRadioButtonDirective.$inject = [ "$mdAria", "$mdUtil", "$mdTheming" ];
+})();
+
+(function() {
+    "use strict";
+    var SELECT_EDGE_MARGIN = 8;
+    var selectNextId = 0;
+    angular.module("material.components.select", [ "material.core", "material.components.backdrop" ]).directive("mdSelect", SelectDirective).directive("mdSelectMenu", SelectMenuDirective).directive("mdOption", OptionDirective).directive("mdOptgroup", OptgroupDirective).provider("$mdSelect", SelectProvider);
+    function SelectDirective($mdSelect, $mdUtil, $mdTheming) {
+        return {
+            restrict: "E",
+            require: "?ngModel",
+            compile: compile
+        };
+        function compile(element, attr) {
+            var labelEl = element.find("md-select-label").remove();
+            if (!labelEl.length) {
+                if ((labelEl = element.find("input")).length) {
+                    labelEl.remove();
+                } else {
+                    labelEl = angular.element("<md-select-label>").html("<span>{{" + attr.ngModel + " ? " + attr.ngModel + ": '" + attr.placeholder + "'}}</span>");
+                }
+            }
+            labelEl.append('<span class="md-select-icon" aria-hidden="true"></span>');
+            labelEl.addClass("md-select-label");
+            labelEl.addClass("{{ " + attr.ngModel + " ? '' : 'md-placeholder'}}");
+            labelEl.attr("id", "select_label_" + $mdUtil.nextUid());
+            if (!element.find("md-content").length) {
+                element.append(angular.element("<md-content>").append(element.contents()));
+            }
+            if (attr.mdOnOpen) {
+                element.find("md-content").prepend(angular.element("<md-progress-circular>").attr("md-mode", "indeterminate").attr("ng-hide", "$$loadingAsyncDone").wrap("<div>").parent());
+            }
+            var selectTemplate = "" + '<div class="md-select-menu-container">' + "<md-select-menu " + (angular.isDefined(attr.multiple) ? "multiple" : "") + ">" + element.html() + "</md-select-menu></div>";
+            element.empty().append(labelEl);
+            $mdTheming(element);
+            return function postLink(scope, element, attr, ngModel) {
+                attr.$observe("disabled", function(disabled) {
+                    if (disabled !== undefined) {
+                        element.attr("tabindex", -1);
+                        element.off("click", openSelect);
+                        element.off("keydown", openOnKeypress);
+                    } else {
+                        element.attr("tabindex", 0);
+                        element.on("click", openSelect);
+                        element.on("keydown", openOnKeypress);
+                    }
+                });
+                if (attr.disabled === undefined) {
+                    element.on("click", openSelect);
+                    element.on("keydown", openOnKeypress);
+                }
+                element.attr({
+                    role: "combobox",
+                    id: "select_" + $mdUtil.nextUid(),
+                    "aria-haspopup": true,
+                    "aria-expanded": "false",
+                    "aria-labelledby": labelEl.attr("id")
+                });
+                function openOnKeypress(e) {
+                    var allowedCodes = [ 32, 13, 38, 40 ];
+                    if (allowedCodes.indexOf(e.keyCode) != -1) {
+                        e.preventDefault();
+                        openSelect(e);
+                    }
+                }
+                function openSelect() {
+                    scope.$evalAsync(function() {
+                        $mdSelect.show({
+                            scope: scope.$new(),
+                            template: selectTemplate,
+                            target: element[0],
+                            ngModel: ngModel,
+                            hasBackdrop: true,
+                            loadingAsync: attr.mdOnOpen ? scope.$eval(attr.mdOnOpen) : false
+                        });
+                    });
+                }
+            };
+        }
+    }
+    SelectDirective.$inject = [ "$mdSelect", "$mdUtil", "$mdTheming" ];
+    function SelectMenuDirective($parse, $mdUtil, $mdTheming) {
+        SelectMenuController.$inject = [ "$scope", "$attrs" ];
+        return {
+            restrict: "E",
+            require: [ "mdSelectMenu", "?ngModel" ],
+            controller: SelectMenuController,
+            link: {
+                pre: preLink
+            }
+        };
+        function preLink(scope, element, attr, ctrls) {
+            var selectCtrl = ctrls[0];
+            var ngModel = ctrls[1];
+            $mdTheming(element);
+            element.on("click", clickListener);
+            element.on("keypress", keyListener);
+            if (ngModel) selectCtrl.init(ngModel);
+            configureAria();
+            function configureAria() {
+                element.attr({
+                    id: "select_menu_" + $mdUtil.nextUid(),
+                    role: "listbox",
+                    "aria-multiselectable": selectCtrl.isMultiple ? "true" : "false"
+                });
+            }
+            function keyListener(e) {
+                if (e.keyCode == 13 || e.keyCode == 32) {
+                    clickListener(e);
+                }
+            }
+            function clickListener(ev) {
+                var option = $mdUtil.getClosest(ev.target, "md-option");
+                var optionCtrl = option && angular.element(option).data("$mdOptionController");
+                if (!option || !optionCtrl) return;
+                var optionHashKey = selectCtrl.hashGetter(optionCtrl.value);
+                var isSelected = angular.isDefined(selectCtrl.selected[optionHashKey]);
+                scope.$apply(function() {
+                    if (selectCtrl.isMultiple) {
+                        if (isSelected) {
+                            selectCtrl.deselect(optionHashKey);
+                        } else {
+                            selectCtrl.select(optionHashKey, optionCtrl.value);
+                        }
+                    } else {
+                        if (!isSelected) {
+                            selectCtrl.deselect(Object.keys(selectCtrl.selected)[0]);
+                            selectCtrl.select(optionHashKey, optionCtrl.value);
+                        }
+                    }
+                    selectCtrl.refreshViewValue();
+                });
+            }
+        }
+        function SelectMenuController($scope, $attrs) {
+            var self = this;
+            self.isMultiple = angular.isDefined($attrs.multiple);
+            self.selected = {};
+            self.options = {};
+            self.init = function(ngModel, rerender) {
+                self.ngModel = ngModel;
+                if (ngModel.$options && ngModel.$options.trackBy) {
+                    var trackByLocals = {};
+                    var trackByParsed = $parse(ngModel.$options.trackBy);
+                    self.hashGetter = function(value, valueScope) {
+                        trackByLocals.$value = value;
+                        return trackByParsed(valueScope || $scope, trackByLocals);
+                    };
+                } else {
+                    self.hashGetter = function getHashValue(value) {
+                        if (angular.isObject(value)) {
+                            return "$$object_" + (value.$$mdSelectId || (value.$$mdSelectId = ++selectNextId));
+                        }
+                        return value;
+                    };
+                }
+                if (self.isMultiple) {
+                    ngModel.$validators["md-multiple"] = validateArray;
+                    ngModel.$render = renderMultiple;
+                    $scope.$watchCollection($attrs.ngModel, function(value) {
+                        if (validateArray(value)) renderMultiple(value);
+                    });
+                } else {
+                    ngModel.$render = renderSingular;
+                }
+                if (rerender) ngModel.$render();
+                function validateArray(modelValue, viewValue) {
+                    return angular.isArray(modelValue || viewValue || []);
+                }
+            };
+            self.select = function(hashKey, hashedValue) {
+                var option = self.options[hashKey];
+                option && option.setSelected(true);
+                self.selected[hashKey] = hashedValue;
+            };
+            self.deselect = function(hashKey) {
+                var option = self.options[hashKey];
+                option && option.setSelected(false);
+                delete self.selected[hashKey];
+            };
+            self.addOption = function(hashKey, optionCtrl) {
+                if (angular.isDefined(self.options[hashKey])) {
+                    throw new Error("Duplicate md-option values are not allowed in a select. " + 'Duplicate value "' + optionCtrl.value + '" found.');
+                }
+                self.options[hashKey] = optionCtrl;
+                if (angular.isDefined(self.selected[hashKey])) {
+                    self.select(hashKey, optionCtrl.value);
+                    self.refreshViewValue();
+                }
+            };
+            self.removeOption = function(hashKey) {
+                delete self.options[hashKey];
+            };
+            self.refreshViewValue = function() {
+                var values = [];
+                var option;
+                for (var hashKey in self.selected) {
+                    if (option = self.options[hashKey]) {
+                        values.push(option.value);
+                    } else {
+                        values.push(self.selected[hashKey]);
+                    }
+                }
+                self.ngModel.$setViewValue(self.isMultiple ? values : values[0]);
+            };
+            function renderMultiple() {
+                var newSelectedValues = self.ngModel.$modelValue || self.ngModel.$viewValue;
+                if (!angular.isArray(newSelectedValues)) return;
+                var oldSelected = Object.keys(self.selected);
+                var newSelectedHashes = newSelectedValues.map(self.hashGetter);
+                var deselected = oldSelected.filter(function(hash) {
+                    return newSelectedHashes.indexOf(hash) === -1;
+                });
+                deselected.forEach(self.deselect);
+                newSelectedHashes.forEach(function(hashKey, i) {
+                    self.select(hashKey, newSelectedValues[i]);
+                });
+            }
+            function renderSingular() {
+                var value = self.ngModel.$viewValue || self.ngModel.$modelValue;
+                Object.keys(self.selected).forEach(self.deselect);
+                self.select(self.hashGetter(value), value);
+            }
+        }
+    }
+    SelectMenuDirective.$inject = [ "$parse", "$mdUtil", "$mdTheming" ];
+    function OptionDirective($mdInkRipple, $mdUtil) {
+        OptionController.$inject = [ "$element" ];
+        return {
+            restrict: "E",
+            require: [ "mdOption", "^^mdSelectMenu" ],
+            controller: OptionController,
+            compile: compile
+        };
+        function compile(element, attr) {
+            element.append(angular.element('<div class="md-text">').append(element.contents()));
+            if (attr.tabindex === undefined) element.attr("tabindex", 0);
+            return postLink;
+        }
+        function postLink(scope, element, attr, ctrls) {
+            var optionCtrl = ctrls[0];
+            var selectCtrl = ctrls[1];
+            if (angular.isDefined(attr.ngValue)) {
+                scope.$watch(attr.ngValue, setOptionValue);
+            } else if (angular.isDefined(attr.value)) {
+                setOptionValue(attr.value);
+            } else {
+                throw new Error("Expected either ngValue or value attr");
+            }
+            $mdInkRipple.attachButtonBehavior(scope, element);
+            configureAria();
+            function setOptionValue(newValue, oldValue) {
+                var oldHashKey = selectCtrl.hashGetter(oldValue, scope);
+                var newHashKey = selectCtrl.hashGetter(newValue, scope);
+                optionCtrl.hashKey = newHashKey;
+                optionCtrl.value = newValue;
+                selectCtrl.removeOption(oldHashKey, optionCtrl);
+                selectCtrl.addOption(newHashKey, optionCtrl);
+            }
+            scope.$on("$destroy", function() {
+                selectCtrl.removeOption(optionCtrl.hashKey, optionCtrl);
+            });
+            function configureAria() {
+                element.attr({
+                    role: "option",
+                    "aria-selected": "false",
+                    id: "select_option_" + $mdUtil.nextUid()
+                });
+            }
+        }
+        function OptionController($element) {
+            this.selected = false;
+            this.setSelected = function(isSelected) {
+                if (isSelected && !this.selected) {
+                    $element.attr({
+                        selected: "selected",
+                        "aria-selected": "true"
+                    });
+                } else if (!isSelected && this.selected) {
+                    $element.removeAttr("selected");
+                    $element.attr("aria-selected", "false");
+                }
+                this.selected = isSelected;
+            };
+        }
+    }
+    OptionDirective.$inject = [ "$mdInkRipple", "$mdUtil" ];
+    function OptgroupDirective() {
+        return {
+            restrict: "E",
+            compile: compile
+        };
+        function compile(el, attrs) {
+            var labelElement = el.find("label");
+            if (!labelElement.length) {
+                labelElement = angular.element("<label>");
+                el.prepend(labelElement);
+            }
+            if (attrs.label) labelElement.text(attrs.label);
+        }
+    }
+    function SelectProvider($$interimElementProvider) {
+        selectDefaultOptions.$inject = [ "$mdSelect", "$mdConstant", "$$rAF", "$mdUtil", "$mdTheming", "$timeout" ];
+        return $$interimElementProvider("$mdSelect").setDefaults({
+            methods: [ "target" ],
+            options: selectDefaultOptions
+        });
+        function selectDefaultOptions($mdSelect, $mdConstant, $$rAF, $mdUtil, $mdTheming, $timeout) {
+            return {
+                parent: "body",
+                onShow: onShow,
+                onRemove: onRemove,
+                hasBackdrop: true,
+                disableParentScroll: $mdUtil.floatingScrollbars(),
+                themable: true
+            };
+            function onShow(scope, element, opts) {
+                if (!opts.target) {
+                    throw new Error("$mdSelect.show() expected a target element in options.target but got " + '"' + opts.target + '"!');
+                }
+                angular.extend(opts, {
+                    target: angular.element(opts.target),
+                    parent: angular.element(opts.parent),
+                    selectEl: element.find("md-select-menu"),
+                    contentEl: element.find("md-content"),
+                    backdrop: opts.hasBackdrop && angular.element("<md-backdrop>")
+                });
+                var optionNodes = opts.selectEl[0].getElementsByTagName("md-option");
+                var arrayIndexOf = [].indexOf;
+                configureAria();
+                if (opts.ngModel) {
+                    opts.selectEl.controller("mdSelectMenu").init(opts.ngModel, true);
+                }
+                if (opts.loadingAsync && opts.loadingAsync.then) {
+                    opts.loadingAsync.then(function() {
+                        scope.$$loadingAsyncDone = true;
+                        $$rAF(function() {
+                            $$rAF(function() {
+                                if (opts.isRemoved) return;
+                                animateSelect(scope, element, opts);
+                            });
+                        });
+                    });
+                }
+                if (opts.disableParentScroll) {
+                    opts.disableTarget = opts.parent.find("md-content");
+                    if (!opts.disableTarget.length) opts.disableTarget = opts.parent;
+                    opts.lastOverflow = opts.disableTarget.css("overflow");
+                    opts.disableTarget.css("overflow", "hidden");
+                }
+                $timeout(activateInteraction, 75, false);
+                if (opts.backdrop) {
+                    $mdTheming.inherit(opts.backdrop, opts.parent);
+                    opts.parent.append(opts.backdrop);
+                }
+                opts.parent.append(element);
+                $$rAF(function() {
+                    $$rAF(function() {
+                        if (opts.isRemoved) return;
+                        animateSelect(scope, element, opts);
+                    });
+                });
+                return $mdUtil.transitionEndPromise(opts.selectEl);
+                function configureAria() {
+                    opts.selectEl.attr("aria-labelledby", opts.target.attr("id"));
+                    opts.target.attr("aria-owns", opts.selectEl.attr("id"));
+                    opts.target.attr("aria-expanded", "true");
+                }
+                function activateInteraction() {
+                    if (opts.isRemoved) return;
+                    var selectCtrl = opts.selectEl.controller("mdSelectMenu") || {};
+                    element.addClass("md-clickable");
+                    opts.backdrop && opts.backdrop.on("click", function() {
+                        opts.restoreFocus = false;
+                        scope.$apply($mdSelect.cancel);
+                    });
+                    opts.selectEl.on("keydown", function(e) {
+                        switch (e.keyCode) {
+                          case $mdConstant.KEY_CODE.TAB:
+                          case $mdConstant.KEY_CODE.ESCAPE:
+                            e.preventDefault();
+                            opts.restoreFocus = true;
+                            scope.$apply($mdSelect.cancel);
+                        }
+                    });
+                    opts.selectEl.on("keydown", function(e) {
+                        switch (e.keyCode) {
+                          case $mdConstant.KEY_CODE.UP_ARROW:
+                            return focusPrevOption();
+
+                          case $mdConstant.KEY_CODE.DOWN_ARROW:
+                            return focusNextOption();
+                        }
+                    });
+                    function focusNextOption() {
+                        var index;
+                        if ((index = arrayIndexOf.call(optionNodes, opts.focusedNode)) == -1) {
+                            index = Math.floor((optionNodes.length - 1) / 2);
+                        } else {
+                            if (index < optionNodes.length - 1) ++index;
+                        }
+                        opts.focusedNode = optionNodes[index];
+                        optionNodes[index].focus();
+                    }
+                    function focusPrevOption() {
+                        var index;
+                        if ((index = arrayIndexOf.call(optionNodes, opts.focusedNode)) == -1) {
+                            index = Math.floor((optionNodes.length - 1) / 2);
+                        } else {
+                            if (index > 0) --index;
+                        }
+                        opts.focusedNode = optionNodes[index];
+                        optionNodes[index].focus();
+                    }
+                    if (!selectCtrl.isMultiple) {
+                        opts.selectEl.on("click", closeMenu);
+                        opts.selectEl.on("keydown", function(e) {
+                            if (e.keyCode == 32 || e.keyCode == 13) {
+                                closeMenu();
+                            }
+                        });
+                    }
+                    function closeMenu() {
+                        opts.restoreFocus = true;
+                        scope.$evalAsync(function() {
+                            $mdSelect.hide(selectCtrl.ngModel.$viewValue);
+                        });
+                    }
+                }
+            }
+            function onRemove(scope, element, opts) {
+                opts.isRemoved = true;
+                element.addClass("md-leave").removeClass("md-clickable");
+                opts.target.attr("aria-expanded", "false");
+                if (opts.disableParentScroll && $mdUtil.floatingScrollbars()) {
+                    opts.disableTarget.css("overflow", opts.lastOverflow);
+                    delete opts.lastOverflow;
+                    delete opts.disableTarget;
+                }
+                return $mdUtil.transitionEndPromise(element).then(function() {
+                    element.remove();
+                    opts.backdrop && opts.backdrop.remove();
+                    if (opts.restoreFocus) opts.target.focus();
+                });
+            }
+            function animateSelect(scope, element, opts) {
+                var containerNode = element[0], targetNode = opts.target[0], parentNode = opts.parent[0], selectNode = opts.selectEl[0], contentNode = opts.contentEl[0], parentRect = parentNode.getBoundingClientRect(), targetRect = $mdUtil.clientRect(targetNode, parentNode), shouldOpenAroundTarget = false, bounds = {
+                    left: parentNode.scrollLeft + SELECT_EDGE_MARGIN,
+                    top: parentNode.scrollTop + SELECT_EDGE_MARGIN,
+                    bottom: parentRect.height + parentNode.scrollTop - SELECT_EDGE_MARGIN,
+                    right: parentRect.width - parentNode.scrollLeft - SELECT_EDGE_MARGIN
+                }, spaceAvailable = {
+                    top: targetRect.top - bounds.top,
+                    left: targetRect.left - bounds.bottom
+                }, maxWidth = parentRect.width - SELECT_EDGE_MARGIN * 2, isScrollable = contentNode.scrollHeight > contentNode.offsetHeight, selectedNode = selectNode.querySelector("md-option[selected]"), optionNodes = selectNode.getElementsByTagName("md-option"), optgroupNodes = selectNode.getElementsByTagName("md-optgroup");
+                var centeredNode;
+                if (selectedNode) {
+                    centeredNode = selectedNode;
+                } else if (optgroupNodes.length) {
+                    centeredNode = optionNodes[0];
+                } else if (optionNodes.length) {
+                    centeredNode = optionNodes[Math.floor(optionNodes.length / 2)];
+                } else {
+                    centeredNode = contentNode.firstElementChild;
+                }
+                if (contentNode.offsetWidth > maxWidth) {
+                    contentNode.style["max-width"] = maxWidth + "px";
+                }
+                if (shouldOpenAroundTarget) {
+                    contentNode.style["min-width"] = targetRect.width + "px";
+                }
+                if (isScrollable) {
+                    selectNode.classList.add("md-overflow");
+                }
+                var selectMenuRect = selectNode.getBoundingClientRect();
+                var centeredRect = getOffsetRect(centeredNode);
+                if (centeredNode) {
+                    var centeredStyle = window.getComputedStyle(centeredNode);
+                    centeredRect.paddingLeft = parseInt(centeredStyle["padding-left"], 10);
+                    centeredRect.paddingRight = parseInt(centeredStyle["padding-right"], 10);
+                }
+                var focusedNode = centeredNode || optionNodes[0];
+                if (focusedNode) {
+                    opts.focusedNode = focusedNode;
+                    focusedNode.focus();
+                }
+                if (isScrollable) {
+                    var scrollBuffer = contentNode.offsetHeight / 2;
+                    contentNode.scrollTop = centeredRect.top + centeredRect.height / 2 - scrollBuffer;
+                    if (spaceAvailable.top < scrollBuffer) {
+                        contentNode.scrollTop = Math.min(centeredRect.top, contentNode.scrollTop + scrollBuffer - spaceAvailable.top);
+                    } else if (spaceAvailable.bottom < scrollBuffer) {
+                        contentNode.scrollTop = Math.max(centeredRect.top + centeredRect.height - selectMenuRect.height, contentNode.scrollTop - scrollBuffer + spaceAvailable.bottom);
+                    }
+                }
+                var left, top, transformOrigin;
+                if (shouldOpenAroundTarget) {
+                    left = targetRect.left;
+                    top = targetRect.top + targetRect.height;
+                    transformOrigin = "50% 0";
+                    if (top + selectMenuRect.height > bounds.bottom) {
+                        top = targetRect.top - selectMenuRect.height;
+                        transformOrigin = "50% 100%";
+                    }
+                } else {
+                    left = targetRect.left + centeredRect.left - centeredRect.paddingLeft;
+                    top = targetRect.top + targetRect.height / 2 - centeredRect.height / 2 - centeredRect.top + contentNode.scrollTop;
+                    transformOrigin = centeredRect.left + targetRect.width / 2 + "px " + (centeredRect.top + centeredRect.height / 2 - contentNode.scrollTop) + "px 0px";
+                    containerNode.style["min-width"] = targetRect.width + centeredRect.paddingLeft + centeredRect.paddingRight + "px";
+                }
+                containerNode.style.left = clamp(bounds.left, left, bounds.right) + "px";
+                containerNode.style.top = clamp(bounds.top, top, bounds.bottom) + "px";
+                selectNode.style[$mdConstant.CSS.TRANSFORM_ORIGIN] = transformOrigin;
+                selectNode.style[$mdConstant.CSS.TRANSFORM] = "scale(" + Math.min(targetRect.width / selectMenuRect.width, 1) + "," + Math.min(targetRect.height / selectMenuRect.height, 1) + ")";
+                $$rAF(function() {
+                    element.addClass("md-active");
+                    selectNode.style[$mdConstant.CSS.TRANSFORM] = "";
+                });
+            }
+        }
+        function clamp(min, n, max) {
+            return Math.min(max, Math.max(n, min));
+        }
+        function getOffsetRect(node) {
+            return node ? {
+                left: node.offsetLeft,
+                top: node.offsetTop,
+                width: node.offsetWidth,
+                height: node.offsetHeight
+            } : {
+                left: 0,
+                top: 0,
+                width: 0,
+                height: 0
+            };
+        }
+    }
+    SelectProvider.$inject = [ "$$interimElementProvider" ];
 })();
 
 (function() {
@@ -60928,7 +61558,7 @@ mdMediaFactory.$inject = [ "$mdConstant", "$rootScope", "$window" ];
 
 (function() {
     "use strict";
-    angular.module("material.components.tabs", [ "material.core" ]);
+    angular.module("material.components.tabs", [ "material.core", "material.components.icon" ]);
 })();
 
 (function() {
@@ -61169,6 +61799,7 @@ mdMediaFactory.$inject = [ "$mdConstant", "$rootScope", "$window" ];
             $mdTheming(element);
             var parent = element.parent();
             var background = angular.element(element[0].getElementsByClassName("md-background")[0]);
+            var content = angular.element(element[0].getElementsByClassName("md-content")[0]);
             var direction = attr.mdDirection;
             while ($window.getComputedStyle(parent[0])["pointer-events"] == "none") {
                 parent = parent.parent();
@@ -61225,10 +61856,11 @@ mdMediaFactory.$inject = [ "$mdConstant", "$rootScope", "$window" ];
                 positionTooltip();
                 $animate.addClass(element, "md-show");
                 $animate.addClass(background, "md-show");
+                $animate.addClass(content, "md-show");
             }
             function hideTooltip() {
                 parent.removeAttr("aria-describedby");
-                $q.all([ $animate.removeClass(background, "md-show"), $animate.removeClass(element, "md-show") ]).then(function() {
+                $q.all([ $animate.removeClass(content, "md-show"), $animate.removeClass(background, "md-show"), $animate.removeClass(element, "md-show") ]).then(function() {
                     if (!scope.visible) element.detach();
                 });
             }
@@ -61310,7 +61942,7 @@ mdMediaFactory.$inject = [ "$mdConstant", "$rootScope", "$window" ];
     "use strict";
     angular.module("material.components.autocomplete").controller("MdAutocompleteCtrl", MdAutocompleteCtrl);
     function MdAutocompleteCtrl($scope, $element, $timeout, $q, $mdUtil, $mdConstant) {
-        var self = this, itemParts = $scope.itemsExpr.split(/\ in\ /i), itemExpr = itemParts[1], elements = {
+        var self = this, itemParts = $scope.itemsExpr.split(/ in /i), itemExpr = itemParts[1], elements = {
             main: $element[0],
             ul: $element[0].getElementsByTagName("ul")[0],
             input: $element[0].getElementsByTagName("input")[0]
@@ -61323,8 +61955,10 @@ mdMediaFactory.$inject = [ "$mdConstant", "$rootScope", "$window" ];
         self.hidden = true;
         self.index = 0;
         self.keydown = keydown;
+        self.blur = blur;
         self.clear = clearValue;
         self.select = select;
+        self.getCurrentDisplayValue = getCurrentDisplayValue;
         self.fetch = $mdUtil.debounce(fetchResults);
         return init();
         function init() {
@@ -61336,34 +61970,57 @@ mdMediaFactory.$inject = [ "$mdConstant", "$rootScope", "$window" ];
             ul.attr("id", id);
             input.attr("aria-owns", id);
         }
+        function getItemScope(item) {
+            if (!item) return;
+            var locals = {};
+            if (self.itemName) locals[self.itemName] = $scope.selectedItem;
+            return locals;
+        }
         function configureWatchers() {
             $scope.$watch("searchText", function(searchText) {
+                self.index = -1;
                 if (!searchText) {
                     self.loading = false;
-                    return self.matches = [];
+                    self.matches = [];
+                    self.hidden = shouldHide();
+                    return;
                 }
                 var term = searchText.toLowerCase();
                 if (promise && promise.cancel) {
                     promise.cancel();
                     promise = null;
                 }
-                if (cache[term]) {
+                if (!$scope.noCache && cache[term]) {
                     self.matches = cache[term];
-                } else if (!self.hidden) {
-                    self.loading = true;
+                } else {
                     self.fetch(searchText);
                 }
+                self.hidden = shouldHide();
+                if ($scope.textChange) $scope.textChange(getItemScope($scope.selectedItem));
+            });
+            $scope.$watch("selectedItem", function(selectedItem) {
+                if ($scope.itemChange) $scope.itemChange(getItemScope(selectedItem));
             });
         }
         function fetchResults(searchText) {
             var items = $scope.$parent.$eval(itemExpr), term = searchText.toLowerCase();
-            promise = $q.when(items).then(function(matches) {
+            if (angular.isArray(items)) {
+                handleResults(items);
+            } else {
+                self.loading = true;
+                promise = $q.when(items).then(handleResults);
+            }
+            function handleResults(matches) {
                 cache[term] = matches;
                 if (searchText !== $scope.searchText) return;
                 promise = null;
                 self.loading = false;
                 self.matches = matches;
-            });
+                self.hidden = shouldHide();
+            }
+        }
+        function blur() {
+            self.hidden = true;
         }
         function keydown(event) {
             switch (event.keyCode) {
@@ -61382,7 +62039,7 @@ mdMediaFactory.$inject = [ "$mdConstant", "$rootScope", "$window" ];
                 break;
 
               case $mdConstant.KEY_CODE.ENTER:
-                if (self.loading) return;
+                if (self.loading || self.index < 0) return;
                 event.preventDefault();
                 select(self.index);
                 break;
@@ -61393,23 +62050,24 @@ mdMediaFactory.$inject = [ "$mdConstant", "$rootScope", "$window" ];
                 self.index = -1;
                 break;
 
-              default:
-                self.index = -1;
-                self.hidden = false;
-                $timeout(function() {
-                    self.hidden = isHidden();
-                });
-            }
+              case $mdConstant.KEY_CODE.TAB:
+                break;
+
+              default:            }
         }
         function clearValue() {
             $scope.searchText = "";
             select(-1);
+            elements.input.focus();
         }
-        function isHidden() {
+        function shouldHide() {
             return self.matches.length === 1 && $scope.searchText === getDisplayValue(self.matches[0]);
         }
+        function getCurrentDisplayValue() {
+            return getDisplayValue(self.matches[self.index]);
+        }
         function getDisplayValue(item) {
-            return item && $scope.itemText ? item[$scope.itemText] : item;
+            return item && $scope.itemText ? $scope.itemText(getItemScope(item)) : item;
         }
         function select(index) {
             $scope.selectedItem = self.matches[index];
@@ -61435,7 +62093,7 @@ mdMediaFactory.$inject = [ "$mdConstant", "$rootScope", "$window" ];
     angular.module("material.components.autocomplete").directive("mdAutocomplete", MdAutocomplete);
     function MdAutocomplete() {
         return {
-            template: '        <md-autocomplete-wrap role="listbox">          <input type="text"              ng-model="searchText"              ng-keydown="$mdAutocompleteCtrl.keydown($event)"              placeholder="{{placeholder}}"              aria-label="{{placeholder}}"              aria-autocomplete="list"              aria-haspopup="true"              aria-activedescendant=""              aria-expanded="{{!$mdAutocompleteCtrl.hidden}}"/>          <button              type="button"              ng-if="searchText"              ng-click="$mdAutocompleteCtrl.clear()">              <span aria-hidden="true">X</span>              <span class="visually-hidden">Clear</span>              </button>          <md-progress-linear ng-if="$mdAutocompleteCtrl.loading" md-mode="indeterminate"></md-progress-linear>        </md-autocomplete-wrap>        <ul role="presentation">          <li ng-repeat="(index, item) in $mdAutocompleteCtrl.matches"              ng-class="{ selected: index === $mdAutocompleteCtrl.index }"              ng-if="searchText && !$mdAutocompleteCtrl.hidden"              ng-click="$mdAutocompleteCtrl.select(index)"              ng-transclude              md-autocomplete-list-item="$mdAutocompleteCtrl.itemName">          </li>        </ul>        <aria-status            class="visually-hidden"            aria-atomic="true"            role="status"            aria-live="polite">          <p ng-repeat="item in $mdAutocompleteCtrl.matches">{{item.display}}</p>        </aria-status>',
+            template: '        <md-autocomplete-wrap role="listbox">          <input type="text"              ng-model="searchText"              ng-keydown="$mdAutocompleteCtrl.keydown($event)"              ng-blur="$mdAutocompleteCtrl.blur()"              placeholder="{{placeholder}}"              aria-label="{{placeholder}}"              aria-autocomplete="list"              aria-haspopup="true"              aria-activedescendant=""              aria-expanded="{{!$mdAutocompleteCtrl.hidden}}"/>          <button              type="button"              ng-if="searchText"              ng-click="$mdAutocompleteCtrl.clear()">              <md-icon md-svg-icon="cancel"></md-icon>              <span class="visually-hidden">Clear</span>              </button>          <md-progress-linear ng-if="$mdAutocompleteCtrl.loading" md-mode="indeterminate"></md-progress-linear>        </md-autocomplete-wrap>        <ul role="presentation">          <li ng-repeat="(index, item) in $mdAutocompleteCtrl.matches"              ng-class="{ selected: index === $mdAutocompleteCtrl.index }"              ng-show="searchText && !$mdAutocompleteCtrl.hidden"              ng-click="$mdAutocompleteCtrl.select(index)"              ng-transclude              md-autocomplete-list-item="$mdAutocompleteCtrl.itemName">          </li>        </ul>        <aria-status            class="visually-hidden"            role="status"            aria-live="assertive">          <p ng-if="$mdAutocompleteCtrl.index === -1 && $mdAutocompleteCtrl.matches.length === 1">There is 1 match available.</p>          <p ng-if="$mdAutocompleteCtrl.index === -1 && $mdAutocompleteCtrl.matches.length > 1">There are {{$mdAutocompleteCtrl.matches.length}} matches available.</p>          <p ng-if="$mdAutocompleteCtrl.index >= 0">{{ $mdAutocompleteCtrl.getCurrentDisplayValue() }}</p>        </aria-status>',
             transclude: true,
             controller: "MdAutocompleteCtrl",
             controllerAs: "$mdAutocompleteCtrl",
@@ -61443,8 +62101,11 @@ mdMediaFactory.$inject = [ "$mdConstant", "$rootScope", "$window" ];
                 searchText: "=mdSearchText",
                 selectedItem: "=mdSelectedItem",
                 itemsExpr: "@mdItems",
-                itemText: "@mdItemText",
-                placeholder: "@placeholder"
+                itemText: "&mdItemText",
+                placeholder: "@placeholder",
+                noCache: "=mdNoCache",
+                itemChange: "&mdSelectedItemChange",
+                textChange: "&mdSearchTextChange"
             }
         };
     }
@@ -61490,8 +62151,7 @@ mdMediaFactory.$inject = [ "$mdConstant", "$rootScope", "$window" ];
             scope: false
         };
         function link(scope, element, attr, ctrl) {
-            var newScope = ctrl.parent.$new(false, ctrl.parent);
-            var itemName = ctrl.scope.$eval(attr.mdAutocompleteListItem);
+            var newScope = ctrl.parent.$new(false, ctrl.parent), itemName = ctrl.scope.$eval(attr.mdAutocompleteListItem);
             newScope[itemName] = scope.item;
             $compile(element.contents())(newScope);
             element.attr({
@@ -62107,7 +62767,7 @@ mdMediaFactory.$inject = [ "$mdConstant", "$rootScope", "$window" ];
     TabsDirective.$inject = [ "$mdTheming" ];
 })();
 
-angular.module("material.core").constant("$MD_THEME_CSS", "md-autocomplete {  background: '{{background-50}}'; }  md-autocomplete button {    background: '{{background-200}}'; }  md-autocomplete ul {    background: '{{background-50}}'; }    md-autocomplete ul li {      border-top: 1px solid '{{background-400}}';      color: '{{background-900}}'; }      md-autocomplete ul li .highlight {        color: '{{background-600}}'; }      md-autocomplete ul li:hover, md-autocomplete ul li.selected {        background: '{{background-200}}'; }md-backdrop.md-opaque.md-THEME_NAME-theme {  background-color: '{{foreground-4-0.5}}'; }md-bottom-sheet.md-THEME_NAME-theme {  background-color: '{{background-50}}';  border-top-color: '{{background-300}}'; }  md-bottom-sheet.md-THEME_NAME-theme.md-list md-item {    color: '{{foreground-1}}'; }  md-bottom-sheet.md-THEME_NAME-theme .md-subheader {    background-color: '{{background-50}}'; }  md-bottom-sheet.md-THEME_NAME-theme .md-subheader {    color: '{{foreground-1}}'; }md-toolbar .md-button.md-THEME_NAME-theme.md-fab {  background-color: white; }.md-button.md-THEME_NAME-theme {  border-radius: 3px; }  .md-button.md-THEME_NAME-theme:not([disabled]):hover, .md-button.md-THEME_NAME-theme:not([disabled]):focus {    background-color: '{{background-500-0.2}}'; }  .md-button.md-THEME_NAME-theme.md-primary {    color: '{{primary-color}}'; }    .md-button.md-THEME_NAME-theme.md-primary.md-raised, .md-button.md-THEME_NAME-theme.md-primary.md-fab {      color: '{{primary-contrast}}';      background-color: '{{primary-color}}'; }      .md-button.md-THEME_NAME-theme.md-primary.md-raised:not([disabled]):hover, .md-button.md-THEME_NAME-theme.md-primary.md-raised:not([disabled]):focus, .md-button.md-THEME_NAME-theme.md-primary.md-fab:not([disabled]):hover, .md-button.md-THEME_NAME-theme.md-primary.md-fab:not([disabled]):focus {        background-color: '{{primary-600}}'; }  .md-button.md-THEME_NAME-theme.md-fab {    border-radius: 50%;    background-color: '{{accent-color}}';    color: '{{accent-contrast}}'; }    .md-button.md-THEME_NAME-theme.md-fab:not([disabled]):hover, .md-button.md-THEME_NAME-theme.md-fab:not([disabled]):focus {      background-color: '{{accent-A700}}'; }  .md-button.md-THEME_NAME-theme.md-raised {    color: '{{background-contrast}}';    background-color: '{{background-50}}'; }    .md-button.md-THEME_NAME-theme.md-raised:not([disabled]):hover, .md-button.md-THEME_NAME-theme.md-raised:not([disabled]):focus {      background-color: '{{background-200}}'; }  .md-button.md-THEME_NAME-theme.md-warn {    color: '{{warn-color}}'; }    .md-button.md-THEME_NAME-theme.md-warn.md-raised, .md-button.md-THEME_NAME-theme.md-warn.md-fab {      color: '{{warn-contrast}}';      background-color: '{{warn-color}}'; }      .md-button.md-THEME_NAME-theme.md-warn.md-raised:not([disabled]):hover, .md-button.md-THEME_NAME-theme.md-warn.md-raised:not([disabled]):focus, .md-button.md-THEME_NAME-theme.md-warn.md-fab:not([disabled]):hover, .md-button.md-THEME_NAME-theme.md-warn.md-fab:not([disabled]):focus {        background-color: '{{warn-700}}'; }  .md-button.md-THEME_NAME-theme.md-accent {    color: '{{accent-color}}'; }    .md-button.md-THEME_NAME-theme.md-accent.md-raised, .md-button.md-THEME_NAME-theme.md-accent.md-fab {      color: '{{accent-contrast}}';      background-color: '{{accent-color}}'; }      .md-button.md-THEME_NAME-theme.md-accent.md-raised:not([disabled]):hover, .md-button.md-THEME_NAME-theme.md-accent.md-raised:not([disabled]):focus, .md-button.md-THEME_NAME-theme.md-accent.md-fab:not([disabled]):hover, .md-button.md-THEME_NAME-theme.md-accent.md-fab:not([disabled]):focus {        background-color: '{{accent-700}}'; }  .md-button.md-THEME_NAME-theme[disabled], .md-button.md-THEME_NAME-theme.md-raised[disabled], .md-button.md-THEME_NAME-theme.md-fab[disabled] {    color: '{{foreground-3}}';    background-color: transparent;    cursor: not-allowed; }md-card.md-THEME_NAME-theme {  border-radius: 2px; }  md-card.md-THEME_NAME-theme .md-card-image {    border-radius: 2px 2px 0 0; }md-checkbox.md-THEME_NAME-theme .md-ripple {  color: '{{accent-600}}'; }md-checkbox.md-THEME_NAME-theme.md-checked .md-ripple {  color: '{{background-600}}'; }md-checkbox.md-THEME_NAME-theme .md-icon {  border-color: '{{foreground-2}}'; }md-checkbox.md-THEME_NAME-theme.md-checked .md-icon {  background-color: '{{accent-color-0.87}}'; }md-checkbox.md-THEME_NAME-theme.md-checked .md-icon:after {  border-color: '{{background-200}}'; }md-checkbox.md-THEME_NAME-theme:not([disabled]).md-primary .md-ripple {  color: '{{primary-600}}'; }md-checkbox.md-THEME_NAME-theme:not([disabled]).md-primary.md-checked .md-ripple {  color: '{{background-600}}'; }md-checkbox.md-THEME_NAME-theme:not([disabled]).md-primary .md-icon {  border-color: '{{foreground-2}}'; }md-checkbox.md-THEME_NAME-theme:not([disabled]).md-primary.md-checked .md-icon {  background-color: '{{primary-color-0.87}}'; }md-checkbox.md-THEME_NAME-theme:not([disabled]).md-primary.md-checked .md-icon:after {  border-color: '{{background-200}}'; }md-checkbox.md-THEME_NAME-theme:not([disabled]).md-warn .md-ripple {  color: '{{warn-600}}'; }md-checkbox.md-THEME_NAME-theme:not([disabled]).md-warn .md-icon {  border-color: '{{foreground-2}}'; }md-checkbox.md-THEME_NAME-theme:not([disabled]).md-warn.md-checked .md-icon {  background-color: '{{warn-color-0.87}}'; }md-checkbox.md-THEME_NAME-theme:not([disabled]).md-warn.md-checked .md-icon:after {  border-color: '{{background-200}}'; }md-checkbox.md-THEME_NAME-theme[disabled] .md-icon {  border-color: '{{foreground-3}}'; }md-checkbox.md-THEME_NAME-theme[disabled].md-checked .md-icon {  background-color: '{{foreground-3}}'; }md-content.md-THEME_NAME-theme {  background-color: '{{background-hue-3}}'; }md-dialog.md-THEME_NAME-theme {  border-radius: 4px;  background-color: '{{background-hue-3}}'; }  md-dialog.md-THEME_NAME-theme.md-content-overflow .md-actions {    border-top-color: '{{foreground-4}}'; }md-divider.md-THEME_NAME-theme {  border-top-color: '{{foreground-4}}'; }md-input-container.md-THEME_NAME-theme .md-input {  color: '{{foreground-1}}';  border-color: '{{foreground-4}}';  text-shadow: '{{foreground-shadow}}'; }  md-input-container.md-THEME_NAME-theme .md-input::-webkit-input-placeholder, md-input-container.md-THEME_NAME-theme .md-input::-moz-placeholder, md-input-container.md-THEME_NAME-theme .md-input:-moz-placeholder, md-input-container.md-THEME_NAME-theme .md-input:-ms-input-placeholder {    color: '{{foreground-3}}'; }md-input-container.md-THEME_NAME-theme label, md-input-container.md-THEME_NAME-theme .md-placeholder {  text-shadow: '{{foreground-shadow}}';  color: '{{foreground-3}}'; }md-input-container.md-THEME_NAME-theme:not(.md-input-invalid).md-input-has-value label {  color: '{{foreground-2}}'; }md-input-container.md-THEME_NAME-theme:not(.md-input-invalid).md-input-focused .md-input {  border-color: '{{primary-500}}'; }md-input-container.md-THEME_NAME-theme:not(.md-input-invalid).md-input-focused label {  color: '{{primary-500}}'; }md-input-container.md-THEME_NAME-theme:not(.md-input-invalid).md-input-focused.md-accent .md-input {  border-color: '{{accent-500}}'; }md-input-container.md-THEME_NAME-theme:not(.md-input-invalid).md-input-focused.md-accent label {  color: '{{accent-500}}'; }md-input-container.md-THEME_NAME-theme:not(.md-input-invalid).md-input-focused.md-warn .md-input {  border-color: '{{warn-500}}'; }md-input-container.md-THEME_NAME-theme:not(.md-input-invalid).md-input-focused.md-warn label {  color: '{{warn-500}}'; }md-input-container.md-THEME_NAME-theme.md-input-invalid .md-input {  border-color: '{{warn-500}}'; }md-input-container.md-THEME_NAME-theme.md-input-invalid label {  color: '{{warn-500}}'; }md-input-container.md-THEME_NAME-theme.md-input-invalid ng-message, md-input-container.md-THEME_NAME-theme.md-input-invalid data-ng-message, md-input-container.md-THEME_NAME-theme.md-input-invalid x-ng-message, md-input-container.md-THEME_NAME-theme.md-input-invalid [ng-message], md-input-container.md-THEME_NAME-theme.md-input-invalid [data-ng-message], md-input-container.md-THEME_NAME-theme.md-input-invalid [x-ng-message], md-input-container.md-THEME_NAME-theme.md-input-invalid .md-char-counter {  color: '{{warn-500}}'; }md-input-container.md-THEME_NAME-theme .md-input[disabled], [disabled] md-input-container.md-THEME_NAME-theme .md-input {  border-bottom-color: transparent;  color: '{{foreground-3}}';  background-image: linear-gradient(to right, '{{foreground-4}}' 0%, '{{foreground-4}}' 33%, transparent 0%);  background-image: -ms-linear-gradient(left, transparent 0%, '{{foreground-4}}' 100%); }md-progress-circular.md-THEME_NAME-theme {  background-color: transparent; }  md-progress-circular.md-THEME_NAME-theme .md-inner .md-gap {    border-top-color: '{{primary-color}}';    border-bottom-color: '{{primary-color}}'; }  md-progress-circular.md-THEME_NAME-theme .md-inner .md-left .md-half-circle, md-progress-circular.md-THEME_NAME-theme .md-inner .md-right .md-half-circle {    border-top-color: '{{primary-color}}'; }  md-progress-circular.md-THEME_NAME-theme .md-inner .md-right .md-half-circle {    border-right-color: '{{primary-color}}'; }  md-progress-circular.md-THEME_NAME-theme .md-inner .md-left .md-half-circle {    border-left-color: '{{primary-color}}'; }  md-progress-circular.md-THEME_NAME-theme.md-warn .md-inner .md-gap {    border-top-color: '{{warn-color}}';    border-bottom-color: '{{warn-color}}'; }  md-progress-circular.md-THEME_NAME-theme.md-warn .md-inner .md-left .md-half-circle, md-progress-circular.md-THEME_NAME-theme.md-warn .md-inner .md-right .md-half-circle {    border-top-color: '{{warn-color}}'; }  md-progress-circular.md-THEME_NAME-theme.md-warn .md-inner .md-right .md-half-circle {    border-right-color: '{{warn-color}}'; }  md-progress-circular.md-THEME_NAME-theme.md-warn .md-inner .md-left .md-half-circle {    border-left-color: '{{warn-color}}'; }  md-progress-circular.md-THEME_NAME-theme.md-accent .md-inner .md-gap {    border-top-color: '{{accent-color}}';    border-bottom-color: '{{accent-color}}'; }  md-progress-circular.md-THEME_NAME-theme.md-accent .md-inner .md-left .md-half-circle, md-progress-circular.md-THEME_NAME-theme.md-accent .md-inner .md-right .md-half-circle {    border-top-color: '{{accent-color}}'; }  md-progress-circular.md-THEME_NAME-theme.md-accent .md-inner .md-right .md-half-circle {    border-right-color: '{{accent-color}}'; }  md-progress-circular.md-THEME_NAME-theme.md-accent .md-inner .md-left .md-half-circle {    border-left-color: '{{accent-color}}'; }md-progress-linear.md-THEME_NAME-theme .md-container {  background-color: '{{primary-100}}'; }md-progress-linear.md-THEME_NAME-theme .md-bar {  background-color: '{{primary-color}}'; }md-progress-linear.md-THEME_NAME-theme.md-warn .md-container {  background-color: '{{warn-100}}'; }md-progress-linear.md-THEME_NAME-theme.md-warn .md-bar {  background-color: '{{warn-color}}'; }md-progress-linear.md-THEME_NAME-theme.md-accent .md-container {  background-color: '{{accent-100}}'; }md-progress-linear.md-THEME_NAME-theme.md-accent .md-bar {  background-color: '{{accent-color}}'; }md-progress-linear.md-THEME_NAME-theme[md-mode=buffer].md-warn .md-bar1 {  background-color: '{{warn-100}}'; }md-progress-linear.md-THEME_NAME-theme[md-mode=buffer].md-warn .md-dashed:before {  background: radial-gradient('{{warn-100}}' 0%, '{{warn-100}}' 16%, transparent 42%); }md-progress-linear.md-THEME_NAME-theme[md-mode=buffer].md-accent .md-bar1 {  background-color: '{{accent-100}}'; }md-progress-linear.md-THEME_NAME-theme[md-mode=buffer].md-accent .md-dashed:before {  background: radial-gradient('{{accent-100}}' 0%, '{{accent-100}}' 16%, transparent 42%); }md-radio-button.md-THEME_NAME-theme .md-off {  border-color: '{{foreground-2}}'; }md-radio-button.md-THEME_NAME-theme .md-on {  background-color: '{{accent-color-0.87}}'; }md-radio-button.md-THEME_NAME-theme.md-checked .md-off {  border-color: '{{accent-color-0.87}}'; }md-radio-button.md-THEME_NAME-theme.md-checked .md-ink-ripple {  color: '{{accent-color-0.87}}'; }md-radio-button.md-THEME_NAME-theme .md-container .md-ripple {  color: '{{accent-600}}'; }md-radio-button.md-THEME_NAME-theme:not([disabled]).md-primary .md-on {  background-color: '{{primary-color-0.87}}'; }md-radio-button.md-THEME_NAME-theme:not([disabled]).md-primary.md-checked .md-off {  border-color: '{{primary-color-0.87}}'; }md-radio-button.md-THEME_NAME-theme:not([disabled]).md-primary.md-checked .md-ink-ripple {  color: '{{primary-color-0.87}}'; }md-radio-button.md-THEME_NAME-theme:not([disabled]).md-primary .md-container .md-ripple {  color: '{{primary-600}}'; }md-radio-button.md-THEME_NAME-theme:not([disabled]).md-warn .md-on {  background-color: '{{warn-color-0.87}}'; }md-radio-button.md-THEME_NAME-theme:not([disabled]).md-warn.md-checked .md-off {  border-color: '{{warn-color-0.87}}'; }md-radio-button.md-THEME_NAME-theme:not([disabled]).md-warn.md-checked .md-ink-ripple {  color: '{{warn-color-0.87}}'; }md-radio-button.md-THEME_NAME-theme:not([disabled]).md-warn .md-container .md-ripple {  color: '{{warn-600}}'; }md-radio-button.md-THEME_NAME-theme[disabled] .md-container .md-off {  border-color: '{{foreground-3}}'; }md-radio-button.md-THEME_NAME-theme[disabled] .md-container .md-on {  border-color: '{{foreground-3}}'; }md-radio-group.md-THEME_NAME-theme:focus:not(:empty) {  border-color: '{{foreground-1}}'; }md-sidenav.md-THEME_NAME-theme {  background-color: '{{background-hue-3}}'; }md-slider.md-THEME_NAME-theme .md-track {  background-color: '{{foreground-3}}'; }md-slider.md-THEME_NAME-theme .md-track-ticks {  background-color: '{{foreground-4}}'; }md-slider.md-THEME_NAME-theme .md-focus-thumb {  background-color: '{{foreground-2}}'; }md-slider.md-THEME_NAME-theme .md-focus-ring {  border-color: '{{foreground-4}}'; }md-slider.md-THEME_NAME-theme .md-disabled-thumb {  border-color: '{{background-hue-3}}'; }md-slider.md-THEME_NAME-theme.md-min .md-thumb:after {  background-color: '{{background-hue-3}}'; }md-slider.md-THEME_NAME-theme .md-track.md-track-fill {  background-color: '{{accent-color}}'; }md-slider.md-THEME_NAME-theme .md-thumb:after {  border-color: '{{accent-color}}';  background-color: '{{accent-color}}'; }md-slider.md-THEME_NAME-theme .md-sign {  background-color: '{{accent-color}}'; }  md-slider.md-THEME_NAME-theme .md-sign:after {    border-top-color: '{{accent-color}}'; }md-slider.md-THEME_NAME-theme .md-thumb-text {  color: '{{accent-contrast}}'; }md-slider.md-THEME_NAME-theme.md-warn .md-track.md-track-fill {  background-color: '{{warn-color}}'; }md-slider.md-THEME_NAME-theme.md-warn .md-thumb:after {  border-color: '{{warn-color}}';  background-color: '{{warn-color}}'; }md-slider.md-THEME_NAME-theme.md-warn .md-sign {  background-color: '{{warn-color}}'; }  md-slider.md-THEME_NAME-theme.md-warn .md-sign:after {    border-top-color: '{{warn-color}}'; }md-slider.md-THEME_NAME-theme.md-warn .md-thumb-text {  color: '{{warn-contrast}}'; }md-slider.md-THEME_NAME-theme.md-primary .md-track.md-track-fill {  background-color: '{{primary-color}}'; }md-slider.md-THEME_NAME-theme.md-primary .md-thumb:after {  border-color: '{{primary-color}}';  background-color: '{{primary-color}}'; }md-slider.md-THEME_NAME-theme.md-primary .md-sign {  background-color: '{{primary-color}}'; }  md-slider.md-THEME_NAME-theme.md-primary .md-sign:after {    border-top-color: '{{primary-color}}'; }md-slider.md-THEME_NAME-theme.md-primary .md-thumb-text {  color: '{{primary-contrast}}'; }md-slider.md-THEME_NAME-theme[disabled] .md-thumb:after {  border-color: '{{foreground-3}}'; }md-slider.md-THEME_NAME-theme[disabled]:not(.md-min) .md-thumb:after {  background-color: '{{foreground-3}}'; }.md-subheader.md-THEME_NAME-theme {  color: '{{ foreground-2-0.23 }}';  background-color: '{{background-hue-3}}'; }  .md-subheader.md-THEME_NAME-theme.md-primary {    color: '{{primary-color}}'; }  .md-subheader.md-THEME_NAME-theme.md-accent {    color: '{{accent-color}}'; }  .md-subheader.md-THEME_NAME-theme.md-warn {    color: '{{warn-color}}'; }md-switch.md-THEME_NAME-theme .md-thumb {  background-color: '{{background-50}}'; }md-switch.md-THEME_NAME-theme .md-bar {  background-color: '{{background-500}}'; }md-switch.md-THEME_NAME-theme.md-checked .md-thumb {  background-color: '{{accent-color}}'; }md-switch.md-THEME_NAME-theme.md-checked .md-bar {  background-color: '{{accent-color-0.5}}'; }md-switch.md-THEME_NAME-theme.md-checked.md-primary .md-thumb {  background-color: '{{primary-color}}'; }md-switch.md-THEME_NAME-theme.md-checked.md-primary .md-bar {  background-color: '{{primary-color-0.5}}'; }md-switch.md-THEME_NAME-theme.md-checked.md-warn .md-thumb {  background-color: '{{warn-color}}'; }md-switch.md-THEME_NAME-theme.md-checked.md-warn .md-bar {  background-color: '{{warn-color-0.5}}'; }md-switch.md-THEME_NAME-theme[disabled] .md-thumb {  background-color: '{{background-400}}'; }md-switch.md-THEME_NAME-theme[disabled] .md-bar {  background-color: '{{foreground-4}}'; }md-switch.md-THEME_NAME-theme:focus .md-label:not(:empty) {  border-color: '{{foreground-1}}';  border-style: dotted; }md-tabs.md-THEME_NAME-theme .md-header {  background-color: transparent; }md-tabs.md-THEME_NAME-theme .md-paginator md-icon {  color: '{{primary-color}}'; }md-tabs.md-THEME_NAME-theme.md-accent .md-header {  background-color: '{{accent-color}}'; }md-tabs.md-THEME_NAME-theme.md-accent md-tab:not([disabled]) {  color: '{{accent-100}}'; }  md-tabs.md-THEME_NAME-theme.md-accent md-tab:not([disabled]).active {    color: '{{accent-contrast}}'; }md-tabs.md-THEME_NAME-theme.md-primary .md-header {  background-color: '{{primary-color}}'; }md-tabs.md-THEME_NAME-theme.md-primary md-tab:not([disabled]) {  color: '{{primary-100}}'; }  md-tabs.md-THEME_NAME-theme.md-primary md-tab:not([disabled]).active {    color: '{{primary-contrast}}'; }md-tabs.md-THEME_NAME-theme.md-primary md-tab {  color: '{{primary-100}}'; }  md-tabs.md-THEME_NAME-theme.md-primary md-tab[disabled] {    color: '{{foreground-3}}'; }  md-tabs.md-THEME_NAME-theme.md-primary md-tab:focus {    color: '{{primary-contrast}}';    background-color: '{{primary-contrast-0.1}}'; }  md-tabs.md-THEME_NAME-theme.md-primary md-tab.active {    color: '{{primary-contrast}}'; }  md-tabs.md-THEME_NAME-theme.md-primary md-tab .md-ripple-container {    color: '{{primary-contrast}}'; }md-tabs.md-THEME_NAME-theme.md-warn .md-header {  background-color: '{{warn-color}}'; }md-tabs.md-THEME_NAME-theme.md-warn md-tab:not([disabled]) {  color: '{{warn-100}}'; }  md-tabs.md-THEME_NAME-theme.md-warn md-tab:not([disabled]).active {    color: '{{warn-contrast}}'; }md-tabs.md-THEME_NAME-theme md-tabs-ink-bar {  color: '{{accent-color}}';  background: '{{accent-color}}'; }md-tabs.md-THEME_NAME-theme md-tab {  color: '{{foreground-2}}'; }  md-tabs.md-THEME_NAME-theme md-tab[disabled] {    color: '{{foreground-3}}'; }  md-tabs.md-THEME_NAME-theme md-tab:focus {    color: '{{foreground-1}}'; }  md-tabs.md-THEME_NAME-theme md-tab.active {    color: '{{primary-color}}'; }  md-tabs.md-THEME_NAME-theme md-tab .md-ripple-container {    color: '{{accent-100}}'; }md-input-group.md-THEME_NAME-theme input, md-input-group.md-THEME_NAME-theme textarea {  text-shadow: '{{foreground-shadow}}'; }  md-input-group.md-THEME_NAME-theme input::-webkit-input-placeholder, md-input-group.md-THEME_NAME-theme input::-moz-placeholder, md-input-group.md-THEME_NAME-theme input:-moz-placeholder, md-input-group.md-THEME_NAME-theme input:-ms-input-placeholder, md-input-group.md-THEME_NAME-theme textarea::-webkit-input-placeholder, md-input-group.md-THEME_NAME-theme textarea::-moz-placeholder, md-input-group.md-THEME_NAME-theme textarea:-moz-placeholder, md-input-group.md-THEME_NAME-theme textarea:-ms-input-placeholder {    color: '{{foreground-3}}'; }md-input-group.md-THEME_NAME-theme label {  text-shadow: '{{foreground-shadow}}';  color: '{{foreground-3}}'; }md-input-group.md-THEME_NAME-theme input, md-input-group.md-THEME_NAME-theme textarea {  color: '{{foreground-1}}';  border-color: '{{foreground-4}}'; }md-input-group.md-THEME_NAME-theme.md-input-focused input, md-input-group.md-THEME_NAME-theme.md-input-focused textarea {  border-color: '{{primary-500}}'; }md-input-group.md-THEME_NAME-theme.md-input-focused label {  color: '{{primary-500}}'; }md-input-group.md-THEME_NAME-theme.md-input-focused.md-accent input, md-input-group.md-THEME_NAME-theme.md-input-focused.md-accent textarea {  border-color: '{{accent-500}}'; }md-input-group.md-THEME_NAME-theme.md-input-focused.md-accent label {  color: '{{accent-500}}'; }md-input-group.md-THEME_NAME-theme.md-input-has-value:not(.md-input-focused) label {  color: '{{foreground-2}}'; }md-input-group.md-THEME_NAME-theme .md-input[disabled] {  border-bottom-color: '{{foreground-4}}';  color: '{{foreground-3}}'; }md-toast.md-THEME_NAME-theme {  background-color: '{{foreground-1}}';  color: '{{background-50}}'; }  md-toast.md-THEME_NAME-theme .md-button {    color: '{{background-50}}'; }    md-toast.md-THEME_NAME-theme .md-button.md-highlight {      color: '{{primary-A200}}'; }      md-toast.md-THEME_NAME-theme .md-button.md-highlight.md-accent {        color: '{{accent-A200}}'; }      md-toast.md-THEME_NAME-theme .md-button.md-highlight.md-warn {        color: '{{warn-A200}}'; }md-toolbar.md-THEME_NAME-theme {  background-color: '{{primary-color}}';  color: '{{primary-contrast}}'; }  md-toolbar.md-THEME_NAME-theme .md-button {    color: '{{primary-contrast}}'; }  md-toolbar.md-THEME_NAME-theme.md-accent {    background-color: '{{accent-color}}';    color: '{{accent-contrast}}'; }  md-toolbar.md-THEME_NAME-theme.md-warn {    background-color: '{{warn-color}}';    color: '{{warn-contrast}}'; }md-tooltip.md-THEME_NAME-theme {  color: '{{background-A100}}'; }  md-tooltip.md-THEME_NAME-theme .md-background {    background-color: '{{foreground-2}}'; }");
+angular.module("material.core").constant("$MD_THEME_CSS", "md-autocomplete {  background: '{{background-50}}'; }  md-autocomplete button md-icon path {    fill: '{{background-600}}'; }  md-autocomplete button:after {    background: '{{background-600-0.3}}'; }  md-autocomplete ul {    background: '{{background-50}}'; }    md-autocomplete ul li {      border-top: 1px solid '{{background-400}}';      color: '{{background-900}}'; }      md-autocomplete ul li .highlight {        color: '{{background-600}}'; }      md-autocomplete ul li:hover, md-autocomplete ul li.selected {        background: '{{background-200}}'; }md-backdrop.md-opaque.md-THEME_NAME-theme {  background-color: '{{foreground-4-0.5}}'; }md-bottom-sheet.md-THEME_NAME-theme {  background-color: '{{background-50}}';  border-top-color: '{{background-300}}'; }  md-bottom-sheet.md-THEME_NAME-theme.md-list md-item {    color: '{{foreground-1}}'; }  md-bottom-sheet.md-THEME_NAME-theme .md-subheader {    background-color: '{{background-50}}'; }  md-bottom-sheet.md-THEME_NAME-theme .md-subheader {    color: '{{foreground-1}}'; }md-toolbar .md-button.md-THEME_NAME-theme.md-fab {  background-color: white; }.md-button.md-THEME_NAME-theme {  border-radius: 3px; }  .md-button.md-THEME_NAME-theme:not([disabled]):hover, .md-button.md-THEME_NAME-theme:not([disabled]):focus {    background-color: '{{background-500-0.2}}'; }  .md-button.md-THEME_NAME-theme.md-primary {    color: '{{primary-color}}'; }    .md-button.md-THEME_NAME-theme.md-primary.md-raised, .md-button.md-THEME_NAME-theme.md-primary.md-fab {      color: '{{primary-contrast}}';      background-color: '{{primary-color}}'; }      .md-button.md-THEME_NAME-theme.md-primary.md-raised:not([disabled]):hover, .md-button.md-THEME_NAME-theme.md-primary.md-raised:not([disabled]):focus, .md-button.md-THEME_NAME-theme.md-primary.md-fab:not([disabled]):hover, .md-button.md-THEME_NAME-theme.md-primary.md-fab:not([disabled]):focus {        background-color: '{{primary-600}}'; }  .md-button.md-THEME_NAME-theme.md-fab {    border-radius: 50%;    background-color: '{{accent-color}}';    color: '{{accent-contrast}}'; }    .md-button.md-THEME_NAME-theme.md-fab:not([disabled]):hover, .md-button.md-THEME_NAME-theme.md-fab:not([disabled]):focus {      background-color: '{{accent-A700}}'; }  .md-button.md-THEME_NAME-theme.md-raised {    color: '{{background-contrast}}';    background-color: '{{background-50}}'; }    .md-button.md-THEME_NAME-theme.md-raised:not([disabled]):hover, .md-button.md-THEME_NAME-theme.md-raised:not([disabled]):focus {      background-color: '{{background-200}}'; }  .md-button.md-THEME_NAME-theme.md-warn {    color: '{{warn-color}}'; }    .md-button.md-THEME_NAME-theme.md-warn.md-raised, .md-button.md-THEME_NAME-theme.md-warn.md-fab {      color: '{{warn-contrast}}';      background-color: '{{warn-color}}'; }      .md-button.md-THEME_NAME-theme.md-warn.md-raised:not([disabled]):hover, .md-button.md-THEME_NAME-theme.md-warn.md-raised:not([disabled]):focus, .md-button.md-THEME_NAME-theme.md-warn.md-fab:not([disabled]):hover, .md-button.md-THEME_NAME-theme.md-warn.md-fab:not([disabled]):focus {        background-color: '{{warn-700}}'; }  .md-button.md-THEME_NAME-theme.md-accent {    color: '{{accent-color}}'; }    .md-button.md-THEME_NAME-theme.md-accent.md-raised, .md-button.md-THEME_NAME-theme.md-accent.md-fab {      color: '{{accent-contrast}}';      background-color: '{{accent-color}}'; }      .md-button.md-THEME_NAME-theme.md-accent.md-raised:not([disabled]):hover, .md-button.md-THEME_NAME-theme.md-accent.md-raised:not([disabled]):focus, .md-button.md-THEME_NAME-theme.md-accent.md-fab:not([disabled]):hover, .md-button.md-THEME_NAME-theme.md-accent.md-fab:not([disabled]):focus {        background-color: '{{accent-700}}'; }  .md-button.md-THEME_NAME-theme[disabled], .md-button.md-THEME_NAME-theme.md-raised[disabled], .md-button.md-THEME_NAME-theme.md-fab[disabled] {    color: '{{foreground-3}}';    background-color: transparent;    cursor: not-allowed; }md-card.md-THEME_NAME-theme {  border-radius: 2px; }  md-card.md-THEME_NAME-theme .md-card-image {    border-radius: 2px 2px 0 0; }md-checkbox.md-THEME_NAME-theme .md-ripple {  color: '{{accent-600}}'; }md-checkbox.md-THEME_NAME-theme.md-checked .md-ripple {  color: '{{background-600}}'; }md-checkbox.md-THEME_NAME-theme .md-icon {  border-color: '{{foreground-2}}'; }md-checkbox.md-THEME_NAME-theme.md-checked .md-icon {  background-color: '{{accent-color-0.87}}'; }md-checkbox.md-THEME_NAME-theme.md-checked .md-icon:after {  border-color: '{{background-200}}'; }md-checkbox.md-THEME_NAME-theme:not([disabled]).md-primary .md-ripple {  color: '{{primary-600}}'; }md-checkbox.md-THEME_NAME-theme:not([disabled]).md-primary.md-checked .md-ripple {  color: '{{background-600}}'; }md-checkbox.md-THEME_NAME-theme:not([disabled]).md-primary .md-icon {  border-color: '{{foreground-2}}'; }md-checkbox.md-THEME_NAME-theme:not([disabled]).md-primary.md-checked .md-icon {  background-color: '{{primary-color-0.87}}'; }md-checkbox.md-THEME_NAME-theme:not([disabled]).md-primary.md-checked .md-icon:after {  border-color: '{{background-200}}'; }md-checkbox.md-THEME_NAME-theme:not([disabled]).md-warn .md-ripple {  color: '{{warn-600}}'; }md-checkbox.md-THEME_NAME-theme:not([disabled]).md-warn .md-icon {  border-color: '{{foreground-2}}'; }md-checkbox.md-THEME_NAME-theme:not([disabled]).md-warn.md-checked .md-icon {  background-color: '{{warn-color-0.87}}'; }md-checkbox.md-THEME_NAME-theme:not([disabled]).md-warn.md-checked .md-icon:after {  border-color: '{{background-200}}'; }md-checkbox.md-THEME_NAME-theme[disabled] .md-icon {  border-color: '{{foreground-3}}'; }md-checkbox.md-THEME_NAME-theme[disabled].md-checked .md-icon {  background-color: '{{foreground-3}}'; }md-content.md-THEME_NAME-theme {  background-color: '{{background-hue-3}}'; }md-dialog.md-THEME_NAME-theme {  border-radius: 4px;  background-color: '{{background-hue-3}}'; }  md-dialog.md-THEME_NAME-theme.md-content-overflow .md-actions {    border-top-color: '{{foreground-4}}'; }md-divider.md-THEME_NAME-theme {  border-top-color: '{{foreground-4}}'; }md-icon.md-THEME_NAME-theme.md-primary {  color: '{{primary-color}}'; }md-icon.md-THEME_NAME-theme.md-accent {  color: '{{accent-color}}'; }md-icon.md-THEME_NAME-theme.md-warn {  color: '{{warn-color}}'; }md-icon.md-THEME_NAME-theme.md-danger {  color: '{{danger-color}}'; }md-input-container.md-THEME_NAME-theme .md-input {  color: '{{foreground-1}}';  border-color: '{{foreground-4}}';  text-shadow: '{{foreground-shadow}}'; }  md-input-container.md-THEME_NAME-theme .md-input::-webkit-input-placeholder, md-input-container.md-THEME_NAME-theme .md-input::-moz-placeholder, md-input-container.md-THEME_NAME-theme .md-input:-moz-placeholder, md-input-container.md-THEME_NAME-theme .md-input:-ms-input-placeholder {    color: '{{foreground-3}}'; }md-input-container.md-THEME_NAME-theme label, md-input-container.md-THEME_NAME-theme .md-placeholder {  text-shadow: '{{foreground-shadow}}';  color: '{{foreground-3}}'; }md-input-container.md-THEME_NAME-theme:not(.md-input-invalid).md-input-has-value label {  color: '{{foreground-2}}'; }md-input-container.md-THEME_NAME-theme:not(.md-input-invalid).md-input-focused .md-input {  border-color: '{{primary-500}}'; }md-input-container.md-THEME_NAME-theme:not(.md-input-invalid).md-input-focused label {  color: '{{primary-500}}'; }md-input-container.md-THEME_NAME-theme:not(.md-input-invalid).md-input-focused.md-accent .md-input {  border-color: '{{accent-500}}'; }md-input-container.md-THEME_NAME-theme:not(.md-input-invalid).md-input-focused.md-accent label {  color: '{{accent-500}}'; }md-input-container.md-THEME_NAME-theme:not(.md-input-invalid).md-input-focused.md-warn .md-input {  border-color: '{{warn-500}}'; }md-input-container.md-THEME_NAME-theme:not(.md-input-invalid).md-input-focused.md-warn label {  color: '{{warn-500}}'; }md-input-container.md-THEME_NAME-theme.md-input-invalid .md-input {  border-color: '{{warn-500}}'; }md-input-container.md-THEME_NAME-theme.md-input-invalid label {  color: '{{warn-500}}'; }md-input-container.md-THEME_NAME-theme.md-input-invalid ng-message, md-input-container.md-THEME_NAME-theme.md-input-invalid data-ng-message, md-input-container.md-THEME_NAME-theme.md-input-invalid x-ng-message, md-input-container.md-THEME_NAME-theme.md-input-invalid [ng-message], md-input-container.md-THEME_NAME-theme.md-input-invalid [data-ng-message], md-input-container.md-THEME_NAME-theme.md-input-invalid [x-ng-message], md-input-container.md-THEME_NAME-theme.md-input-invalid .md-char-counter {  color: '{{warn-500}}'; }md-input-container.md-THEME_NAME-theme .md-input[disabled], [disabled] md-input-container.md-THEME_NAME-theme .md-input {  border-bottom-color: transparent;  color: '{{foreground-3}}';  background-image: linear-gradient(to right, '{{foreground-4}}' 0%, '{{foreground-4}}' 33%, transparent 0%);  background-image: -ms-linear-gradient(left, transparent 0%, '{{foreground-4}}' 100%); }md-progress-circular.md-THEME_NAME-theme {  background-color: transparent; }  md-progress-circular.md-THEME_NAME-theme .md-inner .md-gap {    border-top-color: '{{primary-color}}';    border-bottom-color: '{{primary-color}}'; }  md-progress-circular.md-THEME_NAME-theme .md-inner .md-left .md-half-circle, md-progress-circular.md-THEME_NAME-theme .md-inner .md-right .md-half-circle {    border-top-color: '{{primary-color}}'; }  md-progress-circular.md-THEME_NAME-theme .md-inner .md-right .md-half-circle {    border-right-color: '{{primary-color}}'; }  md-progress-circular.md-THEME_NAME-theme .md-inner .md-left .md-half-circle {    border-left-color: '{{primary-color}}'; }  md-progress-circular.md-THEME_NAME-theme.md-warn .md-inner .md-gap {    border-top-color: '{{warn-color}}';    border-bottom-color: '{{warn-color}}'; }  md-progress-circular.md-THEME_NAME-theme.md-warn .md-inner .md-left .md-half-circle, md-progress-circular.md-THEME_NAME-theme.md-warn .md-inner .md-right .md-half-circle {    border-top-color: '{{warn-color}}'; }  md-progress-circular.md-THEME_NAME-theme.md-warn .md-inner .md-right .md-half-circle {    border-right-color: '{{warn-color}}'; }  md-progress-circular.md-THEME_NAME-theme.md-warn .md-inner .md-left .md-half-circle {    border-left-color: '{{warn-color}}'; }  md-progress-circular.md-THEME_NAME-theme.md-accent .md-inner .md-gap {    border-top-color: '{{accent-color}}';    border-bottom-color: '{{accent-color}}'; }  md-progress-circular.md-THEME_NAME-theme.md-accent .md-inner .md-left .md-half-circle, md-progress-circular.md-THEME_NAME-theme.md-accent .md-inner .md-right .md-half-circle {    border-top-color: '{{accent-color}}'; }  md-progress-circular.md-THEME_NAME-theme.md-accent .md-inner .md-right .md-half-circle {    border-right-color: '{{accent-color}}'; }  md-progress-circular.md-THEME_NAME-theme.md-accent .md-inner .md-left .md-half-circle {    border-left-color: '{{accent-color}}'; }md-progress-linear.md-THEME_NAME-theme .md-container {  background-color: '{{primary-100}}'; }md-progress-linear.md-THEME_NAME-theme .md-bar {  background-color: '{{primary-color}}'; }md-progress-linear.md-THEME_NAME-theme.md-warn .md-container {  background-color: '{{warn-100}}'; }md-progress-linear.md-THEME_NAME-theme.md-warn .md-bar {  background-color: '{{warn-color}}'; }md-progress-linear.md-THEME_NAME-theme.md-accent .md-container {  background-color: '{{accent-100}}'; }md-progress-linear.md-THEME_NAME-theme.md-accent .md-bar {  background-color: '{{accent-color}}'; }md-progress-linear.md-THEME_NAME-theme[md-mode=buffer].md-warn .md-bar1 {  background-color: '{{warn-100}}'; }md-progress-linear.md-THEME_NAME-theme[md-mode=buffer].md-warn .md-dashed:before {  background: radial-gradient('{{warn-100}}' 0%, '{{warn-100}}' 16%, transparent 42%); }md-progress-linear.md-THEME_NAME-theme[md-mode=buffer].md-accent .md-bar1 {  background-color: '{{accent-100}}'; }md-progress-linear.md-THEME_NAME-theme[md-mode=buffer].md-accent .md-dashed:before {  background: radial-gradient('{{accent-100}}' 0%, '{{accent-100}}' 16%, transparent 42%); }md-radio-button.md-THEME_NAME-theme .md-off {  border-color: '{{foreground-2}}'; }md-radio-button.md-THEME_NAME-theme .md-on {  background-color: '{{accent-color-0.87}}'; }md-radio-button.md-THEME_NAME-theme.md-checked .md-off {  border-color: '{{accent-color-0.87}}'; }md-radio-button.md-THEME_NAME-theme.md-checked .md-ink-ripple {  color: '{{accent-color-0.87}}'; }md-radio-button.md-THEME_NAME-theme .md-container .md-ripple {  color: '{{accent-600}}'; }md-radio-button.md-THEME_NAME-theme:not([disabled]).md-primary .md-on {  background-color: '{{primary-color-0.87}}'; }md-radio-button.md-THEME_NAME-theme:not([disabled]).md-primary.md-checked .md-off {  border-color: '{{primary-color-0.87}}'; }md-radio-button.md-THEME_NAME-theme:not([disabled]).md-primary.md-checked .md-ink-ripple {  color: '{{primary-color-0.87}}'; }md-radio-button.md-THEME_NAME-theme:not([disabled]).md-primary .md-container .md-ripple {  color: '{{primary-600}}'; }md-radio-button.md-THEME_NAME-theme:not([disabled]).md-warn .md-on {  background-color: '{{warn-color-0.87}}'; }md-radio-button.md-THEME_NAME-theme:not([disabled]).md-warn.md-checked .md-off {  border-color: '{{warn-color-0.87}}'; }md-radio-button.md-THEME_NAME-theme:not([disabled]).md-warn.md-checked .md-ink-ripple {  color: '{{warn-color-0.87}}'; }md-radio-button.md-THEME_NAME-theme:not([disabled]).md-warn .md-container .md-ripple {  color: '{{warn-600}}'; }md-radio-button.md-THEME_NAME-theme[disabled] .md-container .md-off {  border-color: '{{foreground-3}}'; }md-radio-button.md-THEME_NAME-theme[disabled] .md-container .md-on {  border-color: '{{foreground-3}}'; }md-radio-group.md-THEME_NAME-theme:focus:not(:empty) {  border-color: '{{foreground-1}}'; }md-select.md-THEME_NAME-theme:not([disabled]):focus .md-select-label {  border-bottom-color: '{{primary-color}}';  color: '{{ foreground-1 }}'; }  md-select.md-THEME_NAME-theme:not([disabled]):focus .md-select-label.md-placeholder {    color: '{{ foreground-1 }}'; }md-select.md-THEME_NAME-theme:not([disabled]):focus.md-accent .md-select-label {  border-bottom-color: '{{accent-color}}'; }md-select.md-THEME_NAME-theme:not([disabled]):focus.md-warn .md-select-label {  border-bottom-color: '{{warn-color}}'; }md-select.md-THEME_NAME-theme[disabled] .md-select-label {  color: '{{foreground-3}}'; }  md-select.md-THEME_NAME-theme[disabled] .md-select-label.md-placeholder {    color: '{{foreground-3}}'; }md-select.md-THEME_NAME-theme .md-select-label {  border-bottom-color: '{{foreground-4}}'; }  md-select.md-THEME_NAME-theme .md-select-label.md-placeholder {    color: '{{foreground-2}}'; }md-select-menu.md-THEME_NAME-theme md-optgroup {  color: '{{foreground-2}}'; }  md-select-menu.md-THEME_NAME-theme md-optgroup md-option {    color: '{{foreground-1}}'; }md-select-menu.md-THEME_NAME-theme md-option[selected] {  background-color: '{{primary-50}}'; }  md-select-menu.md-THEME_NAME-theme md-option[selected]:focus {    background-color: '{{primary-100}}'; }  md-select-menu.md-THEME_NAME-theme md-option[selected].md-accent {    background-color: '{{accent-50}}'; }    md-select-menu.md-THEME_NAME-theme md-option[selected].md-accent:focus {      background-color: '{{accent-100}}'; }md-select-menu.md-THEME_NAME-theme md-option:focus:not([selected]) {  background: '{{background-200}}'; }md-sidenav.md-THEME_NAME-theme {  background-color: '{{background-hue-3}}'; }md-slider.md-THEME_NAME-theme .md-track {  background-color: '{{foreground-3}}'; }md-slider.md-THEME_NAME-theme .md-track-ticks {  background-color: '{{foreground-4}}'; }md-slider.md-THEME_NAME-theme .md-focus-thumb {  background-color: '{{foreground-2}}'; }md-slider.md-THEME_NAME-theme .md-focus-ring {  border-color: '{{foreground-4}}'; }md-slider.md-THEME_NAME-theme .md-disabled-thumb {  border-color: '{{background-hue-3}}'; }md-slider.md-THEME_NAME-theme.md-min .md-thumb:after {  background-color: '{{background-hue-3}}'; }md-slider.md-THEME_NAME-theme .md-track.md-track-fill {  background-color: '{{accent-color}}'; }md-slider.md-THEME_NAME-theme .md-thumb:after {  border-color: '{{accent-color}}';  background-color: '{{accent-color}}'; }md-slider.md-THEME_NAME-theme .md-sign {  background-color: '{{accent-color}}'; }  md-slider.md-THEME_NAME-theme .md-sign:after {    border-top-color: '{{accent-color}}'; }md-slider.md-THEME_NAME-theme .md-thumb-text {  color: '{{accent-contrast}}'; }md-slider.md-THEME_NAME-theme.md-warn .md-track.md-track-fill {  background-color: '{{warn-color}}'; }md-slider.md-THEME_NAME-theme.md-warn .md-thumb:after {  border-color: '{{warn-color}}';  background-color: '{{warn-color}}'; }md-slider.md-THEME_NAME-theme.md-warn .md-sign {  background-color: '{{warn-color}}'; }  md-slider.md-THEME_NAME-theme.md-warn .md-sign:after {    border-top-color: '{{warn-color}}'; }md-slider.md-THEME_NAME-theme.md-warn .md-thumb-text {  color: '{{warn-contrast}}'; }md-slider.md-THEME_NAME-theme.md-primary .md-track.md-track-fill {  background-color: '{{primary-color}}'; }md-slider.md-THEME_NAME-theme.md-primary .md-thumb:after {  border-color: '{{primary-color}}';  background-color: '{{primary-color}}'; }md-slider.md-THEME_NAME-theme.md-primary .md-sign {  background-color: '{{primary-color}}'; }  md-slider.md-THEME_NAME-theme.md-primary .md-sign:after {    border-top-color: '{{primary-color}}'; }md-slider.md-THEME_NAME-theme.md-primary .md-thumb-text {  color: '{{primary-contrast}}'; }md-slider.md-THEME_NAME-theme[disabled] .md-thumb:after {  border-color: '{{foreground-3}}'; }md-slider.md-THEME_NAME-theme[disabled]:not(.md-min) .md-thumb:after {  background-color: '{{foreground-3}}'; }.md-subheader.md-THEME_NAME-theme {  color: '{{ foreground-2-0.23 }}';  background-color: '{{background-hue-3}}'; }  .md-subheader.md-THEME_NAME-theme.md-primary {    color: '{{primary-color}}'; }  .md-subheader.md-THEME_NAME-theme.md-accent {    color: '{{accent-color}}'; }  .md-subheader.md-THEME_NAME-theme.md-warn {    color: '{{warn-color}}'; }md-switch.md-THEME_NAME-theme .md-thumb {  background-color: '{{background-50}}'; }md-switch.md-THEME_NAME-theme .md-bar {  background-color: '{{background-500}}'; }md-switch.md-THEME_NAME-theme.md-checked .md-thumb {  background-color: '{{accent-color}}'; }md-switch.md-THEME_NAME-theme.md-checked .md-bar {  background-color: '{{accent-color-0.5}}'; }md-switch.md-THEME_NAME-theme.md-checked.md-primary .md-thumb {  background-color: '{{primary-color}}'; }md-switch.md-THEME_NAME-theme.md-checked.md-primary .md-bar {  background-color: '{{primary-color-0.5}}'; }md-switch.md-THEME_NAME-theme.md-checked.md-warn .md-thumb {  background-color: '{{warn-color}}'; }md-switch.md-THEME_NAME-theme.md-checked.md-warn .md-bar {  background-color: '{{warn-color-0.5}}'; }md-switch.md-THEME_NAME-theme[disabled] .md-thumb {  background-color: '{{background-400}}'; }md-switch.md-THEME_NAME-theme[disabled] .md-bar {  background-color: '{{foreground-4}}'; }md-switch.md-THEME_NAME-theme:focus .md-label:not(:empty) {  border-color: '{{foreground-1}}';  border-style: dotted; }md-tabs.md-THEME_NAME-theme .md-header {  background-color: transparent; }md-tabs.md-THEME_NAME-theme .md-paginator md-icon {  color: '{{primary-color}}'; }md-tabs.md-THEME_NAME-theme.md-accent .md-header {  background-color: '{{accent-color}}'; }md-tabs.md-THEME_NAME-theme.md-accent md-tab:not([disabled]) {  color: '{{accent-100}}'; }  md-tabs.md-THEME_NAME-theme.md-accent md-tab:not([disabled]).active {    color: '{{accent-contrast}}'; }md-tabs.md-THEME_NAME-theme.md-primary .md-header {  background-color: '{{primary-color}}'; }md-tabs.md-THEME_NAME-theme.md-primary md-tab:not([disabled]) {  color: '{{primary-100}}'; }  md-tabs.md-THEME_NAME-theme.md-primary md-tab:not([disabled]).active {    color: '{{primary-contrast}}'; }md-tabs.md-THEME_NAME-theme.md-primary md-tab {  color: '{{primary-100}}'; }  md-tabs.md-THEME_NAME-theme.md-primary md-tab[disabled] {    color: '{{foreground-3}}'; }  md-tabs.md-THEME_NAME-theme.md-primary md-tab:focus {    color: '{{primary-contrast}}';    background-color: '{{primary-contrast-0.1}}'; }  md-tabs.md-THEME_NAME-theme.md-primary md-tab.active {    color: '{{primary-contrast}}'; }  md-tabs.md-THEME_NAME-theme.md-primary md-tab .md-ripple-container {    color: '{{primary-contrast}}'; }md-tabs.md-THEME_NAME-theme.md-warn .md-header {  background-color: '{{warn-color}}'; }md-tabs.md-THEME_NAME-theme.md-warn md-tab:not([disabled]) {  color: '{{warn-100}}'; }  md-tabs.md-THEME_NAME-theme.md-warn md-tab:not([disabled]).active {    color: '{{warn-contrast}}'; }md-tabs.md-THEME_NAME-theme md-tabs-ink-bar {  color: '{{accent-color}}';  background: '{{accent-color}}'; }md-tabs.md-THEME_NAME-theme md-tab {  color: '{{foreground-2}}'; }  md-tabs.md-THEME_NAME-theme md-tab[disabled] {    color: '{{foreground-3}}'; }  md-tabs.md-THEME_NAME-theme md-tab:focus {    color: '{{foreground-1}}'; }  md-tabs.md-THEME_NAME-theme md-tab.active {    color: '{{primary-color}}'; }  md-tabs.md-THEME_NAME-theme md-tab .md-ripple-container {    color: '{{accent-100}}'; }md-input-group.md-THEME_NAME-theme input, md-input-group.md-THEME_NAME-theme textarea {  text-shadow: '{{foreground-shadow}}'; }  md-input-group.md-THEME_NAME-theme input::-webkit-input-placeholder, md-input-group.md-THEME_NAME-theme input::-moz-placeholder, md-input-group.md-THEME_NAME-theme input:-moz-placeholder, md-input-group.md-THEME_NAME-theme input:-ms-input-placeholder, md-input-group.md-THEME_NAME-theme textarea::-webkit-input-placeholder, md-input-group.md-THEME_NAME-theme textarea::-moz-placeholder, md-input-group.md-THEME_NAME-theme textarea:-moz-placeholder, md-input-group.md-THEME_NAME-theme textarea:-ms-input-placeholder {    color: '{{foreground-3}}'; }md-input-group.md-THEME_NAME-theme label {  text-shadow: '{{foreground-shadow}}';  color: '{{foreground-3}}'; }md-input-group.md-THEME_NAME-theme input, md-input-group.md-THEME_NAME-theme textarea {  color: '{{foreground-1}}';  border-color: '{{foreground-4}}'; }md-input-group.md-THEME_NAME-theme.md-input-focused input, md-input-group.md-THEME_NAME-theme.md-input-focused textarea {  border-color: '{{primary-500}}'; }md-input-group.md-THEME_NAME-theme.md-input-focused label {  color: '{{primary-500}}'; }md-input-group.md-THEME_NAME-theme.md-input-focused.md-accent input, md-input-group.md-THEME_NAME-theme.md-input-focused.md-accent textarea {  border-color: '{{accent-500}}'; }md-input-group.md-THEME_NAME-theme.md-input-focused.md-accent label {  color: '{{accent-500}}'; }md-input-group.md-THEME_NAME-theme.md-input-has-value:not(.md-input-focused) label {  color: '{{foreground-2}}'; }md-input-group.md-THEME_NAME-theme .md-input[disabled] {  border-bottom-color: '{{foreground-4}}';  color: '{{foreground-3}}'; }md-toast.md-THEME_NAME-theme {  background-color: '{{foreground-1}}';  color: '{{background-50}}'; }  md-toast.md-THEME_NAME-theme .md-button {    color: '{{background-50}}'; }    md-toast.md-THEME_NAME-theme .md-button.md-highlight {      color: '{{primary-A200}}'; }      md-toast.md-THEME_NAME-theme .md-button.md-highlight.md-accent {        color: '{{accent-A200}}'; }      md-toast.md-THEME_NAME-theme .md-button.md-highlight.md-warn {        color: '{{warn-A200}}'; }md-toolbar.md-THEME_NAME-theme {  background-color: '{{primary-color}}';  color: '{{primary-contrast}}'; }  md-toolbar.md-THEME_NAME-theme .md-button {    color: '{{primary-contrast}}'; }  md-toolbar.md-THEME_NAME-theme.md-accent {    background-color: '{{accent-color}}';    color: '{{accent-contrast}}'; }  md-toolbar.md-THEME_NAME-theme.md-warn {    background-color: '{{warn-color}}';    color: '{{warn-contrast}}'; }md-tooltip.md-THEME_NAME-theme {  color: '{{background-A100}}'; }  md-tooltip.md-THEME_NAME-theme .md-background {    background-color: '{{foreground-2}}'; }");
 
 (function(window, angular, undefined) {
     "use strict";

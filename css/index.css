@@ -89,6 +89,9 @@
 .top-margin-15 {
   margin-top: 15px;
 }
+.no-margin-top {
+  margin-top: 0;
+}
 .align-left-list-item {
   padding-top: 16px;
   align-self: flex-start;
@@ -266,6 +269,10 @@ body {
 #pet-tabs .vital-stat {
   padding-bottom: 8px;
 }
+#player-tabs .vital-stat-2x,
+#pet-tabs .vital-stat-2x {
+  padding-bottom: 16px;
+}
 #player-tabs md-list,
 #pet-tabs md-list {
   padding: 0;
@@ -278,12 +285,14 @@ body {
 #pet-tabs .adventure-log-entry {
   min-height: 70px;
 }
-.player-xp .md-container {
-  background-color: #a3e9a4;
+.player-xp {
   margin-top: -5px;
 }
-.md-bar.md-bar2 {
-  background-color: #0a7e07;
+.player-xp .md-bar.md-bar1 {
+  background-color: #a3e9a4!important;
+}
+.player-xp .md-bar.md-bar2 {
+  background-color: #0a7e07!important;
 }
 #map {
   width: 100%;
