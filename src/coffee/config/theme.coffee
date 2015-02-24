@@ -47,9 +47,9 @@ angular.module 'IdleLands'
       {name: 'green-machine',   primary: 'green',       accent: 'blue',         warn: 'orange',   background: 'grey'  }
       {name: 'halloween',       primary: 'orange',      accent: 'deep-orange',  warn: 'brown',    background: 'brown' }
       {name: 'majestic',        primary: 'deep-purple', accent: 'purple',       warn: 'amber',    background: 'grey'  }
-      {name: 'monochrome',      primary: 'black',       accent: 'black',        warn: 'black',    background: 'white'  }
+      {name: 'monochrome',      primary: 'black',       accent: 'white',        warn: 'black',    background: 'white'  }
       {name: 'ocean',           primary: 'blue',        accent: 'indigo',       warn: 'teal',     background: 'cyan' }
-      {name: 'simple',          primary: 'white',       accent: 'white',        warn: 'white',    background: 'white'  }
+      {name: 'simple',          primary: 'white',       accent: 'black',        warn: 'white',    background: 'white'  }
     ]
 
     _.each themes, (theme) ->
