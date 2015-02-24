@@ -3,8 +3,8 @@ script(id="player-equipment", type="text/ng-template")
         md-item(ng-repeat="item in playerItems track by $index")
             md-item-content
                 div.md-tile-left.class-badge.text-center.align-left-list-item
-                    div(class="{{::itemUtilities.classToColor(item.itemClass)}}") {{::item.type}}
-                        md-tooltip {{::item.itemClass}}
+                    div(class="{{itemUtilities.classToColor(item.itemClass)}}") {{::item.type}}
+                        md-tooltip {{item.itemClass}}
                     div(ng-if="::item.extraItemClass",class="{{::itemUtilities.classToColor(item.extraItemClass)}}") {{item.extraText}}
 
                     //equipped

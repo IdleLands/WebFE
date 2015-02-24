@@ -4,7 +4,7 @@ script(id="player-guild", type="text/ng-template")
         div(flex="40",offset="30",layout="column")
             md-card(layout="column")
                 md-card-content(layout="column")
-                    md-toolbar.md-theme-light-blue
+                    md-toolbar
                         div.md-toolbar-tools
                             h3 Create New Guild (costs 100k gold)
                     md-content.is-flex.auto-flex(style="flex-basis:80px;height:80px;overflow-x:hidden;align-items:center",layout="row")
@@ -16,7 +16,7 @@ script(id="player-guild", type="text/ng-template")
 
             md-card.is-flex.auto-flex.inner-card(layout="column",ng-if="guildInvites.length > 0")
                 md-card-content.is-flex.auto-flex(layout="column")
-                    md-toolbar.md-theme-light-blue
+                    md-toolbar
                         div.md-toolbar-tools
                             h3 Guild Invites
                     md-content.is-flex.auto-flex(style="flex-basis:120px;height:120px;overflow-x:hidden",layout="column")
@@ -32,7 +32,7 @@ script(id="player-guild", type="text/ng-template")
         div(flex="25",layout="column")
             md-card.inner-card(layout="column")
                 md-card-content
-                    md-toolbar.md-theme-light-blue
+                    md-toolbar
                         div.md-toolbar-tools
                             h3 {{::guild.name}}
                     md-content.card-padding
@@ -54,7 +54,7 @@ script(id="player-guild", type="text/ng-template")
 
             md-card.inner-card(layout="column", ng-if="isAdmin")
                 md-card-content
-                    md-toolbar.md-theme-light-blue
+                    md-toolbar
                         div.md-toolbar-tools
                             h3 Invite Players
                     md-content.card-padding
@@ -62,16 +62,16 @@ script(id="player-guild", type="text/ng-template")
 
             md-card.inner-card(layout="column")
                 md-card-content
-                    md-toolbar.md-theme-light-blue
+                    md-toolbar
                         div.md-toolbar-tools
                             h3 Actions
                     md-content.card-padding
                         div.vital-stat(ng-if="::!isLeader")
                             span.fa.fa-fw.fa-anchor(flex="10")
-                            md-button.inline-button.md-warn(ng-click="leaveGuild()",flex="90") Leave
+                            md-button.inline-button.md-warn.md-raised(ng-click="leaveGuild()",flex="90") Leave
                         div.vital-stat(ng-if="::isLeader")
                             span.fa.fa-fw.fa-anchor(flex="10")
-                            md-button.inline-button.md-warn(ng-click="disbandGuild()") Disband
+                            md-button.inline-button.md-warn.md-raised(ng-click="disbandGuild()") Disband
                         div.vital-stat(flex,layout="row")
                             span.fa.fa-fw.fa-usd(flex="10",style="justify-content:center;align-self:center")
                                 md-tooltip Guild Tax Rate ({{editable.guildTaxRate}}%)
@@ -82,12 +82,12 @@ script(id="player-guild", type="text/ng-template")
                             md-slider.md-accent.md-hue-2(flex="80",ng-model="editable.selfTaxRate",min="0",max="85",md-discrete,aria-label="Self Tax Rate",ng-change="updateSelfTax()")
                         div.vital-stat(quick-ng-repeat="tier in goldTiers",quick-repeat-list="goldTiers")
                             span.fa.fa-fw.icon-money(flex="10")
-                            md-button.inline-button.md-primary(ng-click="donateGold(tier)") Donate {{tier | number:0}} gold
+                            md-button.inline-button.md-primary.md-raised(ng-click="donateGold(tier)") Donate {{tier | number:0}} gold
 
         div(flex="45",layout="column")
             md-card.is-flex.auto-flex.inner-card(layout="column")
                 md-card-content.is-flex.auto-flex(layout="column")
-                    md-toolbar.md-theme-light-blue
+                    md-toolbar
                         div.md-toolbar-tools
                             h3 Guild Roster ({{guild.members.length}} members)
                     md-content.is-flex.auto-flex(style="flex-basis:50px;height:50px;overflow-x:hidden",layout="column")
@@ -102,16 +102,16 @@ script(id="player-guild", type="text/ng-template")
                                     small(ng-if="member._cache.lastSeen && !member._cache.online") &nbsp;- Last seen <span am-time-ago="member._cache.lastSeen"></span>
                                 div(ng-if="!member._cache.level && !member._cache.class && !isInvited(member)") Profile Unknown
                             div(flex="20",ng-if="!member.isAdmin && !$first")
-                                md-button.md-accent(ng-if="isLeader", ng-click="promoteMember(member.name)") Promote
+                                md-button.md-accent.md-raised(ng-if="isLeader", ng-click="promoteMember(member.name)") Promote
                             div(flex="20",ng-if="member.isAdmin && !$first")
-                                md-button.md-warn.md-hue-2(ng-if="isLeader", ng-click="demoteMember(member.name)") Demote
+                                md-button.md-warn.md-raised.md-hue-2(ng-if="isLeader", ng-click="demoteMember(member.name)") Demote
                             div(flex="20")
-                                md-button.md-warn(ng-if="canKick(member)",ng-click="kickMember(member.name)") Kick
+                                md-button.md-warn.md-raised(ng-if="canKick(member)",ng-click="kickMember(member.name)") Kick
 
         div(flex="30",layout="column")
             md-card.is-flex.auto-flex.inner-card(layout="column")
                 md-card-content.is-flex.auto-flex(layout="column")
-                    md-toolbar.md-theme-light-blue
+                    md-toolbar
                         div.md-toolbar-tools(flex="100",layout="row")
                             h3(flex="50")
                                 a.fa.fa-question-circle(href="http://doks.idle.land/#!/GuildBuffs",target="_blank") &nbsp;Guild Buffs
@@ -125,4 +125,4 @@ script(id="player-guild", type="text/ng-template")
                                 div(ng-if="buffs[type]") Expires <span am-time-ago="buffs[type].expire"></span>
                                 dif(ng-if="!buffs[type]") Not Purchased
                             div(flex="25")
-                                md-button.md-primary(ng-click="buyBuff(type)",ng-if="isAdmin") Buy
+                                md-button.md-primary.md-raised(ng-click="buyBuff(type)",ng-if="isAdmin") Buy

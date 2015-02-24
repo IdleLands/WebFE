@@ -4,6 +4,9 @@ angular.module 'IdleLands'
   (localStorageService) ->
     options = {}
 
+    loadOne = (key) ->
+      options[key] = localStorageService.get key
+
     load = (keys) ->
       _.each keys, (key) ->
         options[key] = localStorageService.get key
@@ -18,6 +21,7 @@ angular.module 'IdleLands'
 
     getOpts = -> options
 
+    loadOne: loadOne
     load: load
     saveAll: saveAll
     set: set

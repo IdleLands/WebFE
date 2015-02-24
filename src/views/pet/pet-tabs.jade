@@ -1,5 +1,5 @@
 script(id='pet', type='text/ng-template')
-   md-toolbar.md-theme-light(ng-if="pet")
+   md-toolbar(ng-if="pet")
       h1.md-toolbar-tools
          span {{pet.name}}, the level {{pet.level.__current}} {{pet.type}} {{pet.professionName}} with {{pet.attrs[0]}} and {{pet.attrs[1]}}
 

@@ -4,7 +4,7 @@ script(id="pet-overview", type="text/ng-template")
       div(flex="30",layout="column")
          md-card.inner-card(layout="column")
             md-card-content
-               md-toolbar.md-theme-light-blue
+               md-toolbar
                   div.md-toolbar-tools
                      h3 Vitals
                md-content.card-padding.hide-y-scrollbar
@@ -42,32 +42,32 @@ script(id="pet-overview", type="text/ng-template")
 
          md-card.inner-card(layout="column")
             md-card-content
-               md-toolbar.md-theme-light-blue
+               md-toolbar
                   div.md-toolbar-tools
                      h3 Controls
                md-content.card-padding
                   div(layout="column")
                      div.vital-stat
                         span.fa.fa-fw.fa-dashboard
-                        md-button.inline-button.md-primary(ng-click="toPlayerView()") Swap to Player View
+                        md-button.inline-button.md-primary.md-raised.md-hue-1(ng-click="toPlayerView()") Swap to Player View
                      div.vital-stat(ng-if="pet")
                         span.fa.fa-fw(class="fa-{{getSmartIcon('Sell')}}")
-                        md-button.inline-button.md-accent(ng-click="toggleSmart('Sell')") Smart Sell
+                        md-button.inline-button.md-accent.md-raised(ng-click="toggleSmart('Sell')") Smart Sell
                            md-tooltip Low-quality items are sold first.
                      div.vital-stat(ng-if="pet")
                         span.fa.fa-fw(class="fa-{{getSmartIcon('Equip')}}")
-                        md-button.inline-button.md-accent(ng-click="toggleSmart('Equip')") Smart Equip
+                        md-button.inline-button.md-accent.md-raised(ng-click="toggleSmart('Equip')") Smart Equip
                            md-tooltip High-quality gear is auto-equipped.
                      div.vital-stat(ng-if="pet")
                         span.fa.fa-fw(class="fa-{{getSmartIcon('Self')}}")
-                        md-button.inline-button.md-accent(ng-click="toggleSmart('Self')") Smart Self
+                        md-button.inline-button.md-accent.md-raised(ng-click="toggleSmart('Self')") Smart Self
                            md-tooltip Pet upgrades itself.
                      div.vital-stat(ng-if="pet")
                         span.fa.fa-fw.icon-money
-                        md-button.inline-button.md-warn(ng-click="takePetGold()") Take Pet Gold
+                        md-button.inline-button.md-warn.md-raised(ng-click="takePetGold()") Take Pet Gold
                      div.vital-stat(ng-if="pet")
                         span.fa.fa-fw.fa-cutlery
-                        md-button.inline-button.md-warn(ng-click="feedPet()") Feed Pet
+                        md-button.inline-button.md-warn.md-raised(ng-click="feedPet()") Feed Pet
                      div.vital-stat(ng-if="pet")
                         span.fa.fa-fw.fa-shield
                         md-select.no-margin-top(ng-model="pet.professionName",ng-change="changePetClass()")
@@ -75,7 +75,7 @@ script(id="pet-overview", type="text/ng-template")
 
          md-card.inner-card(layout="column")
             md-card-content.is-flex.auto-flex(layout="column")
-               md-toolbar.md-theme-light-blue
+               md-toolbar
                   div.md-toolbar-tools
                      h3 Miscellaneous
                md-content.card-padding.hide-y-scrollbar
@@ -102,7 +102,7 @@ script(id="pet-overview", type="text/ng-template")
       div(flex="30",layout="column")
          md-card.is-flex.auto-flex.inner-card(layout="column")
             md-card-content.is-flex.auto-flex(layout="column")
-               md-toolbar.md-theme-light-blue(ng-if="availablePets().length !== 0")
+               md-toolbar(ng-if="availablePets().length !== 0")
                   div.md-toolbar-tools
                      h3 Unpurchased Pets
                md-content.is-flex.auto-flex.card-padding(style="flex-basis:60px;height:60px",layout="column",ng-if="availablePets().length !== 0")
@@ -112,7 +112,7 @@ script(id="pet-overview", type="text/ng-template")
                         span.fa.fa-fw.fa-lg.icon-money.faa-shake(ng-click="tryToBuyPet(pet)")
                      div(flex="90") Unlock {{pet.type}} - {{pet.cost | number:0}} gold
 
-               md-toolbar.md-theme-light-blue(ng-if="pets.length")
+               md-toolbar(ng-if="pets.length")
                   div.md-toolbar-tools
                      h3 Your Pets
                md-content.is-flex.auto-flex(style="flex-basis:60px;height:60px",layout="column",ng-if="pets.length")
@@ -127,7 +127,7 @@ script(id="pet-overview", type="text/ng-template")
       div(flex="40",layout="column")
          md-card.is-flex.auto-flex.inner-card(layout="column")
             md-card-content.is-flex.auto-flex(layout="column")
-               md-toolbar.md-theme-light-blue
+               md-toolbar
                   div.md-toolbar-tools
                      h3 Upgrade Levels
                md-content.is-flex.auto-flex.card-padding.hide-y-scrollbar(style="flex-basis:20px;height:20px",layout="column")
@@ -145,7 +145,7 @@ script(id="pet-overview", type="text/ng-template")
                         td
                            span {{petUpgradeData[stat].gift.split('%gift').join(formatGift(stat, pet._configCache.scale[stat][pet.scaleLevel[stat]]))}}
                         td
-                           md-button.inline-button.md-accent(ng-disabled="pet.scaleLevel[stat]+1 === pet._configCache.scale[stat].length",ng-click="upgradeStat(stat)") Upgrade
+                           md-button.inline-button.md-accent.md-raised(ng-disabled="pet.scaleLevel[stat]+1 === pet._configCache.scale[stat].length",ng-click="upgradeStat(stat)") Upgrade
                               md-tooltip Next Level Cost: {{pet._configCache.scaleCost[stat][pet.scaleLevel[stat]+1] | number:0}} gold
 
 script(id="buy-pet",type="text/ng-template")

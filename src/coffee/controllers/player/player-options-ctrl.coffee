@@ -1,7 +1,7 @@
 angular.module 'IdleLands'
 .controller 'PlayerOptions', [
-  '$scope', '$timeout', '$mdDialog', 'CurrentPlayer', 'OptionsCache', 'API'
-  ($scope, $timeout, $mdDialog, Player, OptionsCache, API) ->
+  '$scope', '$timeout', '$mdDialog', 'CurrentPlayer', 'OptionsCache', 'API', 'CurrentTheme'
+  ($scope, $timeout, $mdDialog, Player, OptionsCache, API, CurrentTheme) ->
 
     initializing = yes
 
@@ -10,6 +10,24 @@ angular.module 'IdleLands'
     $scope.strings =
       keys: []
       values: []
+
+    $scope.theme = CurrentTheme.getTheme()
+
+    $scope.themes = [
+      'bright'
+      'default'
+      'dim-ocean'
+      'earth'
+      'green-machine'
+      'halloween'
+      'majestic'
+      'monochrome'
+      'ocean'
+      'simple'
+    ]
+
+    $scope.changeTheme = ->
+      CurrentTheme.setTheme $scope.theme
 
     # custom strings
     $scope.buildStringList = ->

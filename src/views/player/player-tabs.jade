@@ -1,7 +1,7 @@
 script(id='player', type='text/ng-template')
    md-toolbar
       h1.md-toolbar-tools
-         md-progress-circular.player-turn.md-warn(mode="determinate",value="{{turnTimeValue}}",style="float:right")
+         md-progress-circular.player-turn.md-accent(mode="determinate",value="{{turnTimeValue}}",style="float:right")
          span {{::player.name}}, the level {{player.level.__current}} {{player.professionName}}
 
    md-progress-linear.player-xp(mode="determinate",ng-value="xpPercent")

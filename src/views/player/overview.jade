@@ -4,7 +4,7 @@ script(id="player-overview", type="text/ng-template")
       div(flex="25",layout="column")
          md-card.inner-card(layout="column")
             md-card-content
-               md-toolbar.md-theme-light-blue
+               md-toolbar
                   div.md-toolbar-tools
                      h3 Vitals
                md-content.card-padding.hide-y-scrollbar
@@ -40,21 +40,21 @@ script(id="player-overview", type="text/ng-template")
 
          md-card.inner-card(layout="column",ng-if="numFoundPets > 0")
             md-card-content
-               md-toolbar.md-theme-light-blue
+               md-toolbar
                   div.md-toolbar-tools
                      h3 Pet Information
                md-content.card-padding.hide-y-scrollbar
                   div(layout="column")
                      div.vital-stat
                         span.fa.fa-fw.fa-dashboard
-                        md-button.inline-button.md-primary(ng-click="toPetView()") Swap to Pet View
+                        md-button.inline-button.md-primary.md-raised.md-hue-1(ng-click="toPetView()") Swap to Pet View
                      div.vital-stat
                         span.fa.fa-fw.fa-paw
                         span &nbsp;{{numBoughtPets}}/{{numFoundPets}} Pets
 
          md-card.inner-card(layout="column")
             md-card-content
-               md-toolbar.md-theme-light-blue
+               md-toolbar
                   div.md-toolbar-tools
                      h3 Miscellaneous
                md-content.card-padding.hide-y-scrollbar
@@ -62,7 +62,7 @@ script(id="player-overview", type="text/ng-template")
                      div.vital-stat
                         span.fa.fa-fw.fa-institution
                            md-tooltip Prayer
-                        md-button.inline-button.md-accent(ng-disabled="praying", ng-click="pray()") {{prayText}}
+                        md-button.inline-button.md-accent.md-raised(ng-disabled="praying", ng-click="pray()") {{prayText}}
                            md-tooltip Praying raises Superstition by 1
                      div.vital-stat(ng-if="player.titles.length > 0")
                         span.fa.fa-fw.fa-tag
@@ -99,7 +99,7 @@ script(id="player-overview", type="text/ng-template")
       div(flex="55",layout="column")
          md-card.is-flex.auto-flex.inner-card(layout="column")
             md-card-content.is-flex.auto-flex(layout="column")
-               md-toolbar.md-theme-light-blue
+               md-toolbar
                   div.md-toolbar-tools
                      h3 Adventure Log
 
@@ -114,7 +114,7 @@ script(id="player-overview", type="text/ng-template")
       div(flex="20",layout="column")
          md-card.is-flex.auto-flex.inner-card(layout="column")
             md-card-content.is-flex.auto-flex(layout="column")
-               md-toolbar.md-theme-light-blue
+               md-toolbar
                   div.md-toolbar-tools
                      h3
                         a.fa.fa-question-circle(href="http://doks.idle.land/#!/Player/Personalities",target="_blank") &nbsp;Your Personalities

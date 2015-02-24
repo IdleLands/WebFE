@@ -1,178 +1,174 @@
 script(id="player-options", type="text/ng-template")
-   div.tab-containment.is-flex.auto-flex.wrap-container.has-height(layout="row")
-      div(flex="25",layout="column")
-         md-card.inner-card(layout="column")
-            md-card-content
-               md-toolbar.md-theme-light-blue
-                  div.md-toolbar-tools
-                     h3 Player Options
-               md-content.card-padding
-                  div.vital-stat
-                     span.fa.fa-fw.fa-sign-out.fa-lg.vertical-center
-                     span &nbsp;
-                     small
-                        a.inline-link(ng-click="logout()") Log Out
-                  div.vital-stat
-                     span.fa.fa-fw.fa-paper-plane.fa-lg.vertical-center
-                     span &nbsp;
-                     small
-                        a.inline-link(ng-click="openSubmissionWindow()") Submit New Content
-                  div.vital-stat(ng-if="player.isContentModerator")
-                     span.fa.fa-fw.fa-bullhorn.fa-lg.vertical-center
-                     span &nbsp;
-                     small
-                     a.inline-link(ng-click="openModerationWindow()") Moderate Content ({{customContentList.length}} items)
+    div.tab-containment.is-flex.auto-flex.wrap-container.has-height(layout="row")
+        div(flex="25",layout="column")
+            md-card.inner-card(layout="column")
+                md-card-content
+                    md-toolbar
+                        div.md-toolbar-tools
+                            h3 Player Options
+                    md-content.card-padding
+                        div.vital-stat
+                            span.fa.fa-fw.fa-sign-out.fa-lg.vertical-center
+                            md-button.inline-button.md-warn.md-raised(ng-click="logout()") Log Out
+                        div.vital-stat
+                            span.fa.fa-fw.fa-paper-plane.fa-lg.vertical-center
+                            md-button.inline-button.md-accent.md-raised(ng-click="openSubmissionWindow()") Submit New Content
+                        div.vital-stat(ng-if="player.isContentModerator")
+                            span.fa.fa-fw.fa-bullhorn.fa-lg.vertical-center
+                            md-button.inline-button.md-accent.md-raised(ng-click="openModerationWindow()") Moderate Content ({{customContentList.length}} items)
 
-         md-card.inner-card(layout="column")
-            md-card-content
-               md-toolbar.md-theme-light-blue
-                  div.md-toolbar-tools
-                     h3
-                        a.fa.fa-question-circle(href="https://github.com/IdleLands/IdleLands/wiki/New-Player-Guide#pushbullet",target="_blank") &nbsp;PushBullet
-               md-content.card-padding
-                  a(href,editable-text="player.pushbulletApiKey",onaftersave="updatePushbullet()") {{player.pushbulletApiKey || 'No PushBullet API key set'}}
-               
-         md-card.inner-card(layout="column")
-            md-card-content
-               md-toolbar.md-theme-light-blue
-                  div.md-toolbar-tools
-                     h3
-                        a.fa.fa-question-circle(href="https://github.com/IdleLands/IdleLands/wiki/New-Player-Guide#gender",target="_blank") &nbsp;Gender
-               md-content.card-padding
-                  a(href,editable-text="player.gender",onaftersave="updateGender()") {{player.gender || 'No gender specified'}}
-                  md-radio-group(ng-model="player.gender",ng-change="updateGender()")
-                     md-radio-button(value="female") Female
-                     md-radio-button(value="male") Male
-                     md-radio-button(value="glowcloud") Glowcloud
-                     md-radio-button(value="not a bear") Bear
-                     md-radio-button(value="astroentity") Astronomical Entity
-                     md-radio-button(value="secret") A Secret to Everybody
-                  
-      div(flex="55",layout="column")
-         md-card.inner-card(layout="column")
-            md-card-content
-               md-toolbar.md-theme-light-blue
-                  div.md-toolbar-tools
-                     h3
-                        a.fa.fa-question-circle(href="https://github.com/IdleLands/IdleLands/wiki/New-Player-Guide#priority-points",target="_blank") &nbsp;Priority Points
+            md-card.inner-card(layout="column")
+                md-card-content
+                    md-toolbar
+                        div.md-toolbar-tools
+                            h3
+                                a.fa.fa-question-circle(href="https://github.com/IdleLands/IdleLands/wiki/New-Player-Guide#pushbullet",target="_blank") &nbsp;PushBullet
+                    md-content.card-padding
+                        div.vital-stat
+                            span.fa.fa-fw.fa-key.fa-lg.vertical-center
+                            md-button.inline-button.md-accent.md-hue-1.md-raised(href,editable-text="player.pushbulletApiKey",onaftersave="updatePushbullet()") {{player.pushbulletApiKey || 'No PushBullet API key set'}}
 
-               md-content.card-padding
-                  div.wrap-container(layout="row")
-                     md-input-container(flex="33", ng-repeat="(stat,val) in player.priorityPoints track by $index")
-                        label {{::stat}}
-                        input(type="number", min="0", max="6", ng-model="player.priorityPoints[stat]", ng-focus="tempPP[stat] = player.priorityPoints[stat]", ng-change="updatePP(stat)")
+            md-card.inner-card(layout="column")
+                md-card-content
+                    md-toolbar
+                        div.md-toolbar-tools
+                            h3
+                                a.fa.fa-question-circle(href="https://github.com/IdleLands/IdleLands/wiki/New-Player-Guide#gender",target="_blank") &nbsp;Gender
+                    md-content.card-padding
+                        div.vital-stat
+                            span.fa.fa-fw.fa-venus-mars.fa-lg.vertical-center
+                            md-button.inline-button.md-accent.md-hue-1.md-raised(href,editable-text="player.gender",onaftersave="updateGender()") {{player.gender || 'No gender specified'}}
+                        md-radio-group.md-accent(ng-model="player.gender",ng-change="updateGender()")
+                            md-radio-button(value="female") Female
+                            md-radio-button(value="male") Male
+                            md-radio-button(value="glowcloud") Glowcloud
+                            md-radio-button(value="not a bear") Bear
+                            md-radio-button(value="astroentity") Astronomical Entity
+                            md-radio-button(value="secret") A Secret to Everybody
 
-         md-card.inner-card(layout="column")
-            md-card-content
-               md-toolbar.md-theme-light-blue
-                  div.md-toolbar-tools
-                     h3
-                        a.fa.fa-question-circle(href="https://github.com/IdleLands/IdleLands/wiki/New-Player-Guide#custom-strings",target="_blank") &nbsp;Custom Strings
-               md-content.card-padding
-                  table
-                     tr(ng-repeat="key in strings.keys track by $index")
-                        td(width="15%")
-                           span(href,editable-text="strings.keys[$index]") {{strings.keys[$index] || 'Add new...'}}
-                        td(width="65%")
-                           span(href,editable-text="strings.values[$index]",ng-if="strings.keys[$index]") {{strings.values[$index] || '(not set)'}}
-                        td.text-right(width="10%")
-                           span.fa.fa-large.fa-trash.text-red.hover-cursor(ng-if="strings.keys[$index]", ng-click="removeString(strings.keys[$index], $index)")
+        div(flex="55",layout="column")
+            md-card.inner-card(layout="column")
+                md-card-content
+                    md-toolbar
+                        div.md-toolbar-tools
+                            h3
+                                a.fa.fa-question-circle(href="https://github.com/IdleLands/IdleLands/wiki/New-Player-Guide#priority-points",target="_blank") &nbsp;Priority Points
 
-      div(flex="20",layout="column")
-         md-card.inner-card(layout="column")
-            md-card-content
-               md-toolbar.md-theme-light-blue
-                  div.md-toolbar-tools
-                     h3 Scrollback.io
-               md-content.card-padding.hide-y-scrollbar
-                  md-switch(ng-model="options.scrollback",ng-true-value="'true'",ng-false-value="'false'") Use Chat
+                    md-content.card-padding
+                        div.wrap-container(layout="row")
+                            md-input-container(flex="33", ng-repeat="(stat,val) in player.priorityPoints track by $index")
+                                label {{::stat}}
+                                input(type="number", min="0", max="6", ng-model="player.priorityPoints[stat]", ng-focus="tempPP[stat] = player.priorityPoints[stat]", ng-change="updatePP(stat)")
 
-         md-card.inner-card(layout="column")
-            md-card-content
-               md-toolbar.md-theme-light-blue
-                  div.md-toolbar-tools
-                     h3 External Links
-               md-content.card-padding
-                  div
-                     div.vital-stat
-                        span.fa.fa-fw.fa-question.fa-lg.vertical-center
-                        span &nbsp;
-                        small
-                           a.inline-link(target="_blank",href="https://github.com/IdleLands/IdleLands/wiki/New-Player-Guide#faq") FAQ
-                     div.vital-stat
-                        span.fa.fa-fw.fa-bar-chart.fa-lg.vertical-center
-                        span &nbsp;
-                        small
-                           a.inline-link(target="_blank",href="http://idle.land/s/analytics/{{player.name}}") Your Analytics
-                     div.vital-stat
-                        span.fa.fa-fw.fa-reddit.fa-lg.vertical-center
-                        span &nbsp;
-                        small
-                           a.inline-link(target="_blank",href="http://reddit.com/r/idle_lands") /r/idle_lands
-                   div.vital-stat
-                        span.fa.fa-fw.fa-rss.fa-lg.vertical-center
-                        span &nbsp;
-                        small
-                            a.inline-link(target="_blank",href="http://blog.idle.land") Blog
-                     div.vital-stat
-                        span.fa.fa-fw.fa-github.fa-lg.vertical-center
-                        span &nbsp;
-                        small
-                           a.inline-link(target="_blank",href="https://github.com/IdleLands/IdleLands") IdleLands @ GitHub
-                     div.vital-stat
-                        span.fa.fa-fw.fa-thumbs-up.fa-lg.vertical-center
-                        span &nbsp;
-                        small
-                           a.inline-link(target="_blank",href="http://idle.land/s/thanks") Special Thanks
+            md-card.inner-card(layout="column")
+                md-card-content
+                    md-toolbar
+                        div.md-toolbar-tools
+                            h3
+                                a.fa.fa-question-circle(href="https://github.com/IdleLands/IdleLands/wiki/New-Player-Guide#custom-strings",target="_blank") &nbsp;Custom Strings
+                    md-content.card-padding
+                        table
+                            tr.vital-stat(ng-repeat="key in strings.keys track by $index")
+                                td(width="15%")
+                                    md-button.inline-button.md-raised(ng-class="{'md-primary': !strings.keys[$index], 'md-accent': strings.keys[$index]}",editable-text="strings.keys[$index]") {{strings.keys[$index] || 'Add new...'}}
+                                td(width="65%")
+                                    md-button.inline-button.md-accent.md-raised(editable-text="strings.values[$index]",ng-if="strings.keys[$index]") {{strings.values[$index] || '(not set)'}}
+                                td.text-right(width="10%")
+                                    md-button.inline-button.md-warn.md-raised(ng-if="strings.keys[$index]", ng-click="removeString(strings.keys[$index], $index)") Remove
+
+        div(flex="20",layout="column")
+            md-card.inner-card(layout="column")
+                md-card-content
+                    md-toolbar
+                        div.md-toolbar-tools
+                            h3 Scrollback.io
+                    md-content.card-padding.hide-y-scrollbar
+                        md-switch(ng-model="options.scrollback",ng-true-value="'true'",ng-false-value="'false'") Use Chat
+
+            md-card.inner-card(layout="column")
+                md-card-content
+                    md-toolbar
+                        div.md-toolbar-tools
+                            h3 Settings
+                    md-content.card-padding.hide-y-scrollbar
+                        span.fa.fa-fw.fa-tint
+                            md-tooltip Theme
+                        md-select.no-margin-top(ng-model="theme",ng-change="changeTheme()")
+                            md-option(ng-value="theme",ng-repeat="theme in themes") {{theme}}
+
+            md-card.inner-card(layout="column")
+                md-card-content
+                    md-toolbar
+                        div.md-toolbar-tools
+                            h3 External Links
+                    md-content.card-padding
+                        div.vital-stat-2x
+                            span.fa.fa-fw.fa-rss.fa-lg.vertical-center
+                            md-button.inline-button.md-accent.md-raised(target="_blank",href="http://blog.idle.land") Blog
+                        div.vital-stat-2x
+                            span.fa.fa-fw.fa-reddit.fa-lg.vertical-center
+                            md-button.inline-button.md-primary.md-raised(target="_blank",href="http://reddit.com/r/idle_lands") /r/idle_lands
+                        div.vital-stat-2x
+                            span.fa.fa-fw.fa-question.fa-lg.vertical-center
+                            md-button.inline-button.md-primary.md-raised(target="_blank",href="https://github.com/IdleLands/IdleLands/wiki/New-Player-Guide#faq") FAQ
+                        div.vital-stat-2x
+                            span.fa.fa-fw.fa-bar-chart.fa-lg.vertical-center
+                            md-button.inline-button.md-accent.md-raised(target="_blank",href="http://idle.land/s/analytics/{{player.name}}") Your Analytics
+                        div.vital-stat-2x
+                            span.fa.fa-fw.fa-github.fa-lg.vertical-center
+                            md-button.inline-button.md-accent.md-raised(target="_blank",href="https://github.com/IdleLands/IdleLands") IdleLands @ GitHub
+                        div.vital-stat-2x
+                            span.fa.fa-fw.fa-thumbs-up.fa-lg.vertical-center
+                            md-button.inline-button.md-accent.md-raised(target="_blank",href="http://idle.land/s/thanks") Special Thanks
 
 script(id="moderate-content",type="text/ng-template")
-   md-dialog
-      md-content
-         md-subheader.md-sticky-no-effect
-            h2 Moderate Custom Content
-         div(layout="row", layout-align="space-around center", style="padding:15px")
-            md-button.md-accent(ng-click="toggleAll()") Toggle All
-            md-button.md-accent(ng-click="refreshData()") Refresh
-            md-button.md-warn(ng-click="reject()") Reject
-            md-button.md-primary(ng-click="approve()") Approve
+    md-dialog
+        md-content
+            md-subheader.md-sticky-no-effect
+                h2 Moderate Custom Content
+            div(layout="row", layout-align="space-around center", style="padding:15px")
+                md-button.md-accent(ng-click="toggleAll()") Toggle All
+                md-button.md-accent(ng-click="refreshData()") Refresh
+                md-button.md-warn(ng-click="reject()") Reject
+                md-button.md-primary(ng-click="approve()") Approve
 
-         div(layout="row")
-            table
-               thead
-                  tr
-                     th
-                     th(width="100px") Type
-                     th(width="400px") Content
-                     th(width="200px") Submitter
-               tbody
-                  tr(ng-repeat="item in customContentList")
-                     td
-                        md-switch(ng-model="item.currentlySelected",aria-label="Toggle Selection")
-                     td {{item.type}}
-                     td {{item.content}}
-                     td {{item.submitterName}}, <span am-time-ago='item.submissionTime'></span>
+            div(layout="row")
+                table
+                    thead
+                        tr
+                            th
+                            th(width="100px") Type
+                            th(width="400px") Content
+                            th(width="200px") Submitter
+                    tbody
+                        tr(ng-repeat="item in customContentList")
+                            td
+                                md-switch(ng-model="item.currentlySelected",aria-label="Toggle Selection")
+                            td {{item.type}}
+                            td {{item.content}}
+                            td {{item.submitterName}}, <span am-time-ago='item.submissionTime'></span>
 
-      div.md-actions(layout="row")
-         md-button.md-warn(ng-click="cancel()") Close
+        div.md-actions(layout="row")
+            md-button.md-warn(ng-click="cancel()") Close
 
 script(id="submit-content",type="text/ng-template")
-   md-dialog
-      md-content
-         md-subheader.md-sticky-no-effect
-            h2 Submit New Custom Content
-         div(layout="row")
-            div
-            select(ng-model="data.type", ng-options="obj.type group by obj.folder for obj in types", style="margin:15px")
-            md-input-container(ng-if="data.type.requiresName")
-               label Name of Object
-               input(ng-model="data._name")
-            md-input-container.extended-input
-               label Custom Content
-               input(ng-model="data.content")
+    md-dialog
+        md-content
+            md-subheader.md-sticky-no-effect
+                h2 Submit New Custom Content
+            div(layout="row")
+                div
+                select(ng-model="data.type", ng-options="obj.type group by obj.folder for obj in types", style="margin:15px")
+                md-input-container(ng-if="data.type.requiresName")
+                    label Name of Object
+                    input(ng-model="data._name")
+                md-input-container.extended-input
+                    label Custom Content
+                    input(ng-model="data.content")
 
-      div.md-actions(layout="row")
-         md-button.md-accent(target="_blank",href="https://github.com/IdleLands/IdleLands/wiki/Content-Crafting",ng-if="data.type.type !== 'towncrier'") Help
-         md-button.md-accent(target="_blank",href="https://github.com/IdleLands/IdleLands/wiki/Town-Crier-Guide",ng-if="data.type.type === 'towncrier'") Help
-         md-button.md-accent(target="_blank",href="https://github.com/IdleLands/IdleLands/tree/master/assets/data/{{data.type.folder}}/{{data.type.type}}.txt",ng-if="data.type.type !== 'towncrier'") Show Example
-         md-button(ng-click="cancel()") Cancel
-         md-button.md-primary.md-raised(ng-click="submit()") Submit
+        div.md-actions(layout="row")
+            md-button.md-accent(target="_blank",href="https://github.com/IdleLands/IdleLands/wiki/Content-Crafting",ng-if="data.type.type !== 'towncrier'") Help
+            md-button.md-accent(target="_blank",href="https://github.com/IdleLands/IdleLands/wiki/Town-Crier-Guide",ng-if="data.type.type === 'towncrier'") Help
+            md-button.md-accent(target="_blank",href="https://github.com/IdleLands/IdleLands/tree/master/assets/data/{{data.type.folder}}/{{data.type.type}}.txt",ng-if="data.type.type !== 'towncrier'") Show Example
+            md-button(ng-click="cancel()") Cancel
+            md-button.md-primary.md-raised(ng-click="submit()") Submit

@@ -7,9 +7,9 @@ html(lang="en", ng-app="IdleLands")
       link(href="./favicon.ico",rel="shortcut icon",type="image/x-icon")
       <script>if(window.location.host === 'idlelands.github.io') window.location = 'http://webfe.idle.land'</script>
 
-   body(ng-controller="Head")
+   body(ng-controller="Head",md-theme="{{theme}}",md-theme-watch)
       base(href="/")
-      md-toolbar.md-theme-dark(ng-if="!player")
+      md-toolbar(ng-if="!player")
          h1.md-toolbar-tools
             span Idle Lands
       md-content.md-content-padding(scroll-y,flex,ui-view,layout="column",layout-fill)

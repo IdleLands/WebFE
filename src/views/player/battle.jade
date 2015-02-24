@@ -5,7 +5,7 @@ script(id="player-battle",type="text/ng-template")
       div(flex="30",layout="column",ng-if="currentBattle")
          md-card.inner-card(layout="column")
             md-card-content.is-flex.auto-flex(layout="column")
-               md-toolbar.md-theme-light-blue
+               md-toolbar
                   div.md-toolbar-tools
                      h3 Teams ({{currentBattle.name}})
                md-content.card-padding
@@ -21,7 +21,7 @@ script(id="player-battle",type="text/ng-template")
       div(flex="70",layout="column",ng-if="currentBattle")
          md-card.is-flex.auto-flex.inner-card(layout="column")
             md-card-content.is-flex.auto-flex(layout="column")
-               md-toolbar.md-theme-light-blue
+               md-toolbar
                   div.md-toolbar-tools
                      h3 Combat Log ({{currentBattle.name}})
 
