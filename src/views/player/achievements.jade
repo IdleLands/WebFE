@@ -6,9 +6,9 @@ script(id="player-achievements",type="text/ng-template")
                     span.fa-stack
                         span.fa.fa-stack-2x(ng-repeat="item in ::$parent.achievementTypeToIcon[achievement.type]",class="{{::item}}")
                 div.md-tile-content
-                    h3 {{::achievement.name}}
+                    h3
+                        span {{::achievement.name}}
+                        span.fa.fa-fw.fa-tag(style="float:right",ng-if="achievement.title")
+                            md-tooltip {{::achievement.title}}
                     h4 {{::achievement.desc}}
                     p {{::achievement.reward}}
-                    p(ng-show="achievement.title")
-                        span.fa.fa-fw.fa-tag
-                        span {{::achievement.title}}
