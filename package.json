@@ -34,7 +34,7 @@
   },
   "build": {
     "js": [
-      "bower_components/lodash/dist/lodash.js",
+      "bower_components/lodash/lodash.js",
       "bower_components/underscore.string/dist/underscore.string.min.js",
       "bower_components/jquery/dist/jquery.js",
       "bower_components/hammerjs/hammer.js",
