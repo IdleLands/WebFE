@@ -127,10 +127,10 @@ script(id="moderate-content",type="text/ng-template")
             md-subheader.md-sticky-no-effect
                 h2 Moderate Custom Content
             div(layout="row", layout-align="space-around center", style="padding:15px")
-                md-button.md-accent(ng-click="toggleAll()") Toggle All
-                md-button.md-accent(ng-click="refreshData()") Refresh
-                md-button.md-warn(ng-click="reject()") Reject
-                md-button.md-primary(ng-click="approve()") Approve
+                md-button.md-accent.md-raised(ng-click="toggleAll()") Toggle All
+                md-button.md-accent.md-raised(ng-click="refreshData()") Refresh
+                md-button.md-warn.md-raised(ng-click="reject()") Reject
+                md-button.md-primary.md-raised(ng-click="approve()") Approve
 
             div(layout="row")
                 table
@@ -149,7 +149,7 @@ script(id="moderate-content",type="text/ng-template")
                             td {{item.submitterName}}, <span am-time-ago='item.submissionTime'></span>
 
         div.md-actions(layout="row")
-            md-button.md-warn(ng-click="cancel()") Close
+            md-button.md-warn.md-raised(ng-click="cancel()") Close
 
 script(id="submit-content",type="text/ng-template")
     md-dialog
@@ -157,8 +157,9 @@ script(id="submit-content",type="text/ng-template")
             md-subheader.md-sticky-no-effect
                 h2 Submit New Custom Content
             div(layout="row")
-                div
-                select(ng-model="data.type", ng-options="obj.type group by obj.folder for obj in types", style="margin:15px")
+                md-select(ng-model="data.type")
+                    md-optgroup(ng-repeat="folder in folders",label="{{folder}}")
+                        md-option(ng-value="obj",ng-repeat="obj in types | filter:{folder: folder}") {{obj.type}}
                 md-input-container(ng-if="data.type.requiresName")
                     label Name of Object
                     input(ng-model="data._name")
@@ -167,8 +168,8 @@ script(id="submit-content",type="text/ng-template")
                     input(ng-model="data.content")
 
         div.md-actions(layout="row")
-            md-button.md-accent(target="_blank",href="https://github.com/IdleLands/IdleLands/wiki/Content-Crafting",ng-if="data.type.type !== 'towncrier'") Help
-            md-button.md-accent(target="_blank",href="https://github.com/IdleLands/IdleLands/wiki/Town-Crier-Guide",ng-if="data.type.type === 'towncrier'") Help
-            md-button.md-accent(target="_blank",href="https://github.com/IdleLands/IdleLands/tree/master/assets/data/{{data.type.folder}}/{{data.type.type}}.txt",ng-if="data.type.type !== 'towncrier'") Show Example
-            md-button(ng-click="cancel()") Cancel
+            md-button.md-accent.md-raised(target="_blank",href="https://github.com/IdleLands/IdleLands/wiki/Content-Crafting",ng-if="data.type.type !== 'towncrier'") Help
+            md-button.md-accent.md-raised(target="_blank",href="https://github.com/IdleLands/IdleLands/wiki/Town-Crier-Guide",ng-if="data.type.type === 'towncrier'") Help
+            md-button.md-accent.md-raised(target="_blank",href="https://github.com/IdleLands/IdleLands/tree/master/assets/data/{{data.type.folder}}/{{data.type.type}}.txt",ng-if="data.type.type !== 'towncrier'") Show Example
+            md-button.md-warn.md-raised(ng-click="cancel()") Cancel
             md-button.md-primary.md-raised(ng-click="submit()") Submit

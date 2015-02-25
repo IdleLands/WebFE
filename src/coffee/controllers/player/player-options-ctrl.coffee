@@ -165,6 +165,14 @@ angular.module 'IdleLands'
   '$scope', '$mdDialog', '$mdToast', 'API'
   ($scope, $mdDialog, $mdToast, API) ->
 
+    $scope.folders = [
+      'events'
+      'ingredients'
+      'items'
+      'monsters'
+      'npcs'
+    ]
+
     $scope.types = [
       {folder: 'events',      type: 'battle' }
       {folder: 'events',      type: 'blessGold' }
