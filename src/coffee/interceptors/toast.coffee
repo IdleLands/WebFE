@@ -20,6 +20,7 @@ angular.module 'IdleLands'
       $toast = ($injector.get '$mdToast')
       toast = $toast
         .simple()
+        .position('top right')
         .content response.data.message
         .action 'Close'
       $toast.show toast
