@@ -1487,13 +1487,27 @@
 (function() {
   angular.module('IdleLands').controller('PlayerOptions', [
     '$scope', '$timeout', '$mdDialog', 'CurrentPlayer', 'OptionsCache', 'API', 'CurrentTheme', function($scope, $timeout, $mdDialog, Player, OptionsCache, API, CurrentTheme) {
-      var initializing;
-      initializing = true;
+      var baseScrollbackClass, handleScrollbackPosition;
       $scope.options = OptionsCache.getOpts();
       $scope.strings = {
         keys: [],
         values: []
       };
+      $scope.scrollbackPos = (OptionsCache.loadOne('scrollbackPos')) || 'right';
+      baseScrollbackClass = '';
+      handleScrollbackPosition = function() {
+        var el;
+        el = angular.element('.scrollback-toast');
+        if (!baseScrollbackClass) {
+          baseScrollbackClass = el.attr('class');
+        }
+        return el.attr('class', baseScrollbackClass).addClass("scrollback-" + $scope.scrollbackPos);
+      };
+      $scope.changeScrollbackPosition = function() {
+        OptionsCache.set('scrollbackPos', $scope.scrollbackPos);
+        return handleScrollbackPosition();
+      };
+      $timeout(handleScrollbackPosition, 3000);
       $scope.theme = CurrentTheme.getTheme();
       $scope.themes = ['bright', 'default', 'dim-ocean', 'earth', 'green-machine', 'halloween', 'majestic', 'monochrome', 'ocean', 'simple'];
       $scope.changeTheme = function() {
@@ -1599,15 +1613,11 @@
       };
       $scope.initialize = function() {
         var _ref;
-        initializing = true;
         $scope.player = Player.getPlayer();
         $scope.buildStringList();
         if (((_ref = $scope.player) != null ? _ref.isContentModerator : void 0) && !$scope.customContentList) {
-          $scope.refreshCustomContent();
+          return $scope.refreshCustomContent();
         }
-        return $timeout(function() {
-          return initializing = false;
-        }, 0);
       };
       Player.observe().then(null, null, function() {
         return $scope.initialize();

@@ -817,6 +817,11 @@
           </md-toolbar>
           <md-content class="card-padding hide-y-scrollbar">
             <md-switch ng-model="options.scrollback" ng-true-value="'true'" ng-false-value="'false'">Use Chat</md-switch>
+            <div class="vital-stat"><span style="margin-left:18px; margin-right:18px" class="fa fa-fw fa-arrows-h"></span>
+              <md-select ng-model="scrollbackPos" ng-change="changeScrollbackPosition()" class="no-margin-top">
+                <md-option ng-value="pos" ng-repeat="pos in ['left', 'center', 'right']">{{pos}}</md-option>
+              </md-select>
+            </div>
           </md-content>
         </md-card-content>
       </md-card>
