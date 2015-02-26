@@ -3,8 +3,6 @@ angular.module 'IdleLands'
   '$scope', '$timeout', '$mdDialog', 'CurrentPlayer', 'OptionsCache', 'API', 'CurrentTheme'
   ($scope, $timeout, $mdDialog, Player, OptionsCache, API, CurrentTheme) ->
 
-    initializing = yes
-
     $scope.options = OptionsCache.getOpts()
 
     $scope.strings =
@@ -109,16 +107,10 @@ angular.module 'IdleLands'
         $scope.customContentList = res.data.customs
 
     $scope.initialize = ->
-      initializing = yes
-
       $scope.player = Player.getPlayer()
       $scope.buildStringList()
 
       $scope.refreshCustomContent() if $scope.player?.isContentModerator and not $scope.customContentList
-
-      $timeout ->
-        initializing = no
-      , 0
 
     Player.observe().then null, null, ->
       $scope.initialize()
