@@ -16,6 +16,17 @@ script(id='login', type='text/ng-template')
                         md-tab(on-select="selectTab(2)",label="Advanced Login",ng-disabled="isSubmitting")
                             div.tab(layout="row",layout-fill,layout-align="left center", ng-include="'login-advlogin'")
 
+            md-card(layout="row", layout-align="center", style="height: 390px")
+                md-card-content(flex="100")
+                    md-toolbar
+                        div.md-toolbar-tools
+                            h3 Screenshots
+                    md-content
+                        ul.image(rn-carousel,rn-carousel-controls="true")
+                            li(ng-repeat="slide in gallery")
+                                div.layer
+                                    img(ng-src="{{slide}}",height="330px",width="100%")
+
         div(flex="35")
             md-card
                 md-card-content
@@ -23,7 +34,7 @@ script(id='login', type='text/ng-template')
                         div.md-toolbar-tools
                             h3 Live Action
                     md-content.is-flex.auto-flex(flex="85",style="flex-basis:400px;height:400px;overflow-x:hidden;height:700px", layout="column")
-                        div.is-flex.auto-flex.adventure-log-item(style="min-height:150px; max-height:300px",flex="100",ng-repeat="event in _events",layout="row")
+                        div.is-flex.auto-flex.adventure-log-item(style="min-height:125px; max-height:125px",flex="100",ng-repeat="event in _events",layout="row")
                             div.text-center.vertical-center(flex="10")
                                 span.fa.fa-fw.fa-2x(class="{{::eventTypeToIcon[event.type]}}")
                             div(flex="90")

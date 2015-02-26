@@ -1,7 +1,7 @@
 angular.module 'IdleLands'
   .controller 'Login', [
-    '$scope', '$state', 'API', 'CredentialCache', 'CurrentPlayer', 'TurnTaker', '$interval', 'EventIcons'
-    ($scope, $state, API, CredentialCache, Player, TurnTaker, $interval, EventIcons) ->
+    '$scope', '$state', '$http', 'API', 'CredentialCache', 'CurrentPlayer', 'TurnTaker', '$interval', 'EventIcons'
+    ($scope, $state, $http, API, CredentialCache, Player, TurnTaker, $interval, EventIcons) ->
       $scope.selectedIndex = 0
       $scope.selectTab = (tabIndex) -> $scope.selectedIndex = tabIndex
 
@@ -71,4 +71,17 @@ angular.module 'IdleLands'
 
       $scope.getEvents 'medium'
       $scope.eventInt = $interval ($scope.getEvents.bind null, 'small'), 5200
+
+      $scope.gallery = []
+
+      req =
+        method: 'GET'
+        url: 'https://api.imgur.com/3/album/k5IHQ/images'
+        headers:
+          'Authorization': 'Client-ID ef4ce42bea071e2'
+
+      $http req
+        .then (res) ->
+          _.each res.data.data, (img) ->
+            $scope.gallery.push img.link
   ]

@@ -1,4 +1,4 @@
-angular.module 'IdleLands', ['ngMaterial', 'ngSanitize', 'angularMoment', 'ui.router', 'LocalStorageModule', 'xeditable', 'QuickList']
+angular.module 'IdleLands', ['ngMaterial', 'ngSanitize', 'angularMoment', 'ui.router', 'LocalStorageModule', 'xeditable', 'QuickList', 'angular-carousel']
 
 angular.module 'IdleLands'
   .run ['editableThemes', 'editableOptions', (editableThemes, editableOptions) ->
