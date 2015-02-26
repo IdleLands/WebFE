@@ -9,6 +9,24 @@ angular.module 'IdleLands'
       keys: []
       values: []
 
+    $scope.scrollbackPos = (OptionsCache.loadOne 'scrollbackPos') or 'right'
+
+    baseScrollbackClass = ''
+
+    handleScrollbackPosition = ->
+      el = angular.element '.scrollback-toast'
+      baseScrollbackClass = el.attr 'class' unless baseScrollbackClass
+      el
+        .attr 'class', baseScrollbackClass
+        .addClass "scrollback-#{$scope.scrollbackPos}"
+
+    $scope.changeScrollbackPosition = ->
+      OptionsCache.set 'scrollbackPos', $scope.scrollbackPos
+      handleScrollbackPosition()
+
+    $timeout handleScrollbackPosition, 3000
+
+    # themes
     $scope.theme = CurrentTheme.getTheme()
 
     $scope.themes = [

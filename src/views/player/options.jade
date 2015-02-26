@@ -84,6 +84,10 @@ script(id="player-options", type="text/ng-template")
                             h3 Scrollback.io
                     md-content.card-padding.hide-y-scrollbar
                         md-switch(ng-model="options.scrollback",ng-true-value="'true'",ng-false-value="'false'") Use Chat
+                        div.vital-stat
+                            span.fa.fa-fw.fa-arrows-h(style="margin-left:18px; margin-right:18px")
+                            md-select.no-margin-top(ng-model="scrollbackPos",ng-change="changeScrollbackPosition()")
+                                md-option(ng-value="pos",ng-repeat="pos in ['left', 'center', 'right']") {{pos}}
 
             md-card.inner-card(layout="column")
                 md-card-content
