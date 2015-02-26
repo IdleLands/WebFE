@@ -66,6 +66,22 @@
           </md-tabs>
         </md-card-content>
       </md-card>
+      <md-card layout="row" layout-align="center" style="height: 390px">
+        <md-card-content flex="100">
+          <md-toolbar>
+            <div class="md-toolbar-tools">
+              <h3>Screenshots</h3>
+            </div>
+          </md-toolbar>
+          <md-content>
+            <ul rn-carousel="rn-carousel" rn-carousel-controls="true" class="image">
+              <li ng-repeat="slide in gallery">
+                <div class="layer"><img ng-src="{{slide}}" height="330px" width="100%"/></div>
+              </li>
+            </ul>
+          </md-content>
+        </md-card-content>
+      </md-card>
     </div>
     <div flex="35">
       <md-card>
@@ -76,7 +92,7 @@
             </div>
           </md-toolbar>
           <md-content flex="85" style="flex-basis:400px;height:400px;overflow-x:hidden;height:700px" layout="column" class="is-flex auto-flex">
-            <div style="min-height:150px; max-height:300px" flex="100" ng-repeat="event in _events" layout="row" class="is-flex auto-flex adventure-log-item">
+            <div style="min-height:125px; max-height:125px" flex="100" ng-repeat="event in _events" layout="row" class="is-flex auto-flex adventure-log-item">
               <div flex="10" class="text-center vertical-center"><span class="fa fa-fw fa-2x {{::eventTypeToIcon[event.type]}}"></span></div>
               <div flex="90"><small am-time-ago="event.createdAt"></small>
                 <div ng-bind-html="event.message | linky:'_blank'"></div>
@@ -858,10 +874,10 @@
         <h2>Moderate Custom Content</h2>
       </md-subheader>
       <div layout="row" layout-align="space-around center" style="padding:15px">
-        <md-button ng-click="toggleAll()" class="md-accent">Toggle All</md-button>
-        <md-button ng-click="refreshData()" class="md-accent">Refresh</md-button>
-        <md-button ng-click="reject()" class="md-warn">Reject</md-button>
-        <md-button ng-click="approve()" class="md-primary">Approve</md-button>
+        <md-button ng-click="toggleAll()" class="md-accent md-raised">Toggle All</md-button>
+        <md-button ng-click="refreshData()" class="md-accent md-raised">Refresh</md-button>
+        <md-button ng-click="reject()" class="md-warn md-raised">Reject</md-button>
+        <md-button ng-click="approve()" class="md-primary md-raised">Approve</md-button>
       </div>
       <div layout="row">
         <table>
@@ -887,7 +903,7 @@
       </div>
     </md-content>
     <div layout="row" class="md-actions">
-      <md-button ng-click="cancel()" class="md-warn">Close</md-button>
+      <md-button ng-click="cancel()" class="md-warn md-raised">Close</md-button>
     </div>
   </md-dialog>
 </script>
@@ -898,8 +914,11 @@
         <h2>Submit New Custom Content</h2>
       </md-subheader>
       <div layout="row">
-        <div></div>
-        <select ng-model="data.type" ng-options="obj.type group by obj.folder for obj in types" style="margin:15px"></select>
+        <md-select ng-model="data.type">
+          <md-optgroup ng-repeat="folder in folders" label="{{folder}}">
+            <md-option ng-value="obj" ng-repeat="obj in types | filter:{folder: folder}">{{obj.type}}</md-option>
+          </md-optgroup>
+        </md-select>
         <md-input-container ng-if="data.type.requiresName">
           <label>Name of Object</label>
           <input ng-model="data._name"/>
@@ -911,10 +930,10 @@
       </div>
     </md-content>
     <div layout="row" class="md-actions">
-      <md-button target="_blank" href="https://github.com/IdleLands/IdleLands/wiki/Content-Crafting" ng-if="data.type.type !== 'towncrier'" class="md-accent">Help</md-button>
-      <md-button target="_blank" href="https://github.com/IdleLands/IdleLands/wiki/Town-Crier-Guide" ng-if="data.type.type === 'towncrier'" class="md-accent">Help</md-button>
-      <md-button target="_blank" href="https://github.com/IdleLands/IdleLands/tree/master/assets/data/{{data.type.folder}}/{{data.type.type}}.txt" ng-if="data.type.type !== 'towncrier'" class="md-accent">Show Example</md-button>
-      <md-button ng-click="cancel()">Cancel</md-button>
+      <md-button target="_blank" href="https://github.com/IdleLands/IdleLands/wiki/Content-Crafting" ng-if="data.type.type !== 'towncrier'" class="md-accent md-raised">Help</md-button>
+      <md-button target="_blank" href="https://github.com/IdleLands/IdleLands/wiki/Town-Crier-Guide" ng-if="data.type.type === 'towncrier'" class="md-accent md-raised">Help</md-button>
+      <md-button target="_blank" href="https://github.com/IdleLands/IdleLands/tree/master/assets/data/{{data.type.folder}}/{{data.type.type}}.txt" ng-if="data.type.type !== 'towncrier'" class="md-accent md-raised">Show Example</md-button>
+      <md-button ng-click="cancel()" class="md-warn md-raised">Cancel</md-button>
       <md-button ng-click="submit()" class="md-primary md-raised">Submit</md-button>
     </div>
   </md-dialog>

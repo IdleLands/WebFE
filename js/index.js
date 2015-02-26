@@ -1,5 +1,5 @@
 (function() {
-  angular.module('IdleLands', ['ngMaterial', 'ngSanitize', 'angularMoment', 'ui.router', 'LocalStorageModule', 'xeditable', 'QuickList']);
+  angular.module('IdleLands', ['ngMaterial', 'ngSanitize', 'angularMoment', 'ui.router', 'LocalStorageModule', 'xeditable', 'QuickList', 'angular-carousel']);
 
   angular.module('IdleLands').run([
     'editableThemes', 'editableOptions', function(editableThemes, editableOptions) {
@@ -322,8 +322,8 @@
 
 (function() {
   angular.module('IdleLands').controller('Login', [
-    '$scope', '$state', 'API', 'CredentialCache', 'CurrentPlayer', 'TurnTaker', '$interval', 'EventIcons', function($scope, $state, API, CredentialCache, Player, TurnTaker, $interval, EventIcons) {
-      var goToPlayerView;
+    '$scope', '$state', '$http', 'API', 'CredentialCache', 'CurrentPlayer', 'TurnTaker', '$interval', 'EventIcons', function($scope, $state, $http, API, CredentialCache, Player, TurnTaker, $interval, EventIcons) {
+      var goToPlayerView, req;
       $scope.selectedIndex = 0;
       $scope.selectTab = function(tabIndex) {
         return $scope.selectedIndex = tabIndex;
@@ -404,7 +404,20 @@
         });
       };
       $scope.getEvents('medium');
-      return $scope.eventInt = $interval($scope.getEvents.bind(null, 'small'), 5200);
+      $scope.eventInt = $interval($scope.getEvents.bind(null, 'small'), 5200);
+      $scope.gallery = [];
+      req = {
+        method: 'GET',
+        url: 'https://api.imgur.com/3/album/k5IHQ/images',
+        headers: {
+          'Authorization': 'Client-ID ef4ce42bea071e2'
+        }
+      };
+      return $http(req).then(function(res) {
+        return _.each(res.data.data, function(img) {
+          return $scope.gallery.push(img.link);
+        });
+      });
     }
   ]);
 
@@ -416,13 +429,13 @@
       if (!Player.getPlayer()) {
         CredentialCache.tryLogin().then((function() {
           if (!Player.getPlayer()) {
-            $mdToast.show($mdToast.simple().content('You don\'t appear to be logged in! Redirecting you to the login page...').action('Close'));
+            $mdToast.show($mdToast.simple().position('top right').content('You don\'t appear to be logged in! Redirecting you to the login page...').action('Close'));
             return $state.go('login');
           } else {
             return TurnTaker.beginTakingTurns(Player.getPlayer());
           }
         }), (function() {
-          $mdToast.show($mdToast.simple().content('You don\'t appear to be logged in! Redirecting you to the login page...').action('Close'));
+          $mdToast.show($mdToast.simple().position('top right').content('You don\'t appear to be logged in! Redirecting you to the login page...').action('Close'));
           return $state.go('login');
         }));
       }
@@ -889,7 +902,7 @@
       if (!Player.getPlayer()) {
         CredentialCache.tryLogin().then((function() {
           if (!Player.getPlayer()) {
-            $mdToast.show($mdToast.simple().content('You don\'t appear to be logged in! Redirecting you to the login page...').action('Close'));
+            $mdToast.show($mdToast.simple().position('top right').content('You don\'t appear to be logged in! Redirecting you to the login page...').action('Close'));
             return $state.go('login');
           } else {
             return TurnTaker.beginTakingTurns(Player.getPlayer());
@@ -1643,6 +1656,7 @@
 
   angular.module('IdleLands').controller('ContentSubmission', [
     '$scope', '$mdDialog', '$mdToast', 'API', function($scope, $mdDialog, $mdToast, API) {
+      $scope.folders = ['events', 'ingredients', 'items', 'monsters', 'npcs'];
       $scope.types = [
         {
           folder: 'events',
@@ -1796,11 +1810,11 @@
         requiresName = $scope.data.type.requiresName;
         requiresContent = $scope.data.type.requiresContent;
         if (!data.content && requiresContent) {
-          $mdToast.show($mdToast.simple().content('You must have content!').action('Close'));
+          $mdToast.show($mdToast.simple().position('top right').content('You must have content!').action('Close'));
           return;
         }
         if (requiresName && !data._name) {
-          $mdToast.show($mdToast.simple().content('You must to specify a name!').action('Close'));
+          $mdToast.show($mdToast.simple().position('top right').content('You must to specify a name!').action('Close'));
           return;
         }
         newData = {
@@ -2226,7 +2240,7 @@
           var $toast, toast;
           if (canShowMessage(response)) {
             $toast = $injector.get('$mdToast');
-            toast = $toast.simple().content(response.data.message).action('Close');
+            toast = $toast.simple().position('top right').content(response.data.message).action('Close');
             $toast.show(toast);
           }
           return response;
