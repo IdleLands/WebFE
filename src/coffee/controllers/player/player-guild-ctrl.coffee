@@ -10,7 +10,7 @@ angular.module 'IdleLands'
       player = CurrentPlayer.getPlayer()
       $scope.currentlyInGuild = player?.guild
 
-      if $scope.guild
+      if $scope.currentlyInGuild
         $scope.setupGuildData()
         $scope.loadBuffsIntoHash()
         $scope.getDonationTiers()
