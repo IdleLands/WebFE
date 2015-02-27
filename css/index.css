@@ -26,7 +26,7 @@
   color: #827717;
 }
 .text-gray {
-  color: #9e9e9e;
+  color: #aeaeae;
 }
 .bg-orange,
 .bg-purple,
@@ -148,6 +148,9 @@
 [flex="8"] {
   flex: 0 0 8.33%!important;
 }
+[flex="16"] {
+  flex: 0 0 16.66%!important;
+}
 .inline-link {
   cursor: pointer;
   color: #03A9F4;
@@ -233,6 +236,10 @@ md-card md-card-content {
 .hide-y-scrollbar {
   overflow-y: hidden;
 }
+.subdued {
+  font-style: italic;
+  color: #666;
+}
 
 #login-tabs .tab {
   height: 265px;
@@ -268,6 +275,10 @@ body {
   display: flex;
   flex-direction: column;
   flex: 1 1 auto;
+}
+#player-tabs .item-container,
+#pet-tabs .item-container {
+  border-bottom: 1px dotted #ccc;
 }
 #player-tabs .item-line,
 #pet-tabs .item-line {

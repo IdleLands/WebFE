@@ -53,7 +53,7 @@
               <h3>Portal to Idliathlia</h3>
             </div>
           </md-toolbar>
-          <md-tabs md-selected="selectedIndex">
+          <md-tabs md-selected="selectedIndex" class="md-accent">
             <md-tab on-select="selectTab(0)" label="Login" ng-disabled="isSubmitting">
               <div layout="row" layout-fill="layout-fill" layout-align="left center" ng-include="'login-login'" class="tab"></div>
             </md-tab>
@@ -406,7 +406,7 @@
   </md-toolbar>
   <md-progress-linear mode="determinate" ng-value="xpPercent" ng-if="pet" class="player-xp"></md-progress-linear>
   <div id="pet-tabs" class="auto-flex md-whiteframe-z1 is-flex">
-    <md-tabs md-selected="selectedIndex" layout="column" class="is-flex auto-flex">
+    <md-tabs md-selected="selectedIndex" layout="column" class="is-flex auto-flex md-accent">
       <md-tab ui-sref="pet.overview" label="{{pet ? 'Pet' : 'Buy a Pet'}}">
         <div ui-view="petoverview" class="tab"></div>
       </md-tab>
@@ -506,33 +506,54 @@
 <script id="player-equipment" type="text/ng-template">
   <md-list class="flex-scroll has-height">
     <md-item ng-repeat="item in playerItems track by $index">
-      <md-item-content>
-        <div class="md-tile-left class-badge text-center align-left-list-item">
-          <div class="{{itemUtilities.classToColor(item.itemClass)}}">{{::item.type}}
-            <md-tooltip>{{item.itemClass}}</md-tooltip>
-          </div>
-          <div ng-if="::item.extraItemClass" class="{{::itemUtilities.classToColor(item.extraItemClass)}}">{{item.extraText}}</div>
-          <!--equipped-->
-          <div ng-if="!item.extraItemClass &amp;&amp; !item.hideButtons &amp;&amp; item.type !== 'providence'" class="text-center"><span ng-click="invItem(item)" class="hover-cursor fa fa-fw fa-caret-square-o-down">
-              <md-tooltip>Add to Inventory</md-tooltip></span></div>
-          <!--in overflow-->
-          <div ng-if="_.isNumber(item.overflowSlot)" class="text-center"><span ng-if="::item.extraItemClass" ng-click="sellItem(item)" class="hover-cursor fa fa-fw icon-money text-red">
-              <md-tooltip>Sell</md-tooltip></span><span ng-if="::item.extraItemClass" ng-click="swapItem(item)" class="hover-cursor fa fa-fw fa-exchange">
-              <md-tooltip>Swap</md-tooltip></span><span ng-if="::item.extraItemClass" ng-click="sendToPet(item)" class="hover-cursor fa fa-fw fa-paw">
-              <md-tooltip>Send to pet</md-tooltip></span></div>
-          <!--in shop-->
-          <div ng-if="_.isNumber(item.shopSlot)" class="text-center"><span ng-if="::item.extraItemClass" ng-click="buyItem(item)" class="hover-cursor fa fa-fw icon-money text-green">
-              <md-tooltip>Buy</md-tooltip></span></div>
-        </div>
-        <div class="md-tile-content item-line">
-          <div><span class="super-bold">{{item.enchantLevel ? '+'+item.enchantLevel+' ' : ''}}</span><span class="super-bold">{{item.name}}</span><small ng-if="item.foundAt"><span>, found</span><span>&nbsp;</span><span am-time-ago="item.foundAt"></span><span>, with a Player Relativity of</span><span>&nbsp;{{playerItemScore(item)}}%&nbsp;</span><span>and an Item Relativity of</span><span>&nbsp;{{itemItemScore(item)}}%</span></small></div>
-          <div layout="row" class="top-margin-5 wrap-container"><span ng-repeat="stat in ::itemUtilities.equipmentStatArray" flex="8"><span class="fa fa-fw fa-lg {{::stat.fa}}">
-                <md-tooltip>{{::stat.name}}</md-tooltip></span><span>&nbsp;</span><small class="{{valueToColor(item[stat.name])}}">{{item[stat.name]}}</small><small>&nbsp;/&nbsp;</small><small class="{{valueToColor(item[stat.name+'Percent'])}}">{{item[stat.name+'Percent']}}%</small></span></div>
-          <div class="top-margin-5"><small>{{itemUtilities.getExtraStats(item)}}</small></div>
-        </div>
-      </md-item-content>
+      <ng-include src="'item-tpl'"></ng-include>
     </md-item>
   </md-list>
+  <!--md-tabs.auto-flex.md-background(layout="column",md-align-tabs="bottom")
+  md-tab.is-flex.auto-flex(label="Equipment")
+      md-list.flex-scroll.has-height
+          md-item(ng-repeat="item in playerItems track by $index")
+              ng-include(src="'item-tpl'")
+  md-tab.is-flex.auto-flex(label="Inventory ({{inventory.length}})")
+      md-list.flex-scroll.has-height
+          md-item(ng-repeat="item in inventory track by $index")
+              ng-include(src="'item-tpl'")
+  md-tab.is-flex.auto-flex(label="Shop ({{shop.length}})", ng-if="shop.length")
+      md-list.flex-scroll.has-height
+          md-item(ng-repeat="item in shop track by $index")
+              ng-include(src="'item-tpl'")
+  
+  -->
+</script>
+<script type="text/ng-template" id="item-tpl">
+  <md-item-content class="item-container">
+    <div class="md-tile-left class-badge text-center align-left-list-item">
+      <div class="{{itemUtilities.classToColor(item.itemClass)}}">{{::item.type}}
+        <md-tooltip>{{item.itemClass}}</md-tooltip>
+      </div>
+      <div ng-if="::item.extraItemClass" class="{{::itemUtilities.classToColor(item.extraItemClass)}}">{{item.extraText}}</div>
+      <!--equipped-->
+      <div ng-if="!item.extraItemClass &amp;&amp; !item.hideButtons &amp;&amp; item.type !== 'providence'" class="text-center"><span ng-click="invItem(item)" class="hover-cursor fa fa-fw fa-caret-square-o-down">
+          <md-tooltip>Add to Inventory</md-tooltip></span></div>
+      <!--in overflow-->
+      <div ng-if="_.isNumber(item.overflowSlot)" class="text-center"><span ng-if="::item.extraItemClass" ng-click="sellItem(item)" class="hover-cursor fa fa-fw icon-money text-red">
+          <md-tooltip>Sell</md-tooltip></span><span ng-if="::item.extraItemClass" ng-click="swapItem(item)" class="hover-cursor fa fa-fw fa-exchange">
+          <md-tooltip>Swap</md-tooltip></span><span ng-if="::item.extraItemClass" ng-click="sendToPet(item)" class="hover-cursor fa fa-fw fa-paw">
+          <md-tooltip>Send to pet</md-tooltip></span></div>
+      <!--in shop-->
+      <div ng-if="_.isNumber(item.shopSlot)" class="text-center"><span ng-if="::item.extraItemClass" ng-click="buyItem(item)" class="hover-cursor fa fa-fw icon-money text-green">
+          <md-tooltip>Buy</md-tooltip></span></div>
+    </div>
+    <div class="md-tile-content item-line">
+      <div>
+        <h3 class="super-bold">{{item.enchantLevel ? '+'+item.enchantLevel+' ' : ''}} {{item.name}}</h3>
+      </div>
+      <div><small ng-if="item.foundAt" class="subdued"><span>Found</span><span>&nbsp;</span><span am-time-ago="item.foundAt"></span><span>, with a Player Relativity of</span><span>&nbsp;{{playerItemScore(item)}}%&nbsp;</span><span>and an Item Relativity of</span><span>&nbsp;{{itemItemScore(item)}}%</span></small></div>
+      <div layout="row" class="top-margin-5 wrap-container"><span ng-repeat="stat in ::itemUtilities.equipmentStatArray" flex="16" ng-class="{'text-gray': item[stat.name] === 0 &amp;&amp; item[stat.name+'Percent'] === 0}" class="vital-stat"><span class="fa fa-fw fa-lg {{::stat.fa}}">
+            <md-tooltip>{{::stat.name}}</md-tooltip></span><span>&nbsp;</span><small class="{{valueToColor(item[stat.name])}}">{{item[stat.name]}}</small><small>&nbsp;/&nbsp;</small><small class="{{valueToColor(item[stat.name+'Percent'])}}">{{item[stat.name+'Percent']}}%</small></span></div>
+      <div class="top-margin-5"><small>{{itemUtilities.getExtraStats(item)}}</small></div>
+    </div>
+  </md-item-content>
 </script>
 
 
@@ -956,7 +977,7 @@
         <md-card-content>
           <md-toolbar>
             <div class="md-toolbar-tools">
-              <h3>Vitals</h3>
+              <h3>Status</h3>
             </div>
           </md-toolbar>
           <md-content class="card-padding hide-y-scrollbar">
@@ -1059,7 +1080,7 @@
         <md-card-content layout="column" class="is-flex auto-flex">
           <md-toolbar>
             <div class="md-toolbar-tools">
-              <h3><a href="http://doks.idle.land/#!/Player/Personalities" target="_blank" class="fa fa-question-circle">&nbsp;Your Personalities</a></h3>
+              <h3><a href="http://doks.idle.land/#!/Player/Personalities" target="_blank" class="fa fa-question-circle">&nbsp; Personalities</a></h3>
             </div>
           </md-toolbar>
           <md-content style="flex-basis:50px;height:50px" layout="column" class="is-flex auto-flex">
@@ -1087,7 +1108,7 @@
   </md-toolbar>
   <md-progress-linear mode="determinate" ng-value="xpPercent" class="player-xp"></md-progress-linear>
   <div id="player-tabs" class="auto-flex md-whiteframe-z1 is-flex">
-    <md-tabs md-selected="selectedIndex" layout="column" class="is-flex auto-flex">
+    <md-tabs md-selected="selectedIndex" layout="column" class="is-flex auto-flex md-accent">
       <md-tab ui-sref="player.overview" label="Player">
         <div ui-view="overview" class="tab"></div>
       </md-tab>

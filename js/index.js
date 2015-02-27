@@ -994,8 +994,8 @@
         items.unshift(test);
         return items;
       };
-      $scope.getOverflows = function() {
-        var items, overflow, shop;
+      $scope.getShop = function() {
+        var items, shop;
         items = [];
         shop = $scope.player.shop;
         if (shop) {
@@ -1009,6 +1009,11 @@
             return items.push(item);
           });
         }
+        return items;
+      };
+      $scope.getOverflows = function() {
+        var items, overflow;
+        items = [];
         overflow = $scope.player.overflow;
         if (overflow) {
           _.each(overflow, function(item, index) {
@@ -1029,7 +1034,7 @@
         }
         return $scope.playerItems = (_.sortBy($scope.getEquipmentAndTotals($scope.player.equipment), function(item) {
           return item.type;
-        })).concat($scope.getOverflows());
+        })).concat($scope.getOverflows().concat($scope.getShop()));
       };
       $scope.itemItemScore = function(item) {
         if (!item._baseScore || !item._calcScore) {
