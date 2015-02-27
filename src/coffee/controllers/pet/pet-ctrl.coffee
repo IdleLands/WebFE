@@ -8,9 +8,6 @@ angular.module 'IdleLands'
           if not Player.getPlayer()
             $mdToast.show $mdToast.simple().position('top right').content('You don\'t appear to be logged in! Redirecting you to the login page...').action 'Close'
             $state.go 'login'
-
-          else
-            TurnTaker.beginTakingTurns Player.getPlayer()
         ),
         (->
           $mdToast.show $mdToast.simple().position('top right').content('You don\'t appear to be logged in! Redirecting you to the login page...').action 'Close'

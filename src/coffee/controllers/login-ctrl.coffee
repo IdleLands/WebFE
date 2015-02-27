@@ -12,7 +12,6 @@ angular.module 'IdleLands'
       if not Player.getPlayer()
         CredentialCache.tryLogin().then (->
             if Player.getPlayer()
-              TurnTaker.beginTakingTurns Player.getPlayer()
               goToPlayerView()
           )
 

@@ -4,34 +4,32 @@ angular.module 'IdleLands'
   ($interval, $q, API) ->
 
     seconds = 0
-    turnInterval = null
     timeInterval = null
     defer = $q.defer()
 
     setSeconds = (newVal) ->
       seconds = newVal
+
       defer.notify seconds
 
     beginTakingTurns: (player) ->
       if not player
-        $interval.cancel turnInterval
         $interval.cancel timeInterval
         return
 
-      return if turnInterval
+      return if timeInterval
       API.action.turn identifier: player.identifier
 
       setSeconds 0
 
       timeInterval = $interval ->
         setSeconds seconds+1
+
+        if seconds % 10 is 0
+          setSeconds 0
+          API.action.turn identifier: player.identifier
+
       , 1000
-
-      turnInterval = $interval ->
-        setSeconds 0
-
-        API.action.turn identifier: player.identifier
-      , 10100
 
     getSeconds: -> seconds
     observe: -> defer.promise

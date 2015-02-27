@@ -7,6 +7,8 @@ angular.module 'IdleLands'
     $scope.theme = CurrentTheme.getTheme()
 
     Player.observe().then null, null, (newVal) ->
+      return unless newVal
+      console.log newVal.name,'loggedin'
       $scope.player = newVal
       TurnTaker.beginTakingTurns $scope.player
 
