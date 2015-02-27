@@ -6,7 +6,7 @@ script(id='player', type='text/ng-template')
 
    md-progress-linear.player-xp(mode="determinate",ng-value="xpPercent")
 
-   div.auto-flex.md-whiteframe-z1.is-flex(id="player-tabs")
+   div.top-margin-5.auto-flex.md-whiteframe-z1.is-flex(id="player-tabs")
       md-tabs.is-flex.auto-flex.md-accent(md-selected="selectedIndex",layout="column")
          md-tab(ui-sref="player.overview",label="Player")
             div.tab(ui-view="overview")
