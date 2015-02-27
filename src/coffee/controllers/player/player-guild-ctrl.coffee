@@ -10,6 +10,9 @@ angular.module 'IdleLands'
       player = CurrentPlayer.getPlayer()
       $scope.currentlyInGuild = player?.guild
 
+      $scope.editable.guildTaxRate = $scope.guild?.taxPercent
+      $scope.editable.selfTaxRate = player?.guildTax
+
       if $scope.currentlyInGuild
         $scope.setupGuildData()
         $scope.loadBuffsIntoHash()
