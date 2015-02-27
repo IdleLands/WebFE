@@ -593,7 +593,7 @@
             <div class="vital-stat"><span class="fa fa-fw fa-clock-o"></span><span>&nbsp;Founded <span am-time-ago="::guild.createDate"></span></span></div>
             <div class="vital-stat"><span class="fa fa-fw fa-sitemap"></span><span>&nbsp;Level {{guild.level}}</span></div>
             <div class="vital-stat"><span class="fa fa-fw fa-envelope"></span><span>&nbsp;{{guild.invitesAvailable}} invites left</span></div>
-            <div class="vital-stat"><span class="fa fa-fw icon-money"></span><span>&nbsp;{{guild.gold.__current}} gold</span></div>
+            <div class="vital-stat"><span class="fa fa-fw icon-money"></span><span>&nbsp;{{guild.gold.__current |number:0}} gold</span></div>
           </md-content>
         </md-card-content>
       </md-card>
@@ -604,7 +604,11 @@
               <h3>Invite Players</h3>
             </div>
           </md-toolbar>
-          <md-content class="card-padding"><a href="href" editable-text="editable.newMember" onaftersave="inviteMember()">{{edtiable.newMember || 'Invite a new member!'}}</a></md-content>
+          <md-content class="card-padding">
+            <div class="vital-stat"><span class="fa fa-user-plus fa-fw"></span>
+              <md-button href="href" editable-text="editable.newMember" onaftersave="inviteMember()" class="inline-button md-accent md-hue-1 md-raised">{{edtiable.newMember || 'Invite a new member!'}}</md-button>
+            </div>
+          </md-content>
         </md-card-content>
       </md-card>
       <md-card layout="column" class="inner-card">
