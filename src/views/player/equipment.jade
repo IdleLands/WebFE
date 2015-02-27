@@ -46,7 +46,7 @@ script(type="text/ng-template",id="item-tpl")
             div
                 h3.super-bold {{item.enchantLevel ? '+'+item.enchantLevel+' ' : ''}} {{item.name}}
             div
-                small.subdued(ng-if="item.foundAt")
+                small.text-subdued(ng-if="item.foundAt")
                     span Found
                     span &nbsp;
                     span(am-time-ago="item.foundAt")
@@ -55,7 +55,7 @@ script(type="text/ng-template",id="item-tpl")
                     span and an Item Relativity of
                     span &nbsp;{{itemItemScore(item)}}%
             div.top-margin-5.wrap-container(layout="row")
-                span.vital-stat(ng-repeat="stat in ::itemUtilities.equipmentStatArray",flex="16",ng-class="{'text-gray': item[stat.name] === 0 && item[stat.name+'Percent'] === 0}")
+                span.vital-stat(ng-repeat="stat in ::itemUtilities.equipmentStatArray",flex="16",ng-class="{'text-tertiary': item[stat.name] === 0 && item[stat.name+'Percent'] === 0}")
                     span.fa.fa-fw.fa-lg(class="{{::stat.fa}}")
                         md-tooltip {{::stat.name}}
                     span &nbsp;

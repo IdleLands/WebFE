@@ -95,10 +95,10 @@ script(id="player-guild", type="text/ng-template")
                     md-content.is-flex.auto-flex(style="flex-basis:50px;height:50px;overflow-x:hidden",layout="column")
                         div.is-flex.auto-flex.adventure-log-item(style="min-height: 50px",flex="100",quick-repeat-list="orderedMembers",quick-ng-repeat="member in orderedMembers",layout="row")
                             div.text-center.vertical-center(flex="10")
-                                span.fa.fa-fw.fa-2x(class="{{iconForMember(member)}}", ng-class="{'text-green': member._cache.online, 'text-red': !member._cache.online, 'fa-rotate-90 text-gray': isInvited(member)}")
+                                span.fa.fa-fw.fa-2x(class="{{iconForMember(member)}}", ng-class="{'text-green': member._cache.online, 'text-red': !member._cache.online, 'fa-rotate-90 text-tertiary': isInvited(member)}")
                                     md-tooltip {{getTooltipText(member)}}
                             div(flex="50")
-                                div(ng-class="{'italic text-gray': isInvited(member)}") {{member.name}}
+                                div(ng-class="{'italic text-tertiary': isInvited(member)}") {{member.name}}
                                 div(ng-if="member._cache.level && member._cache.class")
                                     span Level {{member._cache.level}} {{member._cache.class}}
                                     small(ng-if="member._cache.lastSeen && !member._cache.online") &nbsp;- Last seen <span am-time-ago="member._cache.lastSeen"></span>
