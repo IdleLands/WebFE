@@ -6,7 +6,7 @@ script(id="player-overview", type="text/ng-template")
             md-card-content
                md-toolbar
                   div.md-toolbar-tools
-                     h3 Vitals
+                     h3 Status
                md-content.card-padding.hide-y-scrollbar
                   div(layout="row")
                      div.vital-stat(flex="33")
@@ -117,7 +117,7 @@ script(id="player-overview", type="text/ng-template")
                md-toolbar
                   div.md-toolbar-tools
                      h3
-                        a.fa.fa-question-circle(href="http://doks.idle.land/#!/Player/Personalities",target="_blank") &nbsp;Your Personalities
+                        a.fa.fa-question-circle(href="http://doks.idle.land/#!/Player/Personalities",target="_blank") &nbsp; Personalities
 
                md-content.is-flex.auto-flex(style="flex-basis:50px;height:50px",layout="column")
                   div.is-flex.auto-flex.adventure-log-item(style="min-height:30px",quick-repeat-list="_personalities",quick-ng-repeat="personality in _personalities")
