@@ -118,7 +118,7 @@ script(id="pet-overview", type="text/ng-template")
                md-content.is-flex.auto-flex(style="flex-basis:60px;height:60px",layout="column",ng-if="pets.length")
                   div.is-flex.auto-flex.adventure-log-item(style="min-height:60px;align-items:center",flex="100",ng-repeat="pet in getPetsInOrder()",layout="row")
                      div.vertical-center.text-center.faa-parent.animated-hover.hover-cursor(flex="10")
-                        span.fa.fa-fw.fa-lg.fa-certificate.faa-spin(ng-class="{'text-green': pet.isActive, 'text-gray': !pet.isActive}",ng-click="doPetSwap(pet.createdAt)")
+                        span.fa.fa-fw.fa-lg.fa-certificate.faa-spin(ng-class="{'text-green': pet.isActive, 'text-tertiary': !pet.isActive}",ng-click="doPetSwap(pet.createdAt)")
                      div(flex="90")
                         div {{pet.name}}, the {{pet.type}}
                         div Level {{pet.level.__current}} {{pet.professionName}}
