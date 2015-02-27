@@ -8,7 +8,6 @@ angular.module 'IdleLands'
 
     Player.observe().then null, null, (newVal) ->
       return unless newVal
-      console.log newVal.name,'loggedin'
       $scope.player = newVal
       TurnTaker.beginTakingTurns $scope.player
 
