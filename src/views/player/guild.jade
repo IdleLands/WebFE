@@ -50,7 +50,7 @@ script(id="player-guild", type="text/ng-template")
                             span &nbsp;{{guild.invitesAvailable}} invites left
                         div.vital-stat
                             span.fa.fa-fw.icon-money
-                            span &nbsp;{{guild.gold.__current}} gold
+                            span &nbsp;{{guild.gold.__current |number:0}} gold
 
             md-card.inner-card(layout="column", ng-if="isAdmin")
                 md-card-content
@@ -58,7 +58,9 @@ script(id="player-guild", type="text/ng-template")
                         div.md-toolbar-tools
                             h3 Invite Players
                     md-content.card-padding
-                        a(href,editable-text="editable.newMember",onaftersave="inviteMember()") {{edtiable.newMember || 'Invite a new member!'}}
+                        div.vital-stat
+                            span.fa.fa-user-plus.fa-fw
+                            md-button.inline-button.md-accent.md-hue-1.md-raised(href,editable-text="editable.newMember",onaftersave="inviteMember()") {{edtiable.newMember || 'Invite a new member!'}}
 
             md-card.inner-card(layout="column")
                 md-card-content
