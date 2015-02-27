@@ -6,7 +6,7 @@ script(id='pet', type='text/ng-template')
    md-progress-linear.player-xp(mode="determinate",ng-value="xpPercent",ng-if="pet")
 
    div.auto-flex.md-whiteframe-z1.is-flex(id="pet-tabs")
-      md-tabs.is-flex.auto-flex(md-selected="selectedIndex",layout="column")
+      md-tabs.is-flex.auto-flex.md-accent(md-selected="selectedIndex",layout="column")
          md-tab(ui-sref="pet.overview",label="{{pet ? 'Pet' : 'Buy a Pet'}}")
             div.tab(ui-view="petoverview")
 

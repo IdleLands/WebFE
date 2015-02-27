@@ -6,7 +6,7 @@ script(id='login', type='text/ng-template')
                     md-toolbar
                         div.md-toolbar-tools
                             h3 Portal to Idliathlia
-                    md-tabs(md-selected="selectedIndex")
+                    md-tabs.md-accent(md-selected="selectedIndex")
                         md-tab(on-select="selectTab(0)",label="Login",ng-disabled="isSubmitting")
                             div.tab(layout="row",layout-fill,layout-align="left center", ng-include="'login-login'")
 
