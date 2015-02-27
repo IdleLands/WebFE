@@ -15,6 +15,5 @@ Dependencies required:
 Fork the repo, clone the repo, run these commands:
 ```
 npm install
-bower install
 grunt dev
 ```
