@@ -325,7 +325,7 @@
           </md-toolbar>
           <md-content style="flex-basis:60px;height:60px" layout="column" ng-if="pets.length" class="is-flex auto-flex">
             <div style="min-height:60px;align-items:center" flex="100" ng-repeat="pet in getPetsInOrder()" layout="row" class="is-flex auto-flex adventure-log-item">
-              <div flex="10" class="vertical-center text-center faa-parent animated-hover hover-cursor"><span ng-class="{'text-green': pet.isActive, 'text-gray': !pet.isActive}" ng-click="doPetSwap(pet.createdAt)" class="fa fa-fw fa-lg fa-certificate faa-spin"></span></div>
+              <div flex="10" class="vertical-center text-center faa-parent animated-hover hover-cursor"><span ng-class="{'text-green': pet.isActive, 'text-tertiary': !pet.isActive}" ng-click="doPetSwap(pet.createdAt)" class="fa fa-fw fa-lg fa-certificate faa-spin"></span></div>
               <div flex="90">
                 <div>{{pet.name}}, the {{pet.type}}</div>
                 <div>Level {{pet.level.__current}} {{pet.professionName}}</div>
@@ -548,8 +548,8 @@
       <div>
         <h3 class="super-bold">{{item.enchantLevel ? '+'+item.enchantLevel+' ' : ''}} {{item.name}}</h3>
       </div>
-      <div><small ng-if="item.foundAt" class="subdued"><span>Found</span><span>&nbsp;</span><span am-time-ago="item.foundAt"></span><span>, with a Player Relativity of</span><span>&nbsp;{{playerItemScore(item)}}%&nbsp;</span><span>and an Item Relativity of</span><span>&nbsp;{{itemItemScore(item)}}%</span></small></div>
-      <div layout="row" class="top-margin-5 wrap-container"><span ng-repeat="stat in ::itemUtilities.equipmentStatArray" flex="16" ng-class="{'text-gray': item[stat.name] === 0 &amp;&amp; item[stat.name+'Percent'] === 0}" class="vital-stat"><span class="fa fa-fw fa-lg {{::stat.fa}}">
+      <div><small ng-if="item.foundAt" class="text-subdued"><span>Found</span><span>&nbsp;</span><span am-time-ago="item.foundAt"></span><span>, with a Player Relativity of</span><span>&nbsp;{{playerItemScore(item)}}%&nbsp;</span><span>and an Item Relativity of</span><span>&nbsp;{{itemItemScore(item)}}%</span></small></div>
+      <div layout="row" class="top-margin-5 wrap-container"><span ng-repeat="stat in ::itemUtilities.equipmentStatArray" flex="16" ng-class="{'text-tertiary': item[stat.name] === 0 &amp;&amp; item[stat.name+'Percent'] === 0}" class="vital-stat"><span class="fa fa-fw fa-lg {{::stat.fa}}">
             <md-tooltip>{{::stat.name}}</md-tooltip></span><span>&nbsp;</span><small class="{{valueToColor(item[stat.name])}}">{{item[stat.name]}}</small><small>&nbsp;/&nbsp;</small><small class="{{valueToColor(item[stat.name+'Percent'])}}">{{item[stat.name+'Percent']}}%</small></span></div>
       <div class="top-margin-5"><small>{{itemUtilities.getExtraStats(item)}}</small></div>
     </div>
@@ -671,10 +671,10 @@
           </md-toolbar>
           <md-content style="flex-basis:50px;height:50px;overflow-x:hidden" layout="column" class="is-flex auto-flex">
             <div style="min-height: 50px" flex="100" quick-repeat-list="orderedMembers" quick-ng-repeat="member in orderedMembers" layout="row" class="is-flex auto-flex adventure-log-item">
-              <div flex="10" class="text-center vertical-center"><span ng-class="{'text-green': member._cache.online, 'text-red': !member._cache.online, 'fa-rotate-90 text-gray': isInvited(member)}" class="fa fa-fw fa-2x {{iconForMember(member)}}">
+              <div flex="10" class="text-center vertical-center"><span ng-class="{'text-green': member._cache.online, 'text-red': !member._cache.online, 'fa-rotate-90 text-tertiary': isInvited(member)}" class="fa fa-fw fa-2x {{iconForMember(member)}}">
                   <md-tooltip>{{getTooltipText(member)}}</md-tooltip></span></div>
               <div flex="50">
-                <div ng-class="{'italic text-gray': isInvited(member)}">{{member.name}}</div>
+                <div ng-class="{'italic text-tertiary': isInvited(member)}">{{member.name}}</div>
                 <div ng-if="member._cache.level &amp;&amp; member._cache.class"><span>Level {{member._cache.level}} {{member._cache.class}}</span><small ng-if="member._cache.lastSeen &amp;&amp; !member._cache.online">&nbsp;- Last seen <span am-time-ago="member._cache.lastSeen"></span></small></div>
                 <div ng-if="!member._cache.level &amp;&amp; !member._cache.class &amp;&amp; !isInvited(member)">Profile Unknown</div>
               </div>
@@ -1107,7 +1107,7 @@
     </h1>
   </md-toolbar>
   <md-progress-linear mode="determinate" ng-value="xpPercent" class="player-xp"></md-progress-linear>
-  <div id="player-tabs" class="auto-flex md-whiteframe-z1 is-flex">
+  <div id="player-tabs" class="top-margin-5 auto-flex md-whiteframe-z1 is-flex">
     <md-tabs md-selected="selectedIndex" layout="column" class="is-flex auto-flex md-accent">
       <md-tab ui-sref="player.overview" label="Player">
         <div ui-view="overview" class="tab"></div>
