@@ -300,6 +300,9 @@
       $scope.player = null;
       $scope.theme = CurrentTheme.getTheme();
       Player.observe().then(null, null, function(newVal) {
+        if (!newVal) {
+          return;
+        }
         $scope.player = newVal;
         return TurnTaker.beginTakingTurns($scope.player);
       });
@@ -335,7 +338,6 @@
       if (!Player.getPlayer()) {
         CredentialCache.tryLogin().then((function() {
           if (Player.getPlayer()) {
-            TurnTaker.beginTakingTurns(Player.getPlayer());
             return goToPlayerView();
           }
         }));
@@ -431,8 +433,6 @@
           if (!Player.getPlayer()) {
             $mdToast.show($mdToast.simple().position('top right').content('You don\'t appear to be logged in! Redirecting you to the login page...').action('Close'));
             return $state.go('login');
-          } else {
-            return TurnTaker.beginTakingTurns(Player.getPlayer());
           }
         }), (function() {
           $mdToast.show($mdToast.simple().position('top right').content('You don\'t appear to be logged in! Redirecting you to the login page...').action('Close'));
@@ -904,8 +904,6 @@
           if (!Player.getPlayer()) {
             $mdToast.show($mdToast.simple().position('top right').content('You don\'t appear to be logged in! Redirecting you to the login page...').action('Close'));
             return $state.go('login');
-          } else {
-            return TurnTaker.beginTakingTurns(Player.getPlayer());
           }
         }), (function() {
           return $state.go('login');
@@ -1083,12 +1081,14 @@
   angular.module('IdleLands').controller('PlayerGuild', [
     '$scope', 'CurrentGuild', 'CurrentGuildInvites', 'CurrentPlayer', 'API', function($scope, CurrentGuild, CurrentGuildInvites, CurrentPlayer, API) {
       $scope.initialize = function() {
-        var player;
+        var player, _ref;
         $scope.guild = CurrentGuild.getGuild();
         $scope.guildInvites = CurrentGuildInvites.getGuildInvites();
         player = CurrentPlayer.getPlayer();
         $scope.currentlyInGuild = player != null ? player.guild : void 0;
-        if ($scope.guild) {
+        $scope.editable.guildTaxRate = (_ref = $scope.guild) != null ? _ref.taxPercent : void 0;
+        $scope.editable.selfTaxRate = player != null ? player.guildTax : void 0;
+        if ($scope.currentlyInGuild) {
           $scope.setupGuildData();
           $scope.loadBuffsIntoHash();
           return $scope.getDonationTiers();
@@ -1474,11 +1474,13 @@
       CurrentMap.observe().then(null, null, function() {
         return $scope.initializeMap();
       });
-      $scope.initializeMap();
       Player.observe().then(null, null, function() {
         return $scope.drawMap();
       });
-      return $scope.drawMap();
+      return $timeout(function() {
+        $scope.initializeMap();
+        return $scope.drawMap();
+      }, 0);
     }
   ]);
 
@@ -2010,7 +2012,7 @@
 
 (function() {
   angular.module('IdleLands').controller('PlayerStatistics', [
-    '$scope', 'CurrentPlayer', function($scope, Player) {
+    '$scope', 'CurrentPlayer', '$timeout', function($scope, Player, $timeout) {
       $scope.getAllStatisticsInFamily = function(family) {
         var base;
         base = _.omit($scope.player.statistics, function(value, key) {
@@ -2022,9 +2024,11 @@
         if (!$scope.player) {
           return;
         }
-        _.each(['calculated', 'combat self', 'event', 'explore', 'player'], $scope.getAllStatisticsInFamily);
-        $scope.permanentStatisticsKeys = _.keys($scope.player.permanentAchievements);
-        return $scope.showPermStats = !($scope.permanentStatisticsKeys.length === 0);
+        return $timeout(function() {
+          _.each(['calculated', 'combat self', 'event', 'explore', 'player'], $scope.getAllStatisticsInFamily);
+          $scope.permanentStatisticsKeys = _.keys($scope.player.permanentAchievements);
+          return $scope.showPermStats = $scope.permanentStatisticsKeys.length !== 0;
+        }, 0);
       };
       Player.observe().then(null, null, function() {
         return $scope.initialize();
@@ -3001,7 +3005,10 @@
         return defer.notify(map);
       };
       Player.observe().then(null, null, function(player) {
-        if (player.map === mapName) {
+        if (!player) {
+          return;
+        }
+        if ((player != null ? player.map : void 0) === mapName) {
           return;
         }
         mapName = player.map;
@@ -3182,9 +3189,8 @@
 (function() {
   angular.module('IdleLands').factory('TurnTaker', [
     '$interval', '$q', 'API', function($interval, $q, API) {
-      var defer, seconds, setSeconds, timeInterval, turnInterval;
+      var defer, seconds, setSeconds, timeInterval;
       seconds = 0;
-      turnInterval = null;
       timeInterval = null;
       defer = $q.defer();
       setSeconds = function(newVal) {
@@ -3194,26 +3200,25 @@
       return {
         beginTakingTurns: function(player) {
           if (!player) {
-            $interval.cancel(turnInterval);
             $interval.cancel(timeInterval);
             return;
           }
-          if (turnInterval) {
+          if (timeInterval) {
             return;
           }
           API.action.turn({
             identifier: player.identifier
           });
           setSeconds(0);
-          timeInterval = $interval(function() {
-            return setSeconds(seconds + 1);
+          return timeInterval = $interval(function() {
+            setSeconds(seconds + 1);
+            if (seconds % 10 === 0) {
+              setSeconds(0);
+              return API.action.turn({
+                identifier: player.identifier
+              });
+            }
           }, 1000);
-          return turnInterval = $interval(function() {
-            setSeconds(0);
-            return API.action.turn({
-              identifier: player.identifier
-            });
-          }, 10100);
         },
         getSeconds: function() {
           return seconds;
