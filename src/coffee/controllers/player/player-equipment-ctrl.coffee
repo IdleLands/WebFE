@@ -20,7 +20,7 @@ angular.module 'IdleLands'
 
       items
 
-    $scope.getOverflows = ->
+    $scope.getShop = ->
 
       items = []
 
@@ -34,6 +34,12 @@ angular.module 'IdleLands'
           item.extraText = "SHOP #{index}"
           item.shopSlot = index
           items.push item
+
+      items
+
+    $scope.getOverflows = ->
+
+      items = []
 
       overflow = $scope.player.overflow
 
@@ -49,7 +55,9 @@ angular.module 'IdleLands'
 
     $scope.sortPlayerItems = ->
       return if not $scope.player
-      $scope.playerItems = (_.sortBy ($scope.getEquipmentAndTotals $scope.player.equipment), (item) -> item.type).concat $scope.getOverflows()
+      $scope.playerItems = (_.sortBy ($scope.getEquipmentAndTotals $scope.player.equipment), (item) -> item.type).concat $scope.getOverflows().concat $scope.getShop()
+      #$scope.inventory = $scope.getOverflows()
+      #$scope.shop = $scope.getShop()
 
     $scope.itemItemScore = (item) ->
       return 0 if not item._baseScore or not item._calcScore
