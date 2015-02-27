@@ -13,7 +13,8 @@ angular.module 'IdleLands'
 
     Player.observe().then null, null, (player) ->
 
-      return if player.map is mapName
+      return unless player
+      return if player?.map is mapName
       mapName = player.map
 
       $http.post "#{baseURL}/game/map", {map: player.map}
