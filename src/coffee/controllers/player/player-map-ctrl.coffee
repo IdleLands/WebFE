@@ -128,11 +128,12 @@ angular.module 'IdleLands'
     CurrentMap.observe().then null, null, ->
       $scope.initializeMap()
 
-    $scope.initializeMap()
-
     Player.observe().then null, null, ->
       $scope.drawMap()
 
-    $scope.drawMap()
+    $timeout ->
+      $scope.initializeMap()
+      $scope.drawMap()
+    , 0
 
 ]
