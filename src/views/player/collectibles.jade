@@ -3,7 +3,10 @@ script(id="player-collectibles",type="text/ng-template")
         md-item.md-whiteframe-z1(ng-repeat="collectible in player.collectibles",flex="25")
             md-item-content
                 div.md-tile-content
-                    h3 {{collectible.name}}
+                    h3
+                        span {{collectible.name}}
+                        span.fa.fa-fw.fa-info-circle(style="float:right",ng-if="collectible.flavorText")
+                            md-tooltip {{::collectible.flavorText}}
                     h4
                         | Found&nbsp;
                         span(am-time-ago="::collectible.foundAt")
