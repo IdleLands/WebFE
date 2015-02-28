@@ -13,6 +13,7 @@ angular.module 'IdleLands'
 
     invite:       (data) -> $http.put  "#{inviteUrl}/player", data
     manageInvite: (data) -> $http.post "#{inviteUrl}/manage", data
+    rescind:      (data) -> $http.post "#{inviteUrl}/player/rescind", data
 
     promote:      (data) -> $http.post "#{manageUrl}/promote", data
     demote:       (data) -> $http.post "#{manageUrl}/demote", data

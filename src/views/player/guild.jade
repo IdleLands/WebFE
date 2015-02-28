@@ -109,6 +109,7 @@ script(id="player-guild", type="text/ng-template")
                                 md-button.md-warn.md-raised.md-hue-2(ng-if="isLeader", ng-click="demoteMember(member.name)") Demote
                             div(flex="20")
                                 md-button.md-warn.md-raised(ng-if="canKick(member)",ng-click="kickMember(member.name)") Kick
+                                md-button.md-warn.md-raised(ng-if="canRescind(member)",ng-click="rescindInvite(member.identifier)") Rescind
 
         div(flex="30",layout="column")
             md-card.is-flex.auto-flex.inner-card(layout="column")

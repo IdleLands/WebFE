@@ -23,7 +23,7 @@ angular.module 'IdleLands'
       leader = _.filter members, (member) -> member.identifier is $scope.guild.leader
       admins = _.filter members, (member) -> member.identifier isnt $scope.guild.leader and member.isAdmin
       normal = _.reject members, (member) -> member.isAdmin
-      invites = _.map ($scope.guild.invites), (inv) -> {identifier: inv, name: inv}
+      invites = _.map ($scope.guild.invites), (inv) -> {identifier: inv, name: inv, isInvite: yes}
 
       $scope.orderedMembers = leader.concat(admins).concat(normal).concat invites
 
@@ -70,6 +70,13 @@ angular.module 'IdleLands'
       return no if member.identifier is myIdent
       return no if myIdent isnt $scope.guild.leader and member.isAdmin
       return no if $scope.isInvited member
+      return no if currentPlayer?.guildStatus <= 0
+
+      yes
+
+    $scope.canRescind = (member) ->
+      currentPlayer = CurrentPlayer.getPlayer()
+      return no unless $scope.isInvited member
       return no if currentPlayer?.guildStatus <= 0
 
       yes
@@ -141,6 +148,9 @@ angular.module 'IdleLands'
 
     $scope.kickMember = (name) ->
       API.guild.kick {memberName: name}
+
+    $scope.rescindInvite = (invIdent) ->
+      API.guild.rescind {invIdent: invIdent}
 
     $scope.promoteMember = (name) ->
       API.guild.promote {memberName: name}
