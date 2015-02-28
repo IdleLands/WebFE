@@ -10,4 +10,5 @@ angular.module 'IdleLands'
     approve: (data) -> $http.patch  "#{url}/mod/approve", data
     reject:  (data) -> $http.patch  "#{url}/mod/reject", data
     redeem:  (data) -> $http.post   "#{url}/redeem", data
+    test:    (data) -> $http.post   "#{url}/player/validate", data
 ]

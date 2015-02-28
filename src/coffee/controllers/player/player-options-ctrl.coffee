@@ -184,44 +184,55 @@ angular.module 'IdleLands'
     ]
 
     $scope.types = [
-      {folder: 'events',      type: 'battle' }
-      {folder: 'events',      type: 'blessGold' }
-      {folder: 'events',      type: 'blessGoldParty' }
-      {folder: 'events',      type: 'blessItem' }
-      {folder: 'events',      type: 'blessXp' }
-      {folder: 'events',      type: 'blessXpParty' }
-      {folder: 'events',      type: 'enchant' }
-      {folder: 'events',      type: 'findItem' }
-      {folder: 'events',      type: 'flipStat' }
-      {folder: 'events',      type: 'forsakeGold' }
-      {folder: 'events',      type: 'forsakeItem' }
-      {folder: 'events',      type: 'forsakeXp' }
-      {folder: 'events',      type: 'levelDown' }
-      {folder: 'events',      type: 'merchant' }
-      {folder: 'events',      type: 'party' }
-      {folder: 'events',      type: 'providence' }
-      {folder: 'events',      type: 'tinker' }
+      {folder: 'events',      type: 'battle'          , testable: yes}
+      {folder: 'events',      type: 'blessGold'       , testable: yes}
+      {folder: 'events',      type: 'blessGoldParty'  , testable: yes}
+      {folder: 'events',      type: 'blessItem'       , testable: yes}
+      {folder: 'events',      type: 'blessXp'         , testable: yes}
+      {folder: 'events',      type: 'blessXpParty'    , testable: yes}
+      {folder: 'events',      type: 'enchant'         , testable: yes}
+      {folder: 'events',      type: 'findItem'        , testable: yes}
+      {folder: 'events',      type: 'flipStat'        , testable: yes}
+      {folder: 'events',      type: 'forsakeGold'     , testable: yes}
+      {folder: 'events',      type: 'forsakeItem'     , testable: yes}
+      {folder: 'events',      type: 'forsakeXp'       , testable: yes}
+      {folder: 'events',      type: 'levelDown'       , testable: yes}
+      {folder: 'events',      type: 'merchant'        , testable: yes}
+      {folder: 'events',      type: 'party'           , testable: yes}
+      {folder: 'events',      type: 'providence'      , testable: yes}
+      {folder: 'events',      type: 'tinker'          , testable: yes}
       {folder: 'events',      type: 'towncrier' }
-      {folder: 'ingredients', type: 'bread',    requiresName: yes, requiresContent: yes }
-      {folder: 'ingredients', type: 'meat',     requiresName: yes, requiresContent: yes }
-      {folder: 'ingredients', type: 'veg',      requiresName: yes, requiresContent: yes }
-      {folder: 'items',       type: 'body',     requiresName: yes, requiresContent: yes }
-      {folder: 'items',       type: 'charm',    requiresName: yes, requiresContent: yes }
-      {folder: 'items',       type: 'feet',     requiresName: yes, requiresContent: yes }
-      {folder: 'items',       type: 'finger',   requiresName: yes, requiresContent: yes }
-      {folder: 'items',       type: 'hands',    requiresName: yes, requiresContent: yes }
-      {folder: 'items',       type: 'head',     requiresName: yes, requiresContent: yes }
-      {folder: 'items',       type: 'legs',     requiresName: yes, requiresContent: yes }
-      {folder: 'items',       type: 'mainhand', requiresName: yes, requiresContent: yes }
-      {folder: 'items',       type: 'neck',     requiresName: yes, requiresContent: yes }
-      {folder: 'items',       type: 'offhand',  requiresName: yes, requiresContent: yes }
-      {folder: 'items',       type: 'prefix',   requiresName: yes, requiresContent: yes }
-      {folder: 'items',       type: 'suffix',   requiresName: yes, requiresContent: yes }
-      {folder: 'monsters',    type: 'monster',  requiresName: yes, requiresContent: yes }
+      {folder: 'ingredients', type: 'bread',    requiresName: yes, requiresContent: yes}
+      {folder: 'ingredients', type: 'meat',     requiresName: yes, requiresContent: yes}
+      {folder: 'ingredients', type: 'veg',      requiresName: yes, requiresContent: yes}
+      {folder: 'items',       type: 'body',     requiresName: yes, requiresContent: yes}
+      {folder: 'items',       type: 'charm',    requiresName: yes, requiresContent: yes}
+      {folder: 'items',       type: 'feet',     requiresName: yes, requiresContent: yes}
+      {folder: 'items',       type: 'finger',   requiresName: yes, requiresContent: yes}
+      {folder: 'items',       type: 'hands',    requiresName: yes, requiresContent: yes}
+      {folder: 'items',       type: 'head',     requiresName: yes, requiresContent: yes}
+      {folder: 'items',       type: 'legs',     requiresName: yes, requiresContent: yes}
+      {folder: 'items',       type: 'mainhand', requiresName: yes, requiresContent: yes}
+      {folder: 'items',       type: 'neck',     requiresName: yes, requiresContent: yes}
+      {folder: 'items',       type: 'offhand',  requiresName: yes, requiresContent: yes}
+      {folder: 'items',       type: 'prefix',   requiresName: yes, requiresContent: yes}
+      {folder: 'items',       type: 'suffix',   requiresName: yes, requiresContent: yes}
+      {folder: 'monsters',    type: 'monster',  requiresName: yes, requiresContent: yes}
       {folder: 'npcs',        type: 'trainer',  requiresName: yes }
     ]
 
     $scope.data = type: _.sample $scope.types
+
+    $scope.test = ->
+      data = $scope.data
+      data._name = data._name?.trim()
+      data.content = data.content?.trim() or ''
+
+      newData =
+        type: $scope.data.type.type
+        content: data.content
+
+      API.custom.test data: newData
 
     $scope.cancel = $mdDialog.hide
 

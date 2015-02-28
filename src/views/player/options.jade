@@ -176,4 +176,5 @@ script(id="submit-content",type="text/ng-template")
             md-button.md-accent.md-raised(target="_blank",href="https://github.com/IdleLands/IdleLands/wiki/Town-Crier-Guide",ng-if="data.type.type === 'towncrier'") Help
             md-button.md-accent.md-raised(target="_blank",href="https://github.com/IdleLands/IdleLands/tree/master/assets/data/{{data.type.folder}}/{{data.type.type}}.txt",ng-if="data.type.type !== 'towncrier'") Show Example
             md-button.md-warn.md-raised(ng-click="cancel()") Cancel
+            md-button.md-primary.md-hue-1.md-raised(ng-click="test()",ng-if="data.type.testable") Test
             md-button.md-primary.md-raised(ng-click="submit()") Submit
