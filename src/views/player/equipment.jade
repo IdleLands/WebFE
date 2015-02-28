@@ -2,6 +2,7 @@ script(id="player-equipment", type="text/ng-template")
     md-list.flex-scroll.has-height
         md-item(ng-repeat="item in playerItems track by $index")
             ng-include(src="'item-tpl'")
+            md-divider(ng-if="!$last")
     //md-tabs.auto-flex.md-background(layout="column",md-align-tabs="bottom")
         md-tab.is-flex.auto-flex(label="Equipment")
             md-list.flex-scroll.has-height
