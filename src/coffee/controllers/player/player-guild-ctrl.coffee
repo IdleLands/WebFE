@@ -1,7 +1,7 @@
 angular.module 'IdleLands'
 .controller 'PlayerGuild', [
-  '$scope', 'CurrentGuild', 'CurrentGuildInvites', 'CurrentPlayer', 'API'
-  ($scope, CurrentGuild, CurrentGuildInvites, CurrentPlayer, API) ->
+  '$scope', '$mdDialog', 'CurrentGuild', 'CurrentGuildInvites', 'CurrentPlayer', 'API'
+  ($scope, $mdDialog, CurrentGuild, CurrentGuildInvites, CurrentPlayer, API) ->
 
     $scope.initialize = ->
       $scope.guild = CurrentGuild.getGuild()
@@ -147,10 +147,24 @@ angular.module 'IdleLands'
       API.guild.buff {type: type, tier: $scope.editable.buffLevel}
 
     $scope.kickMember = (name) ->
-      API.guild.kick {memberName: name}
+      confirm = $mdDialog.confirm()
+      .title 'Kick Member'
+      .content "Are you sure you want to kick #{name}?"
+      .ok 'Yes'
+      .cancel 'No'
+
+      $mdDialog.show(confirm).then ->
+        API.guild.kick {memberName: name}
 
     $scope.rescindInvite = (invIdent) ->
-      API.guild.rescind {invIdent: invIdent}
+      confirm = $mdDialog.confirm()
+      .title 'Rescind Invite'
+      .content "Are you sure you want to take an invite away from #{invIdent}?"
+      .ok 'Yes'
+      .cancel 'No'
+
+      $mdDialog.show(confirm).then ->
+        API.guild.rescind {invIdent: invIdent}
 
     $scope.promoteMember = (name) ->
       API.guild.promote {memberName: name}
@@ -165,10 +179,24 @@ angular.module 'IdleLands'
       yes
 
     $scope.leaveGuild = ->
-      API.guild.leave()
+      confirm = $mdDialog.confirm()
+      .title 'Leave Guild'
+      .content 'Are you sure you want to leave your guild?'
+      .ok 'Yes'
+      .cancel 'No'
+
+      $mdDialog.show(confirm).then ->
+        API.guild.leave()
 
     $scope.disbandGuild = ->
-      API.guild.disband()
+      confirm = $mdDialog.confirm()
+      .title 'Disband Guild'
+      .content 'Are you sure you want to disband your guild?'
+      .ok 'Yes'
+      .cancel 'No'
+
+      $mdDialog.show(confirm).then ->
+        API.guild.disband()
 
     $scope.donateGold = (gold) ->
       API.guild.donate {gold: gold}
