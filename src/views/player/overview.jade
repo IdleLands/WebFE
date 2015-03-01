@@ -68,6 +68,7 @@ script(id="player-overview", type="text/ng-template")
                         span.fa.fa-fw.fa-tag
                            md-tooltip Title
                         md-select.no-margin-top(ng-model="player.title",ng-change="changeTitle()")
+                            md-select-label {{player.title}}
                             md-option(ng-value="title",ng-repeat="title in titles") {{title}}
                      div.vital-stat
                         span.fa.fa-fw.fa-globe

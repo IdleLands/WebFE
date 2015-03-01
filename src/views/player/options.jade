@@ -87,6 +87,7 @@ script(id="player-options", type="text/ng-template")
                         div.vital-stat
                             span.fa.fa-fw.fa-arrows-h(style="margin-left:18px; margin-right:18px")
                             md-select.no-margin-top(ng-model="scrollbackPos",ng-change="changeScrollbackPosition()")
+                                md-select-label {{scrollbackPos}}
                                 md-option(ng-value="pos",ng-repeat="pos in ['left', 'center', 'right']") {{pos}}
 
             md-card.inner-card(layout="column")
@@ -98,6 +99,7 @@ script(id="player-options", type="text/ng-template")
                         span.fa.fa-fw.fa-tint
                             md-tooltip Theme
                         md-select.no-margin-top(ng-model="theme",ng-change="changeTheme()")
+                            md-select-label {{theme}}
                             md-option(ng-value="theme",ng-repeat="theme in themes") {{theme}}
 
             md-card.inner-card(layout="column")
@@ -162,6 +164,7 @@ script(id="submit-content",type="text/ng-template")
                 h2 Submit New Custom Content
             div(layout="row")
                 md-select(ng-model="data.type")
+                    md-select-label {{data.type}}
                     md-optgroup(ng-repeat="folder in folders",label="{{folder}}")
                         md-option(ng-value="obj",ng-repeat="obj in types | filter:{folder: folder}") {{obj.type}}
                 md-input-container(ng-if="data.type.requiresName")

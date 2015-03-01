@@ -71,6 +71,7 @@ script(id="pet-overview", type="text/ng-template")
                      div.vital-stat(ng-if="pet")
                         span.fa.fa-fw.fa-shield
                         md-select.no-margin-top(ng-model="pet.professionName",ng-change="changePetClass()")
+                            md-select-label {{pet.professionName}}
                             md-option(ng-value="class",ng-repeat="class in availablePetClasses()") {{class}}
 
          md-card.inner-card(layout="column")
