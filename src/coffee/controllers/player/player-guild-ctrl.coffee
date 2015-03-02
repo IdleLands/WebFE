@@ -3,9 +3,12 @@ angular.module 'IdleLands'
   '$scope', '$mdDialog', 'CurrentGuild', 'CurrentGuildInvites', 'CurrentPlayer', 'API'
   ($scope, $mdDialog, CurrentGuild, CurrentGuildInvites, CurrentPlayer, API) ->
 
+    $scope._ = window._
+
     $scope.initialize = ->
       $scope.guild = CurrentGuild.getGuild()
       $scope.guildInvites = CurrentGuildInvites.getGuildInvites()
+      $scope.guildHallMap = encodeURIComponent $scope.guild?.baseMapName
 
       player = CurrentPlayer.getPlayer()
       $scope.currentlyInGuild = player?.guild

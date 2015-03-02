@@ -51,6 +51,9 @@ script(id="player-guild", type="text/ng-template")
                         div.vital-stat
                             span.fa.fa-fw.icon-money
                             span &nbsp;{{guild.gold.__current |number:0}} gold
+                        div.vital-stat(ng-if="guildHallMap")
+                            span.fa.fa-fw.fa-globe
+                            a(target="_blank",href="http://idle.land/s/maps/{{guildHallMap}}") Guild Hall
 
             md-card.inner-card(layout="column", ng-if="isAdmin")
                 md-card-content
@@ -121,7 +124,9 @@ script(id="player-guild", type="text/ng-template")
                 md-card-content.is-flex.auto-flex(layout="column")
                     md-toolbar
                         div.md-toolbar-tools(flex="100",layout="row")
-                            h3 Guild Buildings
+                            h3
+                                a.inline-link.fa.fa-question-circle(href="http://doks.idle.land/#!/Guild/Buildings",target="_blank")
+                                | &nbsp;Guild Buildings
 
                     md-content.is-flex.auto-flex(style="flex-basis:50px;height:50px",layout="column")
                         div.is-flex.auto-flex.adventure-log-item(flex="100",quick-repeat-list="buildings",quick-ng-repeat="building in buildings",layout="row")
@@ -140,7 +145,7 @@ script(id="player-guild", type="text/ng-template")
 
 script(type="text/ng-template", id="building-Academy")
     h3
-        a.inline-link.fa.fa-question-circle(href="http://doks.idle.land/#!/Guild%20Buffs",target="_blank")
+        a.inline-link.fa.fa-question-circle(href="http://doks.idle.land/#!/Guild/Buffs",target="_blank")
         | &nbsp;Guild Buffs
     div Buff Level
     md-slider.md-accent(min="1",max="{{guild.buildingGlobals.Academy.maxBuffLevel}}",ng-model="editable.buffLevel",md-discrete,aria-label="buff level")
