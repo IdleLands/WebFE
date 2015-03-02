@@ -1084,7 +1084,7 @@
 
 (function() {
   angular.module('IdleLands').controller('PlayerGuild', [
-    '$scope', 'CurrentGuild', 'CurrentGuildInvites', 'CurrentPlayer', 'API', function($scope, CurrentGuild, CurrentGuildInvites, CurrentPlayer, API) {
+    '$scope', '$mdDialog', 'CurrentGuild', 'CurrentGuildInvites', 'CurrentPlayer', 'API', function($scope, $mdDialog, CurrentGuild, CurrentGuildInvites, CurrentPlayer, API) {
       $scope.initialize = function() {
         var player, _ref;
         $scope.guild = CurrentGuild.getGuild();
@@ -1095,7 +1095,6 @@
         $scope.editable.selfTaxRate = player != null ? player.guildTax : void 0;
         if ($scope.currentlyInGuild) {
           $scope.setupGuildData();
-          $scope.loadBuffsIntoHash();
           return $scope.getDonationTiers();
         }
       };
@@ -1116,7 +1115,8 @@
         invites = _.map($scope.guild.invites, function(inv) {
           return {
             identifier: inv,
-            name: inv
+            name: inv,
+            isInvite: true
           };
         });
         $scope.orderedMembers = leader.concat(admins).concat(normal).concat(invites);
@@ -1125,19 +1125,24 @@
         $scope.isAdmin = $scope.isLeader || _.findWhere(admins, {
           identifier: myIdent
         });
-        return $scope.goldTiers = $scope.getDonationTiers();
+        $scope.goldTiers = $scope.getDonationTiers();
+        $scope.buildings = _.keys($scope.guild.validBuildings);
+        return $scope.flatCosts = _.reduce($scope.guild.validBases, (function(prev, base) {
+          prev[base.name] = base;
+          return prev;
+        }), {});
+      };
+      $scope.hasBuilt = function(building) {
+        return _.contains($scope.guild.currentlyBuilt[$scope.guild.validBuildings[building].size], building);
+      };
+      $scope.canBuild = function(cost) {
+        return $scope.guild.gold.__current >= cost;
       };
       $scope.checkLeader = function(member) {
         return member.identifier === $scope.guild.leader;
       };
       $scope.checkAdmin = function(member) {
         return member.isAdmin;
-      };
-      $scope.loadBuffsIntoHash = function() {
-        $scope.buffs = {};
-        return _.each($scope.guild.buffs, function(buff) {
-          return $scope.buffs[buff.type] = buff;
-        });
       };
       $scope.getDonationTiers = function() {
         var cur, i, x, _ref;
@@ -1157,26 +1162,6 @@
         }
         return 'fa-star-o';
       };
-      $scope.nameToIcon = function(name) {
-        switch (name) {
-          case 'Strength':
-            return 'fa-legal fa-rotate-90';
-          case 'Agility':
-            return 'fa-bicycle';
-          case 'Constitution':
-            return 'fa-heart';
-          case 'Dexterity':
-            return 'fa-crosshairs';
-          case 'Fortune':
-            return 'icon-money';
-          case 'Intelligence':
-            return 'fa-mortar-board';
-          case 'Luck':
-            return 'fa-moon-o';
-          case 'Wisdom':
-            return 'fa-book';
-        }
-      };
       $scope.canKick = function(member) {
         var currentPlayer, myIdent;
         currentPlayer = CurrentPlayer.getPlayer();
@@ -1195,6 +1180,17 @@
         }
         return true;
       };
+      $scope.canRescind = function(member) {
+        var currentPlayer;
+        currentPlayer = CurrentPlayer.getPlayer();
+        if (!$scope.isInvited(member)) {
+          return false;
+        }
+        if ((currentPlayer != null ? currentPlayer.guildStatus : void 0) <= 0) {
+          return false;
+        }
+        return true;
+      };
       $scope.canModRank = function(member) {
         var myIdent, _ref;
         myIdent = (_ref = CurrentPlayer.getPlayer()) != null ? _ref.identifier : void 0;
@@ -1202,6 +1198,26 @@
       };
       $scope.isInvited = function(member) {
         return _.contains($scope.guild.invites, member.name);
+      };
+      $scope.openProps = function(building) {
+        return $mdDialog.show({
+          controller: 'PropsController',
+          templateUrl: 'buildingProps',
+          locals: {
+            building: building,
+            guild: $scope.guild
+          }
+        });
+      };
+      $scope.constructBuilding = function(building) {
+        return $mdDialog.show({
+          controller: 'ConstructController',
+          templateUrl: 'construct',
+          locals: {
+            building: building,
+            guild: $scope.guild
+          }
+        });
       };
       $scope.getTooltipText = function(member) {
         var left, right, _ref;
@@ -1219,7 +1235,6 @@
         right = ((_ref = member._cache) != null ? _ref.online : void 0) ? 'Online' : 'Offline';
         return "" + left + ", " + right;
       };
-      $scope.buffTypes = ['Agility', 'Constitution', 'Dexterity', 'Fortune', 'Intelligence', 'Luck', 'Strength', 'Wisdom'];
       $scope.editable = {
         guildName: '',
         buffLevel: 1,
@@ -1231,7 +1246,6 @@
         $scope.guild = val;
         if ($scope.guild) {
           $scope.setupGuildData();
-          $scope.loadBuffsIntoHash();
           $scope.getDonationTiers();
           return $scope.editable.guildTaxRate = $scope.guild.taxPercent;
         }
@@ -1255,15 +1269,22 @@
           accepted: accept
         });
       };
-      $scope.buyBuff = function(type) {
-        return API.guild.buff({
-          type: type,
-          tier: $scope.editable.buffLevel
+      $scope.kickMember = function(name) {
+        var confirm;
+        confirm = $mdDialog.confirm().title('Kick Member').content("Are you sure you want to kick " + name + "?").ok('Yes').cancel('No');
+        return $mdDialog.show(confirm).then(function() {
+          return API.guild.kick({
+            memberName: name
+          });
         });
       };
-      $scope.kickMember = function(name) {
-        return API.guild.kick({
-          memberName: name
+      $scope.rescindInvite = function(invIdent) {
+        var confirm;
+        confirm = $mdDialog.confirm().title('Rescind Invite').content("Are you sure you want to take an invite away from " + invIdent + "?").ok('Yes').cancel('No');
+        return $mdDialog.show(confirm).then(function() {
+          return API.guild.rescind({
+            invIdent: invIdent
+          });
         });
       };
       $scope.promoteMember = function(name) {
@@ -1285,10 +1306,18 @@
         return true;
       };
       $scope.leaveGuild = function() {
-        return API.guild.leave();
+        var confirm;
+        confirm = $mdDialog.confirm().title('Leave Guild').content('Are you sure you want to leave your guild?').ok('Yes').cancel('No');
+        return $mdDialog.show(confirm).then(function() {
+          return API.guild.leave();
+        });
       };
       $scope.disbandGuild = function() {
-        return API.guild.disband();
+        var confirm;
+        confirm = $mdDialog.confirm().title('Disband Guild').content('Are you sure you want to disband your guild?').ok('Yes').cancel('No');
+        return $mdDialog.show(confirm).then(function() {
+          return API.guild.disband();
+        });
       };
       $scope.donateGold = function(gold) {
         return API.guild.donate({
@@ -1300,10 +1329,101 @@
           taxPercent: $scope.editable.guildTaxRate
         });
       };
-      return $scope.updateSelfTax = function() {
+      $scope.updateSelfTax = function() {
         return API.guild.selftax({
           taxPercent: $scope.editable.selfTaxRate
         });
+      };
+      $scope.move = function() {
+        var confirm;
+        confirm = $mdDialog.confirm().title('Change Guild Base').content("Are you sure you want to move to " + $scope.guild.base + "? It will cost " + $scope.flatCosts[$scope.guild.base].costs.moveIn + " gold.").ok('Yes').cancel('No');
+        return $mdDialog.show(confirm).then(function() {
+          return API.guild.move({
+            newLoc: $scope.guild.base
+          });
+        });
+      };
+      return $scope.upgradeBuilding = function(building) {
+        return API.guild.upgrade({
+          building: building
+        });
+      };
+    }
+  ]);
+
+  angular.module('IdleLands').controller('PropsController', [
+    '$scope', '$mdDialog', 'API', 'guild', 'building', function($scope, $mdDialog, API, guild, building) {
+      var _ref, _ref1;
+      $scope._ = window._;
+      $scope.close = $mdDialog.hide;
+      $scope.building = building;
+      $scope.guild = guild;
+      $scope.props = guild.buildingProps[building] || {};
+      $scope.editable = {
+        buffLevel: (_ref = guild.buildingGlobals) != null ? (_ref1 = _ref.Academy) != null ? _ref1.maxBuffLevel : void 0 : void 0
+      };
+      $scope.loadBuffsIntoHash = function() {
+        $scope.buffs = {};
+        return _.each(guild.buffs, function(buff) {
+          return $scope.buffs[buff.type] = buff;
+        });
+      };
+      $scope.buffTypes = ['Agility', 'Constitution', 'Dexterity', 'Fortune', 'Intelligence', 'Luck', 'Strength', 'Wisdom'];
+      $scope.nameToIcon = function(name) {
+        switch (name) {
+          case 'Strength':
+            return 'fa-legal fa-rotate-90';
+          case 'Agility':
+            return 'fa-bicycle';
+          case 'Constitution':
+            return 'fa-heart';
+          case 'Dexterity':
+            return 'fa-crosshairs';
+          case 'Fortune':
+            return 'icon-money';
+          case 'Intelligence':
+            return 'fa-mortar-board';
+          case 'Luck':
+            return 'fa-moon-o';
+          case 'Wisdom':
+            return 'fa-book';
+        }
+      };
+      $scope.save = function() {
+        _.each(_.keys($scope.props), function(prop) {
+          return API.guild.setProperty({
+            building: building,
+            property: prop,
+            value: $scope.props[prop]
+          });
+        });
+        return $scope.close();
+      };
+      $scope.buyBuff = function(type) {
+        return API.guild.buff({
+          type: type,
+          tier: $scope.editable.buffLevel
+        });
+      };
+      return $scope.loadBuffsIntoHash();
+    }
+  ]);
+
+  angular.module('IdleLands').controller('ConstructController', [
+    '$scope', '$mdDialog', 'API', 'guild', 'building', function($scope, $mdDialog, API, guild, building) {
+      var buildingSize, slotCount;
+      $scope.close = $mdDialog.hide;
+      $scope.building = building;
+      buildingSize = guild.validBuildings[building].size;
+      $scope.takenSlots = guild.currentlyBuilt[buildingSize];
+      slotCount = guild._validSlots[buildingSize];
+      $scope.takenSlots.length = slotCount;
+      return $scope.save = function() {
+        API.guild.construct({
+          slot: $scope.slot,
+          building: building
+        });
+        return $scope.close();
       };
     }
   ]);
@@ -1677,55 +1797,72 @@
       $scope.types = [
         {
           folder: 'events',
-          type: 'battle'
+          type: 'battle',
+          testable: true
         }, {
           folder: 'events',
-          type: 'blessGold'
+          type: 'blessGold',
+          testable: true
         }, {
           folder: 'events',
-          type: 'blessGoldParty'
+          type: 'blessGoldParty',
+          testable: true
         }, {
           folder: 'events',
-          type: 'blessItem'
+          type: 'blessItem',
+          testable: true
         }, {
           folder: 'events',
-          type: 'blessXp'
+          type: 'blessXp',
+          testable: true
         }, {
           folder: 'events',
-          type: 'blessXpParty'
+          type: 'blessXpParty',
+          testable: true
         }, {
           folder: 'events',
-          type: 'enchant'
+          type: 'enchant',
+          testable: true
         }, {
           folder: 'events',
-          type: 'findItem'
+          type: 'findItem',
+          testable: true
         }, {
           folder: 'events',
-          type: 'flipStat'
+          type: 'flipStat',
+          testable: true
         }, {
           folder: 'events',
-          type: 'forsakeGold'
+          type: 'forsakeGold',
+          testable: true
         }, {
           folder: 'events',
-          type: 'forsakeItem'
+          type: 'forsakeItem',
+          testable: true
         }, {
           folder: 'events',
-          type: 'forsakeXp'
+          type: 'forsakeXp',
+          testable: true
         }, {
           folder: 'events',
-          type: 'levelDown'
+          type: 'levelDown',
+          testable: true
         }, {
           folder: 'events',
-          type: 'merchant'
+          type: 'merchant',
+          testable: true
         }, {
           folder: 'events',
-          type: 'party'
+          type: 'party',
+          testable: true
         }, {
           folder: 'events',
-          type: 'providence'
+          type: 'providence',
+          testable: true
         }, {
           folder: 'events',
-          type: 'tinker'
+          type: 'tinker',
+          testable: true
         }, {
           folder: 'events',
           type: 'towncrier'
@@ -1817,6 +1954,19 @@
       ];
       $scope.data = {
         type: _.sample($scope.types)
+      };
+      $scope.test = function() {
+        var data, newData, _ref, _ref1;
+        data = $scope.data;
+        data._name = (_ref = data._name) != null ? _ref.trim() : void 0;
+        data.content = ((_ref1 = data.content) != null ? _ref1.trim() : void 0) || '';
+        newData = {
+          type: $scope.data.type.type,
+          content: data.content
+        };
+        return API.custom.test({
+          data: newData
+        });
       };
       $scope.cancel = $mdDialog.hide;
       return $scope.submit = function() {
@@ -2392,6 +2542,9 @@
         },
         redeem: function(data) {
           return $http.post("" + url + "/redeem", data);
+        },
+        test: function(data) {
+          return $http.post("" + url + "/player/validate", data);
         }
       };
     }
@@ -2441,11 +2594,15 @@
 (function() {
   angular.module('IdleLands').factory('Guild', [
     '$http', 'BaseURL', function($http, baseURL) {
-      var inviteUrl, manageUrl, url;
+      var buildUrl, inviteUrl, manageUrl, url;
       url = "" + baseURL + "/guild";
       inviteUrl = "" + url + "/invite";
       manageUrl = "" + url + "/manage";
+      buildUrl = "" + url + "/building";
       return {
+        move: function(data) {
+          return $http.put("" + url + "/move", data);
+        },
         create: function(data) {
           return $http.put("" + url + "/create", data);
         },
@@ -2460,6 +2617,9 @@
         },
         manageInvite: function(data) {
           return $http.post("" + inviteUrl + "/manage", data);
+        },
+        rescind: function(data) {
+          return $http.post("" + inviteUrl + "/player/rescind", data);
         },
         promote: function(data) {
           return $http.post("" + manageUrl + "/promote", data);
@@ -2481,6 +2641,15 @@
         },
         selftax: function(data) {
           return $http.post("" + baseURL + "/player/manage/tax", data);
+        },
+        construct: function(data) {
+          return $http.put("" + buildUrl + "/construct", data);
+        },
+        setProperty: function(data) {
+          return $http.patch("" + buildUrl + "/setProperty", data);
+        },
+        upgrade: function(data) {
+          return $http.post("" + buildUrl + "/upgrade", data);
         }
       };
     }

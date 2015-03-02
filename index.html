@@ -276,6 +276,7 @@
               </div>
               <div ng-if="pet" class="vital-stat"><span class="fa fa-fw fa-shield"></span>
                 <md-select ng-model="pet.professionName" ng-change="changePetClass()" class="no-margin-top">
+                  <md-select-label>{{pet.professionName}}</md-select-label>
                   <md-option ng-value="class" ng-repeat="class in availablePetClasses()">{{class}}</md-option>
                 </md-select>
               </div>
@@ -427,8 +428,11 @@
       <md-item-content>
         <div class="md-tile-left text-center"><span class="fa-stack"><span ng-repeat="item in ::$parent.achievementTypeToIcon[achievement.type]" class="fa fa-stack-2x {{::item}}"></span></span></div>
         <div class="md-tile-content">
-          <h3><span>{{::achievement.name}}</span><span style="float:right" ng-if="achievement.title" class="fa fa-fw fa-tag">
-              <md-tooltip>{{::achievement.title}}</md-tooltip></span></h3>
+          <h3><span>{{::achievement.name}}</span>
+            <div style="float:right"><span ng-if="achievement.title" class="fa fa-fw fa-tag">
+                <md-tooltip>{{::achievement.title}}</md-tooltip></span><span class="fa fa-fw fa-clock-o">
+                <md-tooltip><span am-time-ago="player.achievementTimes[achievement.name]"></span></md-tooltip></span></div>
+          </h3>
           <h4>{{::achievement.desc}}</h4>
           <p>{{::achievement.reward}}</p>
         </div>
@@ -493,7 +497,8 @@
     <md-item ng-repeat="collectible in player.collectibles" flex="25" class="md-whiteframe-z1">
       <md-item-content>
         <div class="md-tile-content">
-          <h3>{{collectible.name}}</h3>
+          <h3><span>{{collectible.name}}</span><span style="float:right" ng-if="collectible.flavorText" class="fa fa-fw fa-info-circle">
+              <md-tooltip>{{::collectible.flavorText}}</md-tooltip></span></h3>
           <h4>Found&nbsp;<span am-time-ago="::collectible.foundAt"></span>&nbsp;in {{::collectible.map}} ({{::collectible.region}})</h4>
           <p>Rarity: {{::collectible.rarity || 'basic'}}</p>
         </div>
@@ -507,6 +512,7 @@
   <md-list class="flex-scroll has-height">
     <md-item ng-repeat="item in playerItems track by $index">
       <ng-include src="'item-tpl'"></ng-include>
+      <md-divider ng-if="!$last"></md-divider>
     </md-item>
   </md-list>
   <!--md-tabs.auto-flex.md-background(layout="column",md-align-tabs="bottom")
@@ -640,10 +646,16 @@
             </div>
           </md-toolbar>
           <md-content class="card-padding">
-            <div ng-if="::!isLeader" class="vital-stat"><span flex="10" class="fa fa-fw fa-anchor"></span>
+            <div ng-if="isLeader" class="vital-stat"><span flex="10" class="fa fa-fw fa-home"></span>
+              <md-select ng-model="guild.base" ng-change="move()" class="no-margin-top">
+                <md-select-label>{{guild.base}}</md-select-label>
+                <md-option ng-value="opt.name" ng-repeat="opt in guild.validBases">{{opt.name}}</md-option>
+              </md-select>
+            </div>
+            <div ng-if="!isLeader" class="vital-stat"><span flex="10" class="fa fa-fw fa-anchor"></span>
               <md-button ng-click="leaveGuild()" flex="90" class="inline-button md-warn md-raised">Leave</md-button>
             </div>
-            <div ng-if="::isLeader" class="vital-stat"><span flex="10" class="fa fa-fw fa-anchor"></span>
+            <div ng-if="isLeader" class="vital-stat"><span flex="10" class="fa fa-fw fa-anchor"></span>
               <md-button ng-click="disbandGuild()" class="inline-button md-warn md-raised">Disband</md-button>
             </div>
             <div flex="flex" layout="row" class="vital-stat"><span flex="10" style="justify-content:center;align-self:center" class="fa fa-fw fa-usd">
@@ -675,7 +687,7 @@
                   <md-tooltip>{{getTooltipText(member)}}</md-tooltip></span></div>
               <div flex="50">
                 <div ng-class="{'italic text-tertiary': isInvited(member)}">{{member.name}}</div>
-                <div ng-if="member._cache.level &amp;&amp; member._cache.class"><span>Level {{member._cache.level}} {{member._cache.class}}</span><small ng-if="member._cache.lastSeen &amp;&amp; !member._cache.online">&nbsp;- Last seen <span am-time-ago="member._cache.lastSeen"></span></small></div>
+                <div ng-if="member._cache.level &amp;&amp; member._cache.class"><small>Level {{member._cache.level}} {{member._cache.class}}</small><small ng-if="member._cache.lastSeen &amp;&amp; !member._cache.online"><br>Last seen <span am-time-ago="member._cache.lastSeen"></span></small></div>
                 <div ng-if="!member._cache.level &amp;&amp; !member._cache.class &amp;&amp; !isInvited(member)">Profile Unknown</div>
               </div>
               <div flex="20" ng-if="!member.isAdmin &amp;&amp; !$first">
@@ -686,6 +698,7 @@
               </div>
               <div flex="20">
                 <md-button ng-if="canKick(member)" ng-click="kickMember(member.name)" class="md-warn md-raised">Kick</md-button>
+                <md-button ng-if="canRescind(member)" ng-click="rescindInvite(member.identifier)" class="md-warn md-raised">Rescind</md-button>
               </div>
             </div>
           </md-content>
@@ -697,20 +710,24 @@
         <md-card-content layout="column" class="is-flex auto-flex">
           <md-toolbar>
             <div flex="100" layout="row" class="md-toolbar-tools">
-              <h3 flex="50"><a href="http://doks.idle.land/#!/GuildBuffs" target="_blank" class="fa fa-question-circle">&nbsp;Guild Buffs</a></h3>
-              <md-slider flex="50" min="1" max="9" ng-model="editable.buffLevel" md-discrete="md-discrete" ng-if="isAdmin" aria-label="buff level" class="md-accent"></md-slider>
+              <h3>Guild Buildings</h3>
             </div>
           </md-toolbar>
           <md-content style="flex-basis:50px;height:50px" layout="column" class="is-flex auto-flex">
-            <div flex="100" quick-repeat-list="buffType" quick-ng-repeat="type in ::buffTypes" layout="row" class="is-flex auto-flex adventure-log-item">
-              <div flex="15" class="text-center vertical-center"><span class="fa fa-fw fa-2x {{::nameToIcon(type)}}"></span></div>
-              <div flex="60">
-                <div>{{buffs[type] ? buffs[type].name : type}}</div>
-                <div ng-if="buffs[type]">Expires <span am-time-ago="buffs[type].expire"></span></div>
-                <dif ng-if="!buffs[type]">Not Purchased</dif>
+            <div flex="100" quick-repeat-list="buildings" quick-ng-repeat="building in buildings" layout="row" class="is-flex auto-flex adventure-log-item">
+              <div flex="5"></div>
+              <div flex="50">
+                <div>{{::building}}</div>
+                <div><small>Level {{guild.buildingLevels[building] || 0}}</small></div>
               </div>
-              <div flex="25">
-                <md-button ng-click="buyBuff(type)" ng-if="isAdmin" class="md-primary md-raised">Buy</md-button>
+              <div flex="45" ng-if="isLeader"><span ng-if="hasBuilt(building)">
+                  <md-button ng-disabled="!canBuild(guild.buildingLevelCosts[building])" ng-click="upgradeBuilding(building)" class="md-raised md-primary">Upgrade
+                    <md-tooltip>Next Level Cost: {{guild.buildingLevelCosts[building] | number:0}} gold</md-tooltip>
+                  </md-button>
+                  <md-button ng-if="guild._validProps[building].length" ng-click="openProps(building)" class="md-raised md-accent">Props</md-button></span>
+                <md-button ng-click="constructBuilding(building)" ng-if="!hasBuilt(building)" ng-disabled="!canBuild(flatCosts[guild.base].costs.build[guild.validBuildings[building].size])" class="md-raised md-primary md-hue-1">Construct
+                  <md-tooltip>Build Cost: {{flatCosts[guild.base].costs.build[guild.validBuildings[building].size] | number:0}} gold</md-tooltip>
+                </md-button>
               </div>
             </div>
           </md-content>
@@ -718,6 +735,67 @@
       </md-card>
     </div>
   </div>
+</script>
+<script type="text/ng-template" id="building-Academy">
+  <h3><a href="http://doks.idle.land/#!/Guild%20Buffs" target="_blank" class="inline-link fa fa-question-circle"></a>&nbsp;Guild Buffs</h3>
+  <div>Buff Level</div>
+  <md-slider min="1" max="{{guild.buildingGlobals.Academy.maxBuffLevel}}" ng-model="editable.buffLevel" md-discrete="md-discrete" aria-label="buff level" class="md-accent"></md-slider>
+  <div flex="100" ng-repeat="type in ::buffTypes" layout="row" class="is-flex auto-flex adventure-log-item bottom-margin-15">
+    <div flex="15" class="text-center vertical-center"><span class="fa fa-fw fa-2x {{::nameToIcon(type)}}"></span></div>
+    <div flex="60">
+      <div>{{buffs[type] ? buffs[type].name : type}}</div>
+      <div ng-if="buffs[type]">Expires <span am-time-ago="buffs[type].expire"></span></div>
+      <dif ng-if="!buffs[type]">Not Purchased</dif>
+    </div>
+    <div flex="25">
+      <md-button ng-click="buyBuff(type)" class="md-primary md-hue-1 md-raised">Buy</md-button>
+    </div>
+  </div>
+</script>
+<script type="text/ng-template" id="buildingProps">
+  <md-dialog>
+    <md-content>
+      <md-subheader class="md-sticky-no-effect">
+        <h2>{{building}} Properties</h2>
+      </md-subheader>
+      <div layout="column">
+        <div ng-repeat="prop in guild._validProps[building]">
+          <div flex="20" ng-if="prop.values">{{prop.name}}</div>
+          <div flex="80">
+            <md-input-container ng-if="!prop.values">
+              <label>{{prop.name}}</label>
+              <input type="text" ng-model="props[prop.name]"/>
+            </md-input-container>
+            <md-select ng-model="props[prop.name]" ng-if="_.isArray(prop.values)">
+              <md-select-label>{{props[prop.name]}}</md-select-label>
+              <md-option ng-value="opt" ng-repeat="opt in prop.values">{{opt}}</md-option>
+            </md-select>
+          </div>
+        </div>
+      </div>
+      <ng-include src="'building-'+building"></ng-include>
+    </md-content>
+    <div layout="row" class="md-actions">
+      <md-button ng-click="close()" class="md-raised">Close</md-button>
+      <md-button ng-click="save()" class="md-primary md-raised">Confirm</md-button>
+    </div>
+  </md-dialog>
+</script>
+<script type="text/ng-template" id="construct">
+  <md-dialog>
+    <md-content>
+      <md-subheader class="md-sticky-no-effect">
+        <h2>Choose a Slot for {{building}}</h2>
+      </md-subheader>
+      <md-radio-group ng-model="slot">
+        <md-radio-button ng-repeat="slot in takenSlots" ng-value="$index">{{slot || 'empty'}}</md-radio-button>
+      </md-radio-group>
+      <div layout="row" class="md-actions">
+        <md-button ng-click="close()" class="md-raised">Close</md-button>
+        <md-button ng-click="save()" class="md-primary md-raised">Confirm</md-button>
+      </div>
+    </md-content>
+  </md-dialog>
 </script>
 
 
@@ -844,6 +922,7 @@
             <md-switch ng-model="options.scrollback" ng-true-value="'true'" ng-false-value="'false'">Use Chat</md-switch>
             <div class="vital-stat"><span style="margin-left:18px; margin-right:18px" class="fa fa-fw fa-arrows-h"></span>
               <md-select ng-model="scrollbackPos" ng-change="changeScrollbackPosition()" class="no-margin-top">
+                <md-select-label>{{scrollbackPos}}</md-select-label>
                 <md-option ng-value="pos" ng-repeat="pos in ['left', 'center', 'right']">{{pos}}</md-option>
               </md-select>
             </div>
@@ -860,6 +939,7 @@
           <md-content class="card-padding hide-y-scrollbar"><span class="fa fa-fw fa-tint">
               <md-tooltip>Theme</md-tooltip></span>
             <md-select ng-model="theme" ng-change="changeTheme()" class="no-margin-top">
+              <md-select-label>{{theme}}</md-select-label>
               <md-option ng-value="theme" ng-repeat="theme in themes">{{theme}}</md-option>
             </md-select>
           </md-content>
@@ -945,6 +1025,7 @@
       </md-subheader>
       <div layout="row">
         <md-select ng-model="data.type">
+          <md-select-label>{{data.type.type}}</md-select-label>
           <md-optgroup ng-repeat="folder in folders" label="{{folder}}">
             <md-option ng-value="obj" ng-repeat="obj in types | filter:{folder: folder}">{{obj.type}}</md-option>
           </md-optgroup>
@@ -964,6 +1045,7 @@
       <md-button target="_blank" href="https://github.com/IdleLands/IdleLands/wiki/Town-Crier-Guide" ng-if="data.type.type === 'towncrier'" class="md-accent md-raised">Help</md-button>
       <md-button target="_blank" href="https://github.com/IdleLands/IdleLands/tree/master/assets/data/{{data.type.folder}}/{{data.type.type}}.txt" ng-if="data.type.type !== 'towncrier'" class="md-accent md-raised">Show Example</md-button>
       <md-button ng-click="cancel()" class="md-warn md-raised">Cancel</md-button>
+      <md-button ng-click="test()" ng-if="data.type.testable" class="md-primary md-hue-1 md-raised">Test</md-button>
       <md-button ng-click="submit()" class="md-primary md-raised">Submit</md-button>
     </div>
   </md-dialog>
@@ -1035,6 +1117,7 @@
               <div ng-if="player.titles.length &gt; 0" class="vital-stat"><span class="fa fa-fw fa-tag">
                   <md-tooltip>Title</md-tooltip></span>
                 <md-select ng-model="player.title" ng-change="changeTitle()" class="no-margin-top">
+                  <md-select-label>{{player.title}}</md-select-label>
                   <md-option ng-value="title" ng-repeat="title in titles">{{title}}</md-option>
                 </md-select>
               </div>

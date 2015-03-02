@@ -98,6 +98,9 @@
 .top-margin-15 {
   margin-top: 15px;
 }
+.bottom-margin-15 {
+  margin-bottom: 15px;
+}
 .no-margin-top {
   margin-top: 0;
 }
@@ -163,7 +166,7 @@
 .inline-link {
   cursor: pointer;
   color: #03A9F4;
-  text-decoration: underline;
+  text-decoration: none;
 }
 body {
   overflow-y: hidden;
@@ -285,10 +288,6 @@ body {
   flex-direction: column;
   flex: 1 1 auto;
 }
-#player-tabs .item-container,
-#pet-tabs .item-container {
-  border-bottom: 1px dotted #ccc;
-}
 #player-tabs .item-line,
 #pet-tabs .item-line {
   margin-left: 10px;
@@ -349,6 +348,9 @@ statistics-tree table {
 }
 .extended-input input {
   width: 100%;
+}
+md-dialog {
+  width: 500px;
 }
 
 .scrollback-left {
