@@ -788,7 +788,7 @@
         <h2>Choose a Slot for {{building}}</h2>
       </md-subheader>
       <md-radio-group ng-model="slot">
-        <md-radio-button ng-repeat="slot in takenSlots" ng-value="$index">{{slot || 'empty'}}</md-radio-button>
+        <md-radio-button ng-repeat="slot in takenSlots track by $index" ng-value="$index">{{slot || 'empty'}}</md-radio-button>
       </md-radio-group>
       <div layout="row" class="md-actions">
         <md-button ng-click="close()" class="md-raised">Close</md-button>
