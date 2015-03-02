@@ -8,7 +8,7 @@ angular.module 'IdleLands'
     $scope.initialize = ->
       $scope.guild = CurrentGuild.getGuild()
       $scope.guildInvites = CurrentGuildInvites.getGuildInvites()
-      $scope.guildHallMap = encodeURIComponent $scope.guild?.baseMapName
+      $scope.guildHallMap = if $scope.guild then encodeURIComponent $scope.guild.baseMapName else ''
 
       player = CurrentPlayer.getPlayer()
       $scope.currentlyInGuild = player?.guild

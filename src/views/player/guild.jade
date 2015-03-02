@@ -53,7 +53,7 @@ script(id="player-guild", type="text/ng-template")
                             span &nbsp;{{guild.gold.__current |number:0}} gold
                         div.vital-stat(ng-if="guildHallMap")
                             span.fa.fa-fw.fa-globe
-                            a(target="_blank",href="http://idle.land/s/maps/{{guildHallMap}}") Guild Hall
+                            md-button.inline-button.md-accent.md-raised(target="_blank",href="http://idle.land/s/maps/{{guildHallMap}}") Guild Hall
 
             md-card.inner-card(layout="column", ng-if="isAdmin")
                 md-card-content
