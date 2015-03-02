@@ -621,7 +621,9 @@
             <div class="vital-stat"><span class="fa fa-fw fa-sitemap"></span><span>&nbsp;Level {{guild.level}}</span></div>
             <div class="vital-stat"><span class="fa fa-fw fa-envelope"></span><span>&nbsp;{{guild.invitesAvailable}} invites left</span></div>
             <div class="vital-stat"><span class="fa fa-fw icon-money"></span><span>&nbsp;{{guild.gold.__current |number:0}} gold</span></div>
-            <div ng-if="guildHallMap" class="vital-stat"><span class="fa fa-fw fa-globe"></span><a target="_blank" href="http://idle.land/s/maps/{{guildHallMap}}">Guild Hall</a></div>
+            <div ng-if="guildHallMap" class="vital-stat"><span class="fa fa-fw fa-globe"></span>
+              <md-button target="_blank" href="http://idle.land/s/maps/{{guildHallMap}}" class="inline-button md-accent md-raised">Guild Hall</md-button>
+            </div>
           </md-content>
         </md-card-content>
       </md-card>
