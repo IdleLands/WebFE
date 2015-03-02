@@ -185,7 +185,7 @@ script(type="text/ng-template", id="construct")
                 h2 Choose a Slot for {{building}}
 
             md-radio-group(ng-model="slot")
-                md-radio-button(ng-repeat="slot in takenSlots", ng-value="$index") {{slot || 'empty'}}
+                md-radio-button(ng-repeat="slot in takenSlots track by $index", ng-value="$index") {{slot || 'empty'}}
 
             div.md-actions(layout="row")
                 md-button.md-raised(ng-click="close()") Close
