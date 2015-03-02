@@ -621,6 +621,7 @@
             <div class="vital-stat"><span class="fa fa-fw fa-sitemap"></span><span>&nbsp;Level {{guild.level}}</span></div>
             <div class="vital-stat"><span class="fa fa-fw fa-envelope"></span><span>&nbsp;{{guild.invitesAvailable}} invites left</span></div>
             <div class="vital-stat"><span class="fa fa-fw icon-money"></span><span>&nbsp;{{guild.gold.__current |number:0}} gold</span></div>
+            <div ng-if="guildHallMap" class="vital-stat"><span class="fa fa-fw fa-globe"></span><a target="_blank" href="http://idle.land/s/maps/{{guildHallMap}}">Guild Hall</a></div>
           </md-content>
         </md-card-content>
       </md-card>
@@ -710,7 +711,7 @@
         <md-card-content layout="column" class="is-flex auto-flex">
           <md-toolbar>
             <div flex="100" layout="row" class="md-toolbar-tools">
-              <h3>Guild Buildings</h3>
+              <h3><a href="http://doks.idle.land/#!/Guild/Buildings" target="_blank" class="inline-link fa fa-question-circle"></a>&nbsp;Guild Buildings</h3>
             </div>
           </md-toolbar>
           <md-content style="flex-basis:50px;height:50px" layout="column" class="is-flex auto-flex">
@@ -737,7 +738,7 @@
   </div>
 </script>
 <script type="text/ng-template" id="building-Academy">
-  <h3><a href="http://doks.idle.land/#!/Guild%20Buffs" target="_blank" class="inline-link fa fa-question-circle"></a>&nbsp;Guild Buffs</h3>
+  <h3><a href="http://doks.idle.land/#!/Guild/Buffs" target="_blank" class="inline-link fa fa-question-circle"></a>&nbsp;Guild Buffs</h3>
   <div>Buff Level</div>
   <md-slider min="1" max="{{guild.buildingGlobals.Academy.maxBuffLevel}}" ng-model="editable.buffLevel" md-discrete="md-discrete" aria-label="buff level" class="md-accent"></md-slider>
   <div flex="100" ng-repeat="type in ::buffTypes" layout="row" class="is-flex auto-flex adventure-log-item bottom-margin-15">

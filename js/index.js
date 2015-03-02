@@ -1085,13 +1085,15 @@
 (function() {
   angular.module('IdleLands').controller('PlayerGuild', [
     '$scope', '$mdDialog', 'CurrentGuild', 'CurrentGuildInvites', 'CurrentPlayer', 'API', function($scope, $mdDialog, CurrentGuild, CurrentGuildInvites, CurrentPlayer, API) {
+      $scope._ = window._;
       $scope.initialize = function() {
-        var player, _ref;
+        var player, _ref, _ref1;
         $scope.guild = CurrentGuild.getGuild();
         $scope.guildInvites = CurrentGuildInvites.getGuildInvites();
+        $scope.guildHallMap = encodeURIComponent((_ref = $scope.guild) != null ? _ref.baseMapName : void 0);
         player = CurrentPlayer.getPlayer();
         $scope.currentlyInGuild = player != null ? player.guild : void 0;
-        $scope.editable.guildTaxRate = (_ref = $scope.guild) != null ? _ref.taxPercent : void 0;
+        $scope.editable.guildTaxRate = (_ref1 = $scope.guild) != null ? _ref1.taxPercent : void 0;
         $scope.editable.selfTaxRate = player != null ? player.guildTax : void 0;
         if ($scope.currentlyInGuild) {
           $scope.setupGuildData();
