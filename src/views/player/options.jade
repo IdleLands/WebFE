@@ -164,7 +164,7 @@ script(id="submit-content",type="text/ng-template")
                 h2 Submit New Custom Content
             div(layout="row")
                 md-select(ng-model="data.type")
-                    md-select-label {{data.type}}
+                    md-select-label {{data.type.type}}
                     md-optgroup(ng-repeat="folder in folders",label="{{folder}}")
                         md-option(ng-value="obj",ng-repeat="obj in types | filter:{folder: folder}") {{obj.type}}
                 md-input-container(ng-if="data.type.requiresName")
