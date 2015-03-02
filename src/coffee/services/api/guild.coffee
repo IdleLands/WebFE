@@ -6,6 +6,9 @@ angular.module 'IdleLands'
     url = "#{baseURL}/guild"
     inviteUrl = "#{url}/invite"
     manageUrl = "#{url}/manage"
+    buildUrl  = "#{url}/building"
+
+    move:         (data) -> $http.put "#{url}/move", data
     
     create:       (data) -> $http.put  "#{url}/create", data
     leave:        (data) -> $http.post "#{url}/leave", data
@@ -23,4 +26,8 @@ angular.module 'IdleLands'
 
     tax:          (data) -> $http.post "#{manageUrl}/tax", data
     selftax:      (data) -> $http.post "#{baseURL}/player/manage/tax", data
+
+    construct:    (data) -> $http.put   "#{buildUrl}/construct", data
+    setProperty:  (data) -> $http.patch "#{buildUrl}/setProperty", data
+    upgrade:      (data) -> $http.post  "#{buildUrl}/upgrade", data
 ]

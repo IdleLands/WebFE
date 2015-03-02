@@ -15,7 +15,6 @@ angular.module 'IdleLands'
 
       if $scope.currentlyInGuild
         $scope.setupGuildData()
-        $scope.loadBuffsIntoHash()
         $scope.getDonationTiers()
 
     $scope.setupGuildData = ->
@@ -32,15 +31,18 @@ angular.module 'IdleLands'
       $scope.isAdmin = $scope.isLeader or _.findWhere admins, {identifier: myIdent}
 
       $scope.goldTiers = $scope.getDonationTiers()
+      $scope.buildings = _.keys $scope.guild.validBuildings
+
+      $scope.flatCosts = _.reduce $scope.guild.validBases, ((prev, base) -> prev[base.name] = base; prev), {}
+
+    $scope.hasBuilt = (building) ->
+      _.contains $scope.guild.currentlyBuilt[$scope.guild.validBuildings[building].size], building
+
+    $scope.canBuild = (cost) ->
+      $scope.guild.gold.__current >= cost
 
     $scope.checkLeader = (member) -> member.identifier is $scope.guild.leader
     $scope.checkAdmin  = (member) -> member.isAdmin
-
-    $scope.loadBuffsIntoHash = ->
-      $scope.buffs = {}
-
-      _.each $scope.guild.buffs, (buff) ->
-        $scope.buffs[buff.type] = buff
 
     $scope.getDonationTiers = ->
       x = []
@@ -52,17 +54,6 @@ angular.module 'IdleLands'
       return 'fa-star' if member.identifier is $scope.guild.leader
       return 'fa-star-half-o' if member.isAdmin
       'fa-star-o'
-
-    $scope.nameToIcon = (name) ->
-      switch name
-        when 'Strength'     then return 'fa-legal fa-rotate-90'
-        when 'Agility'      then return 'fa-bicycle'
-        when 'Constitution' then return 'fa-heart'
-        when 'Dexterity'    then return 'fa-crosshairs'
-        when 'Fortune'      then return 'icon-money'
-        when 'Intelligence' then return 'fa-mortar-board'
-        when 'Luck'         then return 'fa-moon-o'
-        when 'Wisdom'       then return 'fa-book'
 
     $scope.canKick = (member) ->
       currentPlayer = CurrentPlayer.getPlayer()
@@ -88,6 +79,22 @@ angular.module 'IdleLands'
     $scope.isInvited = (member) ->
       _.contains $scope.guild.invites, member.name
 
+    $scope.openProps = (building) ->
+      $mdDialog.show
+        controller: 'PropsController'
+        templateUrl: 'buildingProps'
+        locals:
+          building: building
+          guild: $scope.guild
+
+    $scope.constructBuilding = (building) ->
+      $mdDialog.show
+        controller: 'ConstructController'
+        templateUrl: 'construct'
+        locals:
+          building: building
+          guild: $scope.guild
+
     $scope.getTooltipText = (member) ->
       left = right = ''
 
@@ -99,17 +106,6 @@ angular.module 'IdleLands'
       right = if member._cache?.online then 'Online' else 'Offline'
 
       "#{left}, #{right}"
-
-    $scope.buffTypes = [
-      'Agility'
-      'Constitution'
-      'Dexterity'
-      'Fortune'
-      'Intelligence'
-      'Luck'
-      'Strength'
-      'Wisdom'
-    ]
 
     $scope.editable =
       guildName: ''
@@ -124,7 +120,6 @@ angular.module 'IdleLands'
       $scope.guild = val
       if $scope.guild
         $scope.setupGuildData()
-        $scope.loadBuffsIntoHash()
         $scope.getDonationTiers()
         $scope.editable.guildTaxRate = $scope.guild.taxPercent
 
@@ -142,9 +137,6 @@ angular.module 'IdleLands'
 
     $scope.manageInvite = (guild, accept) ->
       API.guild.manageInvite {guildName: guild, accepted: accept}
-
-    $scope.buyBuff = (type) ->
-      API.guild.buff {type: type, tier: $scope.editable.buffLevel}
 
     $scope.kickMember = (name) ->
       confirm = $mdDialog.confirm()
@@ -207,4 +199,87 @@ angular.module 'IdleLands'
     $scope.updateSelfTax = ->
       API.guild.selftax {taxPercent: $scope.editable.selfTaxRate}
 
+    $scope.move = ->
+      confirm = $mdDialog.confirm()
+      .title 'Change Guild Base'
+      .content "Are you sure you want to move to #{$scope.guild.base}? It will cost #{$scope.flatCosts[$scope.guild.base].costs.moveIn} gold."
+      .ok 'Yes'
+      .cancel 'No'
+
+      $mdDialog.show(confirm).then ->
+        API.guild.move {newLoc: $scope.guild.base}
+
+    $scope.upgradeBuilding = (building) ->
+      API.guild.upgrade {building}
+
+]
+
+angular.module 'IdleLands'
+.controller 'PropsController', [
+  '$scope', '$mdDialog', 'API', 'guild', 'building'
+  ($scope, $mdDialog, API, guild, building) ->
+    $scope._ = window._
+    $scope.close = $mdDialog.hide
+    $scope.building = building
+    $scope.guild = guild
+    $scope.props = guild.buildingProps[building] or {}
+    $scope.editable =
+      buffLevel: guild.buildingGlobals?.Academy?.maxBuffLevel
+
+    $scope.loadBuffsIntoHash = ->
+      $scope.buffs = {}
+
+      _.each guild.buffs, (buff) ->
+        $scope.buffs[buff.type] = buff
+
+    $scope.buffTypes = [
+      'Agility'
+      'Constitution'
+      'Dexterity'
+      'Fortune'
+      'Intelligence'
+      'Luck'
+      'Strength'
+      'Wisdom'
+    ]
+
+    $scope.nameToIcon = (name) ->
+      switch name
+        when 'Strength'     then return 'fa-legal fa-rotate-90'
+        when 'Agility'      then return 'fa-bicycle'
+        when 'Constitution' then return 'fa-heart'
+        when 'Dexterity'    then return 'fa-crosshairs'
+        when 'Fortune'      then return 'icon-money'
+        when 'Intelligence' then return 'fa-mortar-board'
+        when 'Luck'         then return 'fa-moon-o'
+        when 'Wisdom'       then return 'fa-book'
+
+    $scope.save = ->
+      _.each (_.keys $scope.props), (prop) ->
+        API.guild.setProperty {building: building, property: prop, value: $scope.props[prop]}
+      $scope.close()
+
+    $scope.buyBuff = (type) ->
+      API.guild.buff {type: type, tier: $scope.editable.buffLevel}
+
+    $scope.loadBuffsIntoHash()
+]
+
+angular.module 'IdleLands'
+.controller 'ConstructController', [
+  '$scope', '$mdDialog', 'API', 'guild', 'building'
+  ($scope, $mdDialog, API, guild, building) ->
+    $scope.close = $mdDialog.hide
+    $scope.building = building
+
+    buildingSize = guild.validBuildings[building].size
+
+    $scope.takenSlots = guild.currentlyBuilt[buildingSize]
+    slotCount = guild._validSlots[buildingSize]
+
+    $scope.takenSlots.length = slotCount
+
+    $scope.save = ->
+      API.guild.construct {slot: $scope.slot, building: building}
+      $scope.close()
 ]

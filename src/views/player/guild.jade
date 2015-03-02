@@ -68,10 +68,15 @@ script(id="player-guild", type="text/ng-template")
                         div.md-toolbar-tools
                             h3 Actions
                     md-content.card-padding
-                        div.vital-stat(ng-if="::!isLeader")
+                        div.vital-stat(ng-if="isLeader")
+                            span.fa.fa-fw.fa-home(flex="10")
+                            md-select.no-margin-top(ng-model="guild.base",ng-change="move()")
+                                md-select-label {{guild.base}}
+                                md-option(ng-value="opt.name", ng-repeat="opt in guild.validBases") {{opt.name}}
+                        div.vital-stat(ng-if="!isLeader")
                             span.fa.fa-fw.fa-anchor(flex="10")
                             md-button.inline-button.md-warn.md-raised(ng-click="leaveGuild()",flex="90") Leave
-                        div.vital-stat(ng-if="::isLeader")
+                        div.vital-stat(ng-if="isLeader")
                             span.fa.fa-fw.fa-anchor(flex="10")
                             md-button.inline-button.md-warn.md-raised(ng-click="disbandGuild()") Disband
                         div.vital-stat(flex,layout="row")
@@ -100,8 +105,8 @@ script(id="player-guild", type="text/ng-template")
                             div(flex="50")
                                 div(ng-class="{'italic text-tertiary': isInvited(member)}") {{member.name}}
                                 div(ng-if="member._cache.level && member._cache.class")
-                                    span Level {{member._cache.level}} {{member._cache.class}}
-                                    small(ng-if="member._cache.lastSeen && !member._cache.online") &nbsp;- Last seen <span am-time-ago="member._cache.lastSeen"></span>
+                                    small Level {{member._cache.level}} {{member._cache.class}}
+                                    small(ng-if="member._cache.lastSeen && !member._cache.online") <br>Last seen <span am-time-ago="member._cache.lastSeen"></span>
                                 div(ng-if="!member._cache.level && !member._cache.class && !isInvited(member)") Profile Unknown
                             div(flex="20",ng-if="!member.isAdmin && !$first")
                                 md-button.md-accent.md-raised(ng-if="isLeader", ng-click="promoteMember(member.name)") Promote
@@ -116,16 +121,72 @@ script(id="player-guild", type="text/ng-template")
                 md-card-content.is-flex.auto-flex(layout="column")
                     md-toolbar
                         div.md-toolbar-tools(flex="100",layout="row")
-                            h3(flex="50")
-                                a.fa.fa-question-circle(href="http://doks.idle.land/#!/GuildBuffs",target="_blank") &nbsp;Guild Buffs
-                            md-slider.md-accent(flex="50",min="1",max="9",ng-model="editable.buffLevel",md-discrete,ng-if="isAdmin",aria-label="buff level")
+                            h3 Guild Buildings
+
                     md-content.is-flex.auto-flex(style="flex-basis:50px;height:50px",layout="column")
-                        div.is-flex.auto-flex.adventure-log-item(flex="100",quick-repeat-list="buffType",quick-ng-repeat="type in ::buffTypes",layout="row")
-                            div.text-center.vertical-center(flex="15")
-                                span.fa.fa-fw.fa-2x(class="{{::nameToIcon(type)}}")
-                            div(flex="60")
-                                div {{buffs[type] ? buffs[type].name : type}}
-                                div(ng-if="buffs[type]") Expires <span am-time-ago="buffs[type].expire"></span>
-                                dif(ng-if="!buffs[type]") Not Purchased
-                            div(flex="25")
-                                md-button.md-primary.md-raised(ng-click="buyBuff(type)",ng-if="isAdmin") Buy
+                        div.is-flex.auto-flex.adventure-log-item(flex="100",quick-repeat-list="buildings",quick-ng-repeat="building in buildings",layout="row")
+                            div(flex="5")
+                            div(flex="50")
+                                div {{::building}}
+                                div
+                                    small Level {{guild.buildingLevels[building] || 0}}
+                            div(flex="45",ng-if="isLeader")
+                                span(ng-if="hasBuilt(building)")
+                                    md-button.md-raised.md-primary(ng-disabled="!canBuild(guild.buildingLevelCosts[building])",ng-click="upgradeBuilding(building)") Upgrade
+                                        md-tooltip Next Level Cost: {{guild.buildingLevelCosts[building] | number:0}} gold
+                                    md-button.md-raised.md-accent(ng-if="guild._validProps[building].length",ng-click="openProps(building)") Props
+                                md-button.md-raised.md-primary.md-hue-1(ng-click="constructBuilding(building)", ng-if="!hasBuilt(building)",ng-disabled="!canBuild(flatCosts[guild.base].costs.build[guild.validBuildings[building].size])") Construct
+                                    md-tooltip Build Cost: {{flatCosts[guild.base].costs.build[guild.validBuildings[building].size] | number:0}} gold
+
+script(type="text/ng-template", id="building-Academy")
+    h3
+        a.inline-link.fa.fa-question-circle(href="http://doks.idle.land/#!/Guild%20Buffs",target="_blank")
+        | &nbsp;Guild Buffs
+    div Buff Level
+    md-slider.md-accent(min="1",max="{{guild.buildingGlobals.Academy.maxBuffLevel}}",ng-model="editable.buffLevel",md-discrete,aria-label="buff level")
+    div.is-flex.auto-flex.adventure-log-item.bottom-margin-15(flex="100",ng-repeat="type in ::buffTypes",layout="row")
+        div.text-center.vertical-center(flex="15")
+            span.fa.fa-fw.fa-2x(class="{{::nameToIcon(type)}}")
+        div(flex="60")
+            div {{buffs[type] ? buffs[type].name : type}}
+            div(ng-if="buffs[type]") Expires <span am-time-ago="buffs[type].expire"></span>
+            dif(ng-if="!buffs[type]") Not Purchased
+        div(flex="25")
+            md-button.md-primary.md-hue-1.md-raised(ng-click="buyBuff(type)") Buy
+
+script(type="text/ng-template", id="buildingProps")
+    md-dialog
+        md-content
+            md-subheader.md-sticky-no-effect
+                h2 {{building}} Properties
+            div(layout="column")
+                div(ng-repeat="prop in guild._validProps[building]")
+
+                    div(flex="20", ng-if="prop.values") {{prop.name}}
+                    div(flex="80")
+                        md-input-container(ng-if="!prop.values")
+                            label {{prop.name}}
+                            input(type="text",ng-model="props[prop.name]")
+
+                        md-select(ng-model="props[prop.name]",ng-if="_.isArray(prop.values)")
+                            md-select-label {{props[prop.name]}}
+                            md-option(ng-value="opt", ng-repeat="opt in prop.values") {{opt}}
+
+            ng-include(src="'building-'+building")
+
+        div.md-actions(layout="row")
+            md-button.md-raised(ng-click="close()") Close
+            md-button.md-primary.md-raised(ng-click="save()") Confirm
+
+script(type="text/ng-template", id="construct")
+    md-dialog
+        md-content
+            md-subheader.md-sticky-no-effect
+                h2 Choose a Slot for {{building}}
+
+            md-radio-group(ng-model="slot")
+                md-radio-button(ng-repeat="slot in takenSlots", ng-value="$index") {{slot || 'empty'}}
+
+            div.md-actions(layout="row")
+                md-button.md-raised(ng-click="close()") Close
+                md-button.md-primary.md-raised(ng-click="save()") Confirm
