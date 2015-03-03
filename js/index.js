@@ -1207,7 +1207,8 @@
           templateUrl: 'buildingProps',
           locals: {
             building: building,
-            guild: $scope.guild
+            guild: $scope.guild,
+            isAdmin: $scope.isAdmin
           }
         });
       };
@@ -1354,12 +1355,13 @@
   ]);
 
   angular.module('IdleLands').controller('PropsController', [
-    '$scope', '$mdDialog', 'API', 'guild', 'building', function($scope, $mdDialog, API, guild, building) {
+    '$scope', '$mdDialog', 'API', 'guild', 'building', 'isAdmin', function($scope, $mdDialog, API, guild, building, isAdmin) {
       var _ref, _ref1;
       $scope._ = window._;
       $scope.close = $mdDialog.hide;
       $scope.building = building;
       $scope.guild = guild;
+      $scope.isAdmin = isAdmin;
       $scope.props = guild.buildingProps[building] || {};
       $scope.editable = {
         buffLevel: (_ref = guild.buildingGlobals) != null ? (_ref1 = _ref.Academy) != null ? _ref1.maxBuffLevel : void 0 : void 0

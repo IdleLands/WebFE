@@ -723,12 +723,12 @@
                 <div>{{::building}}</div>
                 <div><small>Level {{guild.buildingLevels[building] || 0}}</small></div>
               </div>
-              <div flex="45" ng-if="isLeader"><span ng-if="hasBuilt(building)">
-                  <md-button ng-disabled="!canBuild(guild.buildingLevelCosts[building])" ng-click="upgradeBuilding(building)" class="md-raised md-primary">Upgrade
+              <div flex="45"><span ng-if="hasBuilt(building)">
+                  <md-button ng-if="isAdmin" ng-disabled="!canBuild(guild.buildingLevelCosts[building])" ng-click="upgradeBuilding(building)" class="md-raised md-primary">Upgrade
                     <md-tooltip>Next Level Cost: {{guild.buildingLevelCosts[building] | number:0}} gold</md-tooltip>
                   </md-button>
                   <md-button ng-if="guild._validProps[building].length" ng-click="openProps(building)" class="md-raised md-accent">Props</md-button></span>
-                <md-button ng-click="constructBuilding(building)" ng-if="!hasBuilt(building)" ng-disabled="!canBuild(flatCosts[guild.base].costs.build[guild.validBuildings[building].size])" class="md-raised md-primary md-hue-1">Construct
+                <md-button ng-click="constructBuilding(building)" ng-if="isAdmin &amp;&amp; !hasBuilt(building)" ng-disabled="!canBuild(flatCosts[guild.base].costs.build[guild.validBuildings[building].size])" class="md-raised md-primary md-hue-1">Construct
                   <md-tooltip>Build Cost: {{flatCosts[guild.base].costs.build[guild.validBuildings[building].size] | number:0}} gold</md-tooltip>
                 </md-button>
               </div>
@@ -742,7 +742,7 @@
 <script type="text/ng-template" id="building-Academy">
   <h3><a href="http://doks.idle.land/#!/Guild/Buffs" target="_blank" class="inline-link fa fa-question-circle"></a>&nbsp;Guild Buffs</h3>
   <div>Buff Level</div>
-  <md-slider min="1" max="{{guild.buildingGlobals.Academy.maxBuffLevel}}" ng-model="editable.buffLevel" md-discrete="md-discrete" aria-label="buff level" class="md-accent"></md-slider>
+  <md-slider min="1" max="{{guild.buildingGlobals.Academy.maxBuffLevel}}" ng-model="editable.buffLevel" md-discrete="md-discrete" aria-label="buff level" ng-disabled="!isAdmin" class="md-accent"></md-slider>
   <div flex="100" ng-repeat="type in ::buffTypes" layout="row" class="is-flex auto-flex adventure-log-item bottom-margin-15">
     <div flex="15" class="text-center vertical-center"><span class="fa fa-fw fa-2x {{::nameToIcon(type)}}"></span></div>
     <div flex="60">
@@ -750,7 +750,7 @@
       <div ng-if="buffs[type]">Expires <span am-time-ago="buffs[type].expire"></span></div>
       <dif ng-if="!buffs[type]">Not Purchased</dif>
     </div>
-    <div flex="25">
+    <div flex="25" ng-if="isAdmin">
       <md-button ng-click="buyBuff(type)" class="md-primary md-hue-1 md-raised">Buy</md-button>
     </div>
   </div>
@@ -767,9 +767,9 @@
           <div flex="80">
             <md-input-container ng-if="!prop.values">
               <label>{{prop.name}}</label>
-              <input type="text" ng-model="props[prop.name]"/>
+              <input type="text" ng-model="props[prop.name]" ng-disabled="!isAdmin"/>
             </md-input-container>
-            <md-select ng-model="props[prop.name]" ng-if="_.isArray(prop.values)">
+            <md-select ng-model="props[prop.name]" ng-if="_.isArray(prop.values)" ng-disabled="!isAdmin">
               <md-select-label>{{props[prop.name]}}</md-select-label>
               <md-option ng-value="opt" ng-repeat="opt in prop.values">{{opt}}</md-option>
             </md-select>
@@ -780,7 +780,7 @@
     </md-content>
     <div layout="row" class="md-actions">
       <md-button ng-click="close()" class="md-raised">Close</md-button>
-      <md-button ng-click="save()" class="md-primary md-raised">Confirm</md-button>
+      <md-button ng-click="save()" ng-if="isAdmin" class="md-primary md-raised">Confirm</md-button>
     </div>
   </md-dialog>
 </script>
