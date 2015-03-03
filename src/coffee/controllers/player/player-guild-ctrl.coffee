@@ -89,6 +89,7 @@ angular.module 'IdleLands'
         locals:
           building: building
           guild: $scope.guild
+          isAdmin: $scope.isAdmin
 
     $scope.constructBuilding = (building) ->
       $mdDialog.show
@@ -219,12 +220,13 @@ angular.module 'IdleLands'
 
 angular.module 'IdleLands'
 .controller 'PropsController', [
-  '$scope', '$mdDialog', 'API', 'guild', 'building'
-  ($scope, $mdDialog, API, guild, building) ->
+  '$scope', '$mdDialog', 'API', 'guild', 'building', 'isAdmin'
+  ($scope, $mdDialog, API, guild, building, isAdmin) ->
     $scope._ = window._
     $scope.close = $mdDialog.hide
     $scope.building = building
     $scope.guild = guild
+    $scope.isAdmin = isAdmin
     $scope.props = guild.buildingProps[building] or {}
     $scope.editable =
       buffLevel: guild.buildingGlobals?.Academy?.maxBuffLevel

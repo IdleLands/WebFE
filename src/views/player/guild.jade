@@ -135,12 +135,12 @@ script(id="player-guild", type="text/ng-template")
                                 div {{::building}}
                                 div
                                     small Level {{guild.buildingLevels[building] || 0}}
-                            div(flex="45",ng-if="isLeader")
+                            div(flex="45")
                                 span(ng-if="hasBuilt(building)")
-                                    md-button.md-raised.md-primary(ng-disabled="!canBuild(guild.buildingLevelCosts[building])",ng-click="upgradeBuilding(building)") Upgrade
+                                    md-button.md-raised.md-primary(ng-if="isAdmin",ng-disabled="!canBuild(guild.buildingLevelCosts[building])",ng-click="upgradeBuilding(building)") Upgrade
                                         md-tooltip Next Level Cost: {{guild.buildingLevelCosts[building] | number:0}} gold
                                     md-button.md-raised.md-accent(ng-if="guild._validProps[building].length",ng-click="openProps(building)") Props
-                                md-button.md-raised.md-primary.md-hue-1(ng-click="constructBuilding(building)", ng-if="!hasBuilt(building)",ng-disabled="!canBuild(flatCosts[guild.base].costs.build[guild.validBuildings[building].size])") Construct
+                                md-button.md-raised.md-primary.md-hue-1(ng-click="constructBuilding(building)", ng-if="isAdmin && !hasBuilt(building)",ng-disabled="!canBuild(flatCosts[guild.base].costs.build[guild.validBuildings[building].size])") Construct
                                     md-tooltip Build Cost: {{flatCosts[guild.base].costs.build[guild.validBuildings[building].size] | number:0}} gold
 
 script(type="text/ng-template", id="building-Academy")
@@ -148,7 +148,7 @@ script(type="text/ng-template", id="building-Academy")
         a.inline-link.fa.fa-question-circle(href="http://doks.idle.land/#!/Guild/Buffs",target="_blank")
         | &nbsp;Guild Buffs
     div Buff Level
-    md-slider.md-accent(min="1",max="{{guild.buildingGlobals.Academy.maxBuffLevel}}",ng-model="editable.buffLevel",md-discrete,aria-label="buff level")
+    md-slider.md-accent(min="1",max="{{guild.buildingGlobals.Academy.maxBuffLevel}}",ng-model="editable.buffLevel",md-discrete,aria-label="buff level",ng-disabled="!isAdmin")
     div.is-flex.auto-flex.adventure-log-item.bottom-margin-15(flex="100",ng-repeat="type in ::buffTypes",layout="row")
         div.text-center.vertical-center(flex="15")
             span.fa.fa-fw.fa-2x(class="{{::nameToIcon(type)}}")
@@ -156,7 +156,7 @@ script(type="text/ng-template", id="building-Academy")
             div {{buffs[type] ? buffs[type].name : type}}
             div(ng-if="buffs[type]") Expires <span am-time-ago="buffs[type].expire"></span>
             dif(ng-if="!buffs[type]") Not Purchased
-        div(flex="25")
+        div(flex="25",ng-if="isAdmin")
             md-button.md-primary.md-hue-1.md-raised(ng-click="buyBuff(type)") Buy
 
 script(type="text/ng-template", id="buildingProps")
@@ -171,9 +171,9 @@ script(type="text/ng-template", id="buildingProps")
                     div(flex="80")
                         md-input-container(ng-if="!prop.values")
                             label {{prop.name}}
-                            input(type="text",ng-model="props[prop.name]")
+                            input(type="text",ng-model="props[prop.name]",ng-disabled="!isAdmin")
 
-                        md-select(ng-model="props[prop.name]",ng-if="_.isArray(prop.values)")
+                        md-select(ng-model="props[prop.name]",ng-if="_.isArray(prop.values)",ng-disabled="!isAdmin")
                             md-select-label {{props[prop.name]}}
                             md-option(ng-value="opt", ng-repeat="opt in prop.values") {{opt}}
 
@@ -181,7 +181,7 @@ script(type="text/ng-template", id="buildingProps")
 
         div.md-actions(layout="row")
             md-button.md-raised(ng-click="close()") Close
-            md-button.md-primary.md-raised(ng-click="save()") Confirm
+            md-button.md-primary.md-raised(ng-click="save()",ng-if="isAdmin") Confirm
 
 script(type="text/ng-template", id="construct")
     md-dialog
