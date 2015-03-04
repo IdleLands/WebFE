@@ -147,6 +147,15 @@ angular.module 'IdleLands'
       _.each $scope.customContentList, (item) ->
         item.currentlySelected = not item.currentlySelected
 
+    $scope.test = (data) ->
+      data.content = data.content?.trim() or ''
+
+      newData =
+        type: data.type
+        content: data.content
+
+      API.custom.test data: newData
+
     do $scope.refreshData = ->
       API.custom.list()
       .then (res) ->

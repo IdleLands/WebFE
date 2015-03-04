@@ -128,7 +128,7 @@ script(id="player-options", type="text/ng-template")
                             md-button.inline-button.md-accent.md-raised(target="_blank",href="http://idle.land/s/thanks") Special Thanks
 
 script(id="moderate-content",type="text/ng-template")
-    md-dialog
+    md-dialog.large-dialog
         md-content
             md-subheader.md-sticky-no-effect
                 h2 Moderate Custom Content
@@ -143,22 +143,26 @@ script(id="moderate-content",type="text/ng-template")
                     thead
                         tr
                             th
+                            th
                             th(width="100px") Type
                             th(width="400px") Content
                             th(width="200px") Submitter
                     tbody
-                        tr(ng-repeat="item in customContentList")
+                        tr.dotted(ng-repeat="item in customContentList")
+                            td
+                                md-button.md-raised.md-accent.md-hue-1(ng-click="test(item)") Test
                             td
                                 md-switch(ng-model="item.currentlySelected",aria-label="Toggle Selection")
                             td {{item.type}}
                             td {{item.content}}
                             td {{item.submitterName}}, <span am-time-ago='item.submissionTime'></span>
 
+
         div.md-actions(layout="row")
             md-button.md-warn.md-raised(ng-click="cancel()") Close
 
 script(id="submit-content",type="text/ng-template")
-    md-dialog
+    md-dialog.medium-dialog
         md-content
             md-subheader.md-sticky-no-effect
                 h2 Submit New Custom Content
