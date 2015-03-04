@@ -22,6 +22,7 @@ angular.module 'IdleLands'
         .simple()
         .position('top right')
         .content response.data.message
+        .hideDelay 7000
         .action 'Close'
       $toast.show toast
     response
