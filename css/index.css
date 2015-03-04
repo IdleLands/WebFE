@@ -252,6 +252,12 @@ md-card md-card-content {
   color: rgba(0, 0, 0, 0.54);
   font-style: italic;
 }
+.large-dialog {
+  width: 1000px;
+}
+.medium-dialog {
+  width: 750px;
+}
 
 #login-tabs .tab {
   height: 265px;
@@ -351,6 +357,9 @@ statistics-tree table {
 }
 md-dialog {
   width: 500px;
+}
+.dotted td {
+  border-bottom: 1px dotted #acacac;
 }
 
 .scrollback-left {

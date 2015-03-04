@@ -1766,6 +1766,17 @@
           return item.currentlySelected = !item.currentlySelected;
         });
       };
+      $scope.test = function(data) {
+        var newData, _ref;
+        data.content = ((_ref = data.content) != null ? _ref.trim() : void 0) || '';
+        newData = {
+          type: data.type,
+          content: data.content
+        };
+        return API.custom.test({
+          data: newData
+        });
+      };
       ($scope.refreshData = function() {
         return API.custom.list().then(function(res) {
           return $scope.customContentList = res.data.customs;
@@ -2413,7 +2424,7 @@
           var $toast, toast;
           if (canShowMessage(response)) {
             $toast = $injector.get('$mdToast');
-            toast = $toast.simple().position('top right').content(response.data.message).action('Close');
+            toast = $toast.simple().position('top right').content(response.data.message).hideDelay(7000).action('Close');
             $toast.show(toast);
           }
           return response;

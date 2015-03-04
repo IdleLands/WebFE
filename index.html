@@ -981,7 +981,7 @@
   </div>
 </script>
 <script id="moderate-content" type="text/ng-template">
-  <md-dialog>
+  <md-dialog class="large-dialog">
     <md-content>
       <md-subheader class="md-sticky-no-effect">
         <h2>Moderate Custom Content</h2>
@@ -997,13 +997,17 @@
           <thead>
             <tr>
               <th></th>
+              <th></th>
               <th width="100px">Type</th>
               <th width="400px">Content</th>
               <th width="200px">Submitter</th>
             </tr>
           </thead>
           <tbody>
-            <tr ng-repeat="item in customContentList">
+            <tr ng-repeat="item in customContentList" class="dotted">
+              <td>
+                <md-button ng-click="test(item)" class="md-raised md-accent md-hue-1">Test</md-button>
+              </td>
               <td>
                 <md-switch ng-model="item.currentlySelected" aria-label="Toggle Selection"></md-switch>
               </td>
@@ -1021,7 +1025,7 @@
   </md-dialog>
 </script>
 <script id="submit-content" type="text/ng-template">
-  <md-dialog>
+  <md-dialog class="medium-dialog">
     <md-content>
       <md-subheader class="md-sticky-no-effect">
         <h2>Submit New Custom Content</h2>
