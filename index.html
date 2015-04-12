@@ -277,7 +277,7 @@
               <div ng-if="pet" class="vital-stat"><span class="fa fa-fw fa-shield"></span>
                 <md-select ng-model="pet.professionName" ng-change="changePetClass()" class="no-margin-top">
                   <md-select-label>{{pet.professionName}}</md-select-label>
-                  <md-option ng-value="class" ng-repeat="class in availablePetClasses()">{{class}}</md-option>
+                  <md-option ng-value="class" ng-repeat="class in availablePetClasses() track by $index">{{class}}</md-option>
                 </md-select>
               </div>
             </div>
