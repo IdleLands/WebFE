@@ -72,7 +72,7 @@ script(id="pet-overview", type="text/ng-template")
                         span.fa.fa-fw.fa-shield
                         md-select.no-margin-top(ng-model="pet.professionName",ng-change="changePetClass()")
                             md-select-label {{pet.professionName}}
-                            md-option(ng-value="class",ng-repeat="class in availablePetClasses()") {{class}}
+                            md-option(ng-value="class",ng-repeat="class in availablePetClasses() track by $index") {{class}}
 
          md-card.inner-card(layout="column")
             md-card-content.is-flex.auto-flex(layout="column")
